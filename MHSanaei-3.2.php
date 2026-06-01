@@ -77,7 +77,17 @@ function addClient_MHSanaei($namepanel, $usernameac, $Expire, $Total, $subid, $i
     
     $inbounds_array = [];
     if (!empty($inboundid)) {
-        $inbounds_array = array_map('intval', explode(',', $inboundid));
+        if ($inboundid == "all" || $inboundid == "0") {
+            $url_inbounds = $panel['url_panel'] . '/panel/api/inbounds/options';
+            $res_inbounds = request_MHSanaei($url_inbounds, 'GET', $panel['password_panel']);
+            if (isset($res_inbounds['success']) && $res_inbounds['success'] && is_array($res_inbounds['obj'])) {
+                foreach ($res_inbounds['obj'] as $inb) {
+                    $inbounds_array[] = intval($inb['id']);
+                }
+            }
+        } else {
+            $inbounds_array = array_map('intval', explode(',', $inboundid));
+        }
     }
 
     $data = array(
@@ -226,10 +236,11 @@ function MHSanaei_router($methodName, $args) {
             $url = $panel['url_panel'] . '/panel/api/clients/update/' . urlencode($username);
             $update = request_MHSanaei($url, 'POST', $panel['password_panel'], $user_data);
             if (isset($update['success']) && $update['success']) {
+                $domain = (!empty($panel['linksubx']) && $panel['linksubx'] != "none") ? rtrim($panel['linksubx'], '/') : rtrim($panel['url_panel'], '/');
                 return array(
                     'status' => 'successful',
-                    'configs' => [ $panel['url_panel'] . "/sub/" . $user_data['subId'] ],
-                    'subscription_url' => $panel['url_panel'] . "/sub/" . $user_data['subId']
+                    'configs' => [ $domain . "/sub/" . $user_data['subId'] ],
+                    'subscription_url' => $domain . "/sub/" . $user_data['subId']
                 );
             }
             return array('status' => 'Unsuccessful', 'msg' => 'Unsuccessful');
