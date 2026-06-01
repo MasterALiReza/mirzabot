@@ -408,7 +408,7 @@ switch ($data['actions'] ?? '') {
             if (!isset($user_data_res['obj']))
                 sendJsonResponse(false, "User Not Found", [], 200);
             $user_data = $user_data_res['obj'];
-            $datainbound = $user_data['inboundId'];
+            $datainbound = isset($user_data['inboundId']) ? $user_data['inboundId'] : (isset($user_data['inboundIds']) ? $user_data['inboundIds'][0] : "");
         } elseif ($panel['type'] == "s_ui") {
             $user_data = GetClientsS_UI($data['input'], $panel['name_panel']);
             if (count($user_data) == 0) {
