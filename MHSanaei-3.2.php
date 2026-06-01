@@ -399,20 +399,19 @@ function resetAllTraffics_MHSanaei($namepanel) {
 }
 
 function check_connection_MHSanaei($code_panel) {
-    $panel = select("marzban_panel", "*", "code_panel", $code_panel, "select");
-    if (!$panel) {
-        return array('success' => false, 'msg' => 'Panel not found in database');
-    }
-    $url = $panel['url_panel'] . '/panel/api/server/status';
-    $res = request_MHSanaei($url, 'GET', $panel);
-    if (isset($res['success'])) {
+    // Exactly like x-ui_single, we just check if login succeeds.
+    $res = login($code_panel, false);
+    if (isset($res['success']) && $res['success']) {
         return $res;
     }
-    if (isset($res['detail'])) {
-        return array('success' => false, 'msg' => $res['detail']);
-    }
-    if (isset($res['obj']) || isset($res['cpu']) || isset($res['mem'])) {
-        return array('success' => true, 'msg' => 'Connected successfully');
+    
+    // Fallback: If login fails, maybe they provided a Bearer token in the password field.
+    // We verify by hitting an API endpoint.
+    $panel = select("marzban_panel", "*", "code_panel", $code_panel, "select");
+    $url = rtrim($panel['url_panel'], '/') . '/panel/api/inbounds/options';
+    $res_fallback = request_MHSanaei($url, 'GET', $panel);
+    if (isset($res_fallback['success']) && $res_fallback['success']) {
+        return array('success' => true, 'msg' => 'Connected via Token');
     }
     return $res;
 }
