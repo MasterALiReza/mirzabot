@@ -32,9 +32,14 @@ function panel_login_cookie_MHSanaei($code_panel)
     }
     curl_close($curl_csrf);
     
+    $origin = preg_replace('/^(https?:\/\/[^\/]+).*$/i', '$1', $base_url);
     $headers_form = array(
         'Content-Type: application/x-www-form-urlencoded',
-        'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
+        'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+        'Accept: application/json, text/plain, */*',
+        'X-Requested-With: XMLHttpRequest',
+        'Origin: ' . $origin,
+        'Referer: ' . $base_url . '/login'
     );
     if ($csrf_token) {
         $headers_form[] = 'X-CSRF-Token: ' . $csrf_token;
@@ -136,10 +141,14 @@ function request_MHSanaei($url, $method, $panel, $data = null) {
     }
     curl_close($curl_csrf);
 
+    $origin = preg_replace('/^(https?:\/\/[^\/]+).*$/i', '$1', $base_url);
     $headers = array(
-        'Accept: application/json',
+        'Accept: application/json, text/plain, */*',
         'Content-Type: application/json',
         'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+        'X-Requested-With: XMLHttpRequest',
+        'Origin: ' . $origin,
+        'Referer: ' . $base_url . '/'
     );
     if ($csrf_token) {
         $headers[] = 'X-CSRF-Token: ' . $csrf_token;
