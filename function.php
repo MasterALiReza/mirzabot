@@ -1756,17 +1756,25 @@ function formatServiceDeliveryLinks($panel_info, $dataoutput)
     $subscription_url = trim((string)($dataoutput['subscription_url'] ?? ''));
     $sublink_mode = $panel_info['sublink'] ?? '';
     $config_mode = $panel_info['config'] ?? '';
+    
     $has_subscription = in_array($sublink_mode, array('onsublink', 'bothsubandconfig'), true) && $subscription_url !== '';
+    $has_config = ($config_mode === 'onconfig' || $sublink_mode === 'bothsubandconfig') && !empty($configs);
 
-    if ($has_subscription) {
-        return array('main' => $subscription_url, 'extra' => '', 'configs' => $configs);
+    $main = '';
+    $extra = '';
+
+    if ($has_subscription && $has_config) {
+        $main = $subscription_url;
+        $extra = implode("\n\n", $configs);
+    } elseif ($has_subscription) {
+        $main = $subscription_url;
+        $extra = '';
+    } elseif ($has_config) {
+        $main = implode("\n\n", $configs);
+        $extra = '';
     }
 
-    if ($config_mode == 'onconfig' && !empty($configs)) {
-        return array('main' => implode("\n\n", $configs), 'extra' => '', 'configs' => $configs);
-    }
-
-    return array('main' => '', 'extra' => '', 'configs' => $configs);
+    return array('main' => $main, 'extra' => $extra, 'configs' => $configs);
 }
 function sendMessageService($panel_info, $config, $sub_link, $username_service, $reply_markup, $caption, $invoice_id, $user_id = null, $image = 'images.jpg')
 {
