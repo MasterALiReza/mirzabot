@@ -20,7 +20,7 @@ function panel_login_cookie($code_panel)
     ));
     $payload_form = "username={$panel['username_panel']}&password=" . urlencode($panel['password_panel']);
     
-    $last_error = '';
+    $debug_info = [];
 
     foreach ($login_urls as $url) {
         // Attempt 1: JSON payload (supported by MHSanaei 3.2+ and modern x-ui)
@@ -30,28 +30,37 @@ function panel_login_cookie($code_panel)
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT_MS => 5000,
+            CURLOPT_TIMEOUT_MS => 10000,
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => false,
             CURLOPT_CUSTOMREQUEST => 'POST',
             CURLOPT_POSTFIELDS => $payload_json,
             CURLOPT_HTTPHEADER => array(
                 'Content-Type: application/json',
-                'Accept: application/json'
+                'Accept: application/json',
+                'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
             ),
             CURLOPT_COOKIEJAR => 'cookie.txt',
         ));
         $response = curl_exec($curl);
         $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        if (!curl_error($curl) && $http_code == 200) {
+        $curl_err = curl_error($curl);
+        if (!$curl_err && $http_code == 200) {
             $decoded = json_decode($response, true);
-            if (isset($decoded['success']) && $decoded['success']) {
-                curl_close($curl);
-                return $response;
+            if (isset($decoded['success'])) {
+                if ($decoded['success']) {
+                    curl_close($curl);
+                    return $response;
+                } else {
+                    // Valid panel response but login failed (e.g., wrong password)
+                    curl_close($curl);
+                    return $response;
+                }
             }
         }
-        $last_error = curl_error($curl) ? curl_error($curl) : 'Invalid response or HTTP code: ' . $http_code;
+        $debug_info[] = "JSON [$url]: HTTP $http_code" . ($curl_err ? " ($curl_err)" : "");
         curl_close($curl);
         
         // Attempt 2: urlencoded form POST (fallback for old x-ui panels)
@@ -61,29 +70,41 @@ function panel_login_cookie($code_panel)
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT_MS => 5000,
+            CURLOPT_TIMEOUT_MS => 10000,
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => false,
             CURLOPT_CUSTOMREQUEST => 'POST',
             CURLOPT_POSTFIELDS => $payload_form,
+            CURLOPT_HTTPHEADER => array(
+                'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
+            ),
             CURLOPT_COOKIEJAR => 'cookie.txt',
         ));
         $response = curl_exec($curl);
         $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        if (!curl_error($curl) && $http_code == 200) {
+        $curl_err = curl_error($curl);
+        if (!$curl_err && $http_code == 200) {
             $decoded = json_decode($response, true);
-            if (isset($decoded['success']) && $decoded['success']) {
-                curl_close($curl);
-                return $response;
+            if (isset($decoded['success'])) {
+                if ($decoded['success']) {
+                    curl_close($curl);
+                    return $response;
+                } else {
+                    // Valid panel response but login failed (e.g., wrong password)
+                    curl_close($curl);
+                    return $response;
+                }
             }
         }
+        $debug_info[] = "Form [$url]: HTTP $http_code" . ($curl_err ? " ($curl_err)" : "");
         curl_close($curl);
     }
     
     return json_encode(array(
         'success' => false,
-        'msg' => $last_error ? $last_error : 'Login failed on all attempted URLs'
+        'msg' => 'Login failed. Details: ' . implode(" | ", $debug_info)
     ));
 }
 function login($code_panel, $verify = true)
