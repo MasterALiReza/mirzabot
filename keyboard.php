@@ -1057,6 +1057,29 @@ $optionX_ui_single = json_encode([
     ],
     'resize_keyboard' => true
 ]);
+$optionMHSanaei = json_encode([
+    'keyboard' => [
+        [['text' => $textbotlang['keyboard']['panelFeatureStatus']]],
+        [['text' => $textbotlang['keyboard']['panelName']], ['text' => $textbotlang['keyboard']['deletePanel']]],
+        [['text' => $textbotlang['keyboard']['editPassword']], ['text' => $textbotlang['keyboard']['editUsername']]],
+        [['text' => $textbotlang['keyboard']['editPanelUrl']], ['text' => $textbotlang['keyboard']['renewalMethod']]],
+        [['text' => $textbotlang['keyboard']['setInboundId']]],
+        [['text' => $textbotlang['keyboard']['usernameMethod']], ['text' => $textbotlang['extracted']['keyboard_php']['subLinkDomain']]],
+        [['text' => $textbotlang['keyboard']['changeUserGroup']], ['text' => $textbotlang['keyboard']['accountCreateLimit']]],
+        [['text' => $textbotlang['keyboard']['testServiceTime']], ['text' => $textbotlang['keyboard']['testAccountVolume']]],
+        [['text' => $textbotlang['keyboard']['changeLocationPrice']], ['text' => $textbotlang['keyboard']['extraVolumePrice']]],
+        [['text' => $textbotlang['keyboard']['extraTimePrice']], ['text' => $textbotlang['keyboard']['customVolumePrice']]],
+        [['text' => $textbotlang['keyboard']['customTimePrice']]],
+        [['text' => $textbotlang['keyboard']['minCustomVolume']], ['text' => $textbotlang['keyboard']['maxCustomVolume']]],
+        [['text' => $textbotlang['keyboard']['minCustomTime']], ['text' => $textbotlang['keyboard']['maxCustomTime']]],
+        [['text' => $textbotlang['keyboard']['hidePanelForUser']]],
+        [['text' => $textbotlang['keyboard']['removeFromHiddenList']]],
+        [['text' => $textbotlang['keyboard']['restartXray']], ['text' => $textbotlang['keyboard']['resetAllTraffics']]],
+        [['text' => $textbotlang['keyboard']['deleteDepleted']]],
+        [['text' => $textbotlang['Admin']['backAdminBtn']], ['text' => $textbotlang['Admin']['backMenuBtn']]]
+    ],
+    'resize_keyboard' => true
+]);
 $optionalireza_single = json_encode([
     'keyboard' => [
         [['text' => $textbotlang['keyboard']['panelFeatureStatus']]],

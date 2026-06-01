@@ -324,3 +324,23 @@ function MHSanaei_router($methodName, $args) {
             return array('status' => false, 'msg' => 'Method not supported');
     }
 }
+
+// === New Features for MHSanaei 3.2 ===
+
+function restartXray_MHSanaei($namepanel) {
+    $panel = select("marzban_panel", "*", "name_panel", $namepanel, "select");
+    $url = $panel['url_panel'] . '/panel/api/server/restartXrayService';
+    return request_MHSanaei($url, 'POST', $panel['password_panel']);
+}
+
+function delDepleted_MHSanaei($namepanel) {
+    $panel = select("marzban_panel", "*", "name_panel", $namepanel, "select");
+    $url = $panel['url_panel'] . '/panel/api/clients/delDepleted';
+    return request_MHSanaei($url, 'POST', $panel['password_panel']);
+}
+
+function resetAllTraffics_MHSanaei($namepanel) {
+    $panel = select("marzban_panel", "*", "name_panel", $namepanel, "select");
+    $url = $panel['url_panel'] . '/panel/api/clients/resetAllTraffics';
+    return request_MHSanaei($url, 'POST', $panel['password_panel']);
+}

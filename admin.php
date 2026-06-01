@@ -3505,14 +3505,15 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
         }
     } elseif ($marzban_list_get['type'] == "x-ui_single" || $marzban_list_get['type'] == "MHSanaei-3.2") {
         $x_ui_check_connect = login($marzban_list_get['code_panel'], false);
+        $panel_option = ($marzban_list_get['type'] == "MHSanaei-3.2") ? $optionMHSanaei : $optionX_ui_single;
         if ($x_ui_check_connect['success']) {
-            sendmessage($from_id, $textbotlang['Admin']['managepanel']['connectXUi'], $optionX_ui_single, 'HTML');
+            sendmessage($from_id, $textbotlang['Admin']['managepanel']['connectXUi'], $panel_option, 'HTML');
         } elseif ($x_ui_check_connect['msg'] == "Invalid username or password.") {
             $text_marzban = $textbotlang['Admin']['adminphp']['err_invalid_panel_user'];
-            sendmessage($from_id, $text_marzban, $optionX_ui_single, 'HTML');
+            sendmessage($from_id, $text_marzban, $panel_option, 'HTML');
         } else {
             $text_marzban = $textbotlang['Admin']['managepanel']['errorStatusPanel'] . sprintf($textbotlang['Admin']['adminphp']['err_error_5'], $x_ui_check_connect['msg']);
-            sendmessage($from_id, $text_marzban, $optionX_ui_single, 'HTML');
+            sendmessage($from_id, $text_marzban, $panel_option, 'HTML');
         }
     } elseif ($marzban_list_get['type'] == "alireza_single") {
         $x_ui_check_connect = login($marzban_list_get['code_panel'], false);
@@ -3760,6 +3761,45 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
         $stmt = $pdo->prepare("DELETE FROM marzban_panel WHERE name_panel = :name_panel");
         $stmt->bindParam(':name_panel', $user['Processing_value'], PDO::PARAM_STR);
         $stmt->execute();
+    }
+    step('home', $from_id);
+} elseif ($text == $textbotlang['keyboard']['restartXray'] && $adminrulecheck['rule'] == "administrator") {
+    sendmessage($from_id, $textbotlang['Admin']['managepanel']['confirmRestartXray'], $backadmin, 'HTML');
+    step('confirmrestartxray', $from_id);
+} elseif ($user['step'] == "confirmrestartxray") {
+    if ($text == $textbotlang['keyboard']['confirm']) {
+        $res = restartXray_MHSanaei($user['Processing_value']);
+        if (isset($res['success']) && $res['success']) {
+            sendmessage($from_id, $textbotlang['Admin']['managepanel']['successRestart'], $keyboardadmin, 'HTML');
+        } else {
+            sendmessage($from_id, "Error: " . json_encode($res), $keyboardadmin, 'HTML');
+        }
+    }
+    step('home', $from_id);
+} elseif ($text == $textbotlang['keyboard']['deleteDepleted'] && $adminrulecheck['rule'] == "administrator") {
+    sendmessage($from_id, $textbotlang['Admin']['managepanel']['confirmDeleteDepleted'], $backadmin, 'HTML');
+    step('confirmdeletedepleted', $from_id);
+} elseif ($user['step'] == "confirmdeletedepleted") {
+    if ($text == $textbotlang['keyboard']['confirm']) {
+        $res = delDepleted_MHSanaei($user['Processing_value']);
+        if (isset($res['success']) && $res['success']) {
+            sendmessage($from_id, $textbotlang['Admin']['managepanel']['successDelete'], $keyboardadmin, 'HTML');
+        } else {
+            sendmessage($from_id, "Error: " . json_encode($res), $keyboardadmin, 'HTML');
+        }
+    }
+    step('home', $from_id);
+} elseif ($text == $textbotlang['keyboard']['resetAllTraffics'] && $adminrulecheck['rule'] == "administrator") {
+    sendmessage($from_id, $textbotlang['Admin']['managepanel']['confirmResetAllTraffics'], $backadmin, 'HTML');
+    step('confirmresetalltraffics', $from_id);
+} elseif ($user['step'] == "confirmresetalltraffics") {
+    if ($text == $textbotlang['keyboard']['confirm']) {
+        $res = resetAllTraffics_MHSanaei($user['Processing_value']);
+        if (isset($res['success']) && $res['success']) {
+            sendmessage($from_id, $textbotlang['Admin']['managepanel']['successReset'], $keyboardadmin, 'HTML');
+        } else {
+            sendmessage($from_id, "Error: " . json_encode($res), $keyboardadmin, 'HTML');
+        }
     }
     step('home', $from_id);
 } elseif ($text == $textbotlang['Admin']['btnKeyboard']['manageUser'] || $datain == "backlistuser") {
