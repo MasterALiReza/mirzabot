@@ -6,10 +6,42 @@ require_once 'request.php';
 function request_MHSanaei($url, $method, $panel, $data = null) {
     login($panel['code_panel']);
     
+    $base_url = rtrim($panel['url_panel'], '/');
+    $csrf_token = '';
+    
+    // MHSanaei 3.2+ API requires CSRF token for unsafe methods
+    $curl_csrf = curl_init();
+    curl_setopt_array($curl_csrf, array(
+        CURLOPT_URL => $base_url . '/csrf-token',
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_SSL_VERIFYHOST => false,
+        CURLOPT_TIMEOUT_MS => 5000,
+        CURLOPT_HTTPHEADER => array(
+            'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
+        ),
+        CURLOPT_COOKIEJAR => 'cookie.txt',
+        CURLOPT_COOKIEFILE => 'cookie.txt',
+    ));
+    $csrf_resp = curl_exec($curl_csrf);
+    if (curl_getinfo($curl_csrf, CURLINFO_HTTP_CODE) == 200) {
+        $csrf_dec = json_decode($csrf_resp, true);
+        if (isset($csrf_dec['success']) && $csrf_dec['success'] && isset($csrf_dec['obj'])) {
+            $csrf_token = $csrf_dec['obj'];
+        }
+    }
+    curl_close($curl_csrf);
+
     $headers = array(
         'Accept: application/json',
         'Content-Type: application/json',
+        'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
     );
+    if ($csrf_token) {
+        $headers[] = 'X-CSRF-Token: ' . $csrf_token;
+    }
+    
     $req = new CurlRequest($url);
     $req->setHeaders($headers);
     $req->setCookie('cookie.txt');
