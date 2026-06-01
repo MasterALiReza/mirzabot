@@ -2,55 +2,173 @@
 require_once 'config.php';
 require_once 'request.php';
 
-
-function panel_login_cookie_MHSanaei($code_panel)
+function mhsanaei_cookie_file($code_panel)
 {
-    $panel = select("marzban_panel", "*", "code_panel", $code_panel, "select");
-    $base_url = rtrim(trim($panel['url_panel']), '/');
-    $cookie_file = __DIR__ . '/cookie_mhsanaei_' . $code_panel . '.txt';
-    
-    $csrf_token = '';
-    $curl_csrf = curl_init();
-    curl_setopt_array($curl_csrf, array(
+    $safe_code = preg_replace('/[^a-zA-Z0-9_.-]/', '_', (string)$code_panel);
+    $dir = sys_get_temp_dir();
+    if (!is_dir($dir) || !is_writable($dir)) {
+        $dir = __DIR__;
+    }
+    return rtrim($dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'mirzabot_mhsanaei_' . md5(__DIR__) . '_' . $safe_code . '.txt';
+}
+
+function mhsanaei_prepare_cookie_file($cookie_file, $reset = false)
+{
+    $dir = dirname($cookie_file);
+    if (!is_dir($dir) && !@mkdir($dir, 0775, true)) {
+        return false;
+    }
+    if ($reset && is_file($cookie_file)) {
+        @unlink($cookie_file);
+    }
+    if (!is_file($cookie_file) && @file_put_contents($cookie_file, '') === false) {
+        return false;
+    }
+    return is_writable($cookie_file);
+}
+
+function mhsanaei_base_url($panel)
+{
+    return rtrim(trim($panel['url_panel']), '/');
+}
+
+function mhsanaei_origin($base_url)
+{
+    $parts = parse_url($base_url);
+    if (!empty($parts['scheme']) && !empty($parts['host'])) {
+        $port = isset($parts['port']) ? ':' . $parts['port'] : '';
+        return $parts['scheme'] . '://' . $parts['host'] . $port;
+    }
+    return preg_replace('/^(https?:\/\/[^\/]+).*$/i', '$1', $base_url);
+}
+
+function mhsanaei_json_error($msg)
+{
+    return json_encode(array('success' => false, 'msg' => $msg), JSON_UNESCAPED_UNICODE);
+}
+
+function mhsanaei_fetch_csrf($base_url, $cookie_file)
+{
+    if (!mhsanaei_prepare_cookie_file($cookie_file)) {
+        return array('success' => false, 'msg' => 'Cookie file is not writable');
+    }
+
+    $curl = curl_init();
+    curl_setopt_array($curl, array(
         CURLOPT_URL => $base_url . '/csrf-token',
         CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => '',
+        CURLOPT_MAXREDIRS => 10,
         CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
         CURLOPT_SSL_VERIFYPEER => false,
         CURLOPT_SSL_VERIFYHOST => false,
-        CURLOPT_TIMEOUT_MS => 5000,
+        CURLOPT_TIMEOUT_MS => 10000,
         CURLOPT_HTTPHEADER => array(
-            'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
+            'Accept: application/json, text/plain, */*',
+            'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+            'X-Requested-With: XMLHttpRequest'
         ),
         CURLOPT_COOKIEJAR => $cookie_file,
         CURLOPT_COOKIEFILE => $cookie_file,
     ));
-    $csrf_resp = curl_exec($curl_csrf);
-    if (curl_getinfo($curl_csrf, CURLINFO_HTTP_CODE) == 200) {
-        $csrf_dec = json_decode($csrf_resp, true);
-        if (isset($csrf_dec['success']) && $csrf_dec['success'] && isset($csrf_dec['obj'])) {
-            $csrf_token = $csrf_dec['obj'];
-        }
+    $response = curl_exec($curl);
+    $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+    $curl_error = curl_error($curl);
+    curl_close($curl);
+
+    if ($curl_error) {
+        return array('success' => false, 'msg' => $curl_error);
     }
-    curl_close($curl_csrf);
-    
-    $origin = preg_replace('/^(https?:\/\/[^\/]+).*$/i', '$1', $base_url);
+    if ($http_code != 200) {
+        return array('success' => false, 'msg' => 'CSRF HTTP Error ' . $http_code);
+    }
+
+    $decoded = json_decode($response, true);
+    if (isset($decoded['success']) && $decoded['success'] && !empty($decoded['obj'])) {
+        return array('success' => true, 'token' => $decoded['obj']);
+    }
+
+    return array('success' => false, 'msg' => 'CSRF token not received');
+}
+
+function mhsanaei_send_request($url, $method, array $headers, $cookie_file = null, $data = null)
+{
+    $req = new CurlRequest($url);
+    $req->setHeaders($headers);
+    if ($cookie_file && is_file($cookie_file)) {
+        $req->setCookie($cookie_file);
+    }
+
+    $method = strtoupper($method);
+    $postData = is_array($data) ? json_encode($data) : $data;
+    if ($method == 'POST') {
+        return $req->post($postData);
+    }
+    if ($method == 'PUT') {
+        return $req->put($postData);
+    }
+    if ($method == 'DELETE') {
+        return $req->delete($postData);
+    }
+    if ($method == 'PATCH') {
+        return $req->PATCH($postData);
+    }
+    return $req->get();
+}
+
+function mhsanaei_decode_panel_response($response)
+{
+    if (!isset($response['body'])) {
+        return null;
+    }
+    return json_decode($response['body'], true);
+}
+
+function mhsanaei_bearer_request($url, $method, $panel, $data = null)
+{
+    $headers = array(
+        'Accept: application/json',
+        'Content-Type: application/json',
+        'Authorization: Bearer ' . $panel['password_panel']
+    );
+    return mhsanaei_send_request($url, $method, $headers, null, $data);
+}
+
+function panel_login_cookie_MHSanaei($code_panel)
+{
+    $panel = select("marzban_panel", "*", "code_panel", $code_panel, "select");
+    $base_url = mhsanaei_base_url($panel);
+    $cookie_file = mhsanaei_cookie_file($code_panel);
+
+    if (!mhsanaei_prepare_cookie_file($cookie_file, true)) {
+        return mhsanaei_json_error('Cookie file is not writable');
+    }
+
+    $csrf = mhsanaei_fetch_csrf($base_url, $cookie_file);
+    if (empty($csrf['success'])) {
+        return mhsanaei_json_error('CSRF failed: ' . ($csrf['msg'] ?? 'Unknown error'));
+    }
+
+    $origin = mhsanaei_origin($base_url);
     $headers_form = array(
-        'Content-Type: application/x-www-form-urlencoded',
-        'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
         'Accept: application/json, text/plain, */*',
+        'Content-Type: application/x-www-form-urlencoded; charset=UTF-8',
+        'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
         'X-Requested-With: XMLHttpRequest',
         'Origin: ' . $origin,
-        'Referer: ' . $base_url . '/login'
+        'Referer: ' . $base_url . '/login',
+        'X-CSRF-Token: ' . $csrf['token']
     );
-    if ($csrf_token) {
-        $headers_form[] = 'X-CSRF-Token: ' . $csrf_token;
-    }
-    
-    $payload_form = "username=" . trim($panel['username_panel']) . "&password=" . urlencode(trim($panel['password_panel']));
+
+    $payload_form = http_build_query(array(
+        'username' => trim((string)$panel['username_panel']),
+        'password' => (string)$panel['password_panel'],
+        'twoFactorCode' => ''
+    ));
 
     $curl = curl_init();
     curl_setopt_array($curl, array(
-        CURLINFO_HEADER_OUT => true,
         CURLOPT_URL => $base_url . '/login',
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_ENCODING => '',
@@ -68,20 +186,15 @@ function panel_login_cookie_MHSanaei($code_panel)
     ));
     $response = curl_exec($curl);
     $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-    $headers_out = curl_getinfo($curl, CURLINFO_HEADER_OUT);
+    $curl_error = curl_error($curl);
+    curl_close($curl);
     
-    if (curl_error($curl)) {
-        return json_encode(array(
-            'success' => false,
-            'msg' => curl_error($curl) . ' | HTTP: ' . $http_code
-        ));
+    if ($curl_error) {
+        return mhsanaei_json_error($curl_error . ' | HTTP: ' . $http_code);
     }
     
     if ($http_code != 200) {
-        return json_encode(array(
-            'success' => false,
-            'msg' => 'HTTP Error ' . $http_code . ' | Req: ' . str_replace("\r\n", " ", $headers_out)
-        ));
+        return mhsanaei_json_error('HTTP Error ' . $http_code);
     }
     
     return $response;
@@ -90,64 +203,72 @@ function panel_login_cookie_MHSanaei($code_panel)
 function login_MHSanaei($code_panel, $verify = true)
 {
     $panel = select("marzban_panel", "*", "code_panel", $code_panel, "select");
-    $cookie_file = __DIR__ . '/cookie_mhsanaei_' . $panel['code_panel'] . '.txt';
+    $cookie_file = mhsanaei_cookie_file($panel['code_panel']);
 
     if ($panel['datelogin'] != null && $verify) {
         $date = json_decode($panel['datelogin'], true);
-        if (isset($date['time'])) {
+        if (isset($date['time'], $date['access_token']) && trim($date['access_token']) !== '') {
             $time = $date['time'];
             $time = strtotime($time);
             $time = $time + 60 * 60;
             if ($time > time()) {
-                file_put_contents($cookie_file, $date['access_token']);
-                return array('success' => true);
+                if (mhsanaei_prepare_cookie_file($cookie_file, true) && @file_put_contents($cookie_file, $date['access_token']) !== false) {
+                    return array('success' => true);
+                }
             }
         }
     }
 
     $response = panel_login_cookie_MHSanaei($panel['code_panel']);
-    $time = date('Y/m/d H:i:s');
-    $data = json_encode(array(
-        'time' => $time,
-        'access_token' => file_exists($cookie_file) ? file_get_contents($cookie_file) : ''
-    ));
-    update("marzban_panel", "datelogin", $data, 'name_panel', $panel['name_panel']);
-    if (!is_string($response))
+
+    if (!is_string($response)) {
         return array('success' => false);
-    return json_decode($response, true);
+    }
+
+    $decoded = json_decode($response, true);
+    if (isset($decoded['success']) && $decoded['success'] && is_file($cookie_file) && filesize($cookie_file) > 0) {
+        $data = json_encode(array(
+            'time' => date('Y/m/d H:i:s'),
+            'access_token' => file_get_contents($cookie_file)
+        ));
+        update("marzban_panel", "datelogin", $data, 'name_panel', $panel['name_panel']);
+    } elseif (isset($decoded['success']) && !$decoded['success']) {
+        update("marzban_panel", "datelogin", null, 'name_panel', $panel['name_panel']);
+    }
+
+    return is_array($decoded) ? $decoded : array('success' => false, 'msg' => 'Invalid panel response');
 }
 
 function request_MHSanaei($url, $method, $panel, $data = null) {
-    login_MHSanaei($panel['code_panel']);
-    
-    $base_url = rtrim($panel['url_panel'], '/');
+    $login = login_MHSanaei($panel['code_panel']);
+    $base_url = mhsanaei_base_url($panel);
+    $cookie_file = mhsanaei_cookie_file($panel['code_panel']);
     $csrf_token = '';
-    
-    // MHSanaei 3.2+ API requires CSRF token for unsafe methods
-    $curl_csrf = curl_init();
-    curl_setopt_array($curl_csrf, array(
-        CURLOPT_URL => $base_url . '/csrf-token',
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_SSL_VERIFYPEER => false,
-        CURLOPT_SSL_VERIFYHOST => false,
-        CURLOPT_TIMEOUT_MS => 5000,
-        CURLOPT_HTTPHEADER => array(
-            'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
-        ),
-        CURLOPT_COOKIEJAR => 'cookie.txt',
-        CURLOPT_COOKIEFILE => 'cookie.txt',
-    ));
-    $csrf_resp = curl_exec($curl_csrf);
-    if (curl_getinfo($curl_csrf, CURLINFO_HTTP_CODE) == 200) {
-        $csrf_dec = json_decode($csrf_resp, true);
-        if (isset($csrf_dec['success']) && $csrf_dec['success'] && isset($csrf_dec['obj'])) {
-            $csrf_token = $csrf_dec['obj'];
+
+    if (empty($login['success'])) {
+        $bearer_response = mhsanaei_bearer_request($url, $method, $panel, $data);
+        $bearer_decoded = mhsanaei_decode_panel_response($bearer_response);
+        if ($bearer_decoded !== null) {
+            return $bearer_decoded;
+        }
+        return $login;
+    }
+
+    if (!in_array(strtoupper($method), array('GET', 'HEAD', 'OPTIONS', 'TRACE'))) {
+        $csrf = mhsanaei_fetch_csrf($base_url, $cookie_file);
+        if (!empty($csrf['success'])) {
+            $csrf_token = $csrf['token'];
+        } else {
+            $bearer_response = mhsanaei_bearer_request($url, $method, $panel, $data);
+            $bearer_decoded = mhsanaei_decode_panel_response($bearer_response);
+            if ($bearer_decoded !== null) {
+                return $bearer_decoded;
+            }
+            return array('success' => false, 'msg' => 'CSRF failed: ' . ($csrf['msg'] ?? 'Unknown error'));
         }
     }
-    curl_close($curl_csrf);
 
-    $origin = preg_replace('/^(https?:\/\/[^\/]+).*$/i', '$1', $base_url);
+    $origin = mhsanaei_origin($base_url);
     $headers = array(
         'Accept: application/json, text/plain, */*',
         'Content-Type: application/json',
@@ -159,24 +280,8 @@ function request_MHSanaei($url, $method, $panel, $data = null) {
     if ($csrf_token) {
         $headers[] = 'X-CSRF-Token: ' . $csrf_token;
     }
-    
-    $cookie_file = __DIR__ . '/cookie_mhsanaei_' . $panel['code_panel'] . '.txt';
-    $req = new CurlRequest($url);
-    $req->setHeaders($headers);
-    if (file_exists($cookie_file)) {
-        $req->setCookie($cookie_file);
-    }
-    
-    if ($method == 'POST') {
-        $postData = is_array($data) ? json_encode($data) : $data;
-        $response = $req->post($postData);
-    } else {
-        $response = $req->get();
-    }
-    
-    if (is_file('cookie.txt')) {
-        @unlink('cookie.txt');
-    }
+
+    $response = mhsanaei_send_request($url, $method, $headers, $cookie_file, $data);
     
     if (isset($response['body'])) {
         $decoded = json_decode($response['body'], true);
@@ -186,20 +291,7 @@ function request_MHSanaei($url, $method, $panel, $data = null) {
     }
     
     // Fallback: If cookie failed (maybe user actually put an API token in password field)
-    $authHeader = 'Authorization: Bearer ' . $panel['password_panel'];
-    $req = new CurlRequest($url);
-    $headers = array(
-        'Accept: application/json',
-        'Content-Type: application/json',
-        $authHeader
-    );
-    $req->setHeaders($headers);
-    if ($method == 'POST') {
-        $postData = is_array($data) ? json_encode($data) : $data;
-        $response = $req->post($postData);
-    } else {
-        $response = $req->get();
-    }
+    $response = mhsanaei_bearer_request($url, $method, $panel, $data);
 
     if (isset($response['body'])) {
         $decoded = json_decode($response['body'], true);
@@ -561,11 +653,19 @@ function resetAllTraffics_MHSanaei($namepanel) {
 }
 
 function check_connection_MHSanaei($code_panel) {
-    // Use same login as x-ui_single
+    $panel = select("marzban_panel", "*", "code_panel", $code_panel, "select");
     $res = login_MHSanaei($code_panel, false);
     if (isset($res['success']) && $res['success']) {
         return $res;
     }
+
+    $status_url = mhsanaei_base_url($panel) . '/panel/api/server/status';
+    $bearer_response = mhsanaei_bearer_request($status_url, 'GET', $panel);
+    $bearer_decoded = mhsanaei_decode_panel_response($bearer_response);
+    if (isset($bearer_decoded['success']) && $bearer_decoded['success']) {
+        return array('success' => true, 'msg' => 'Connected with API token');
+    }
+
     $errorMsg = isset($res['msg']) ? $res['msg'] : json_encode($res);
     return array('success' => false, 'msg' => 'Login failed: ' . $errorMsg);
 }
