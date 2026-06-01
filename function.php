@@ -1765,12 +1765,18 @@ function formatServiceDeliveryLinks($panel_info, $dataoutput)
 
     if ($has_subscription && $has_config) {
         $main = $subscription_url;
-        $extra = implode("\n\n", $configs);
+        
+        $formatted_configs = array();
+        foreach ($configs as $cfg) {
+            $formatted_configs[] = "<code>" . $cfg . "</code>";
+        }
+        $extra = "\n\n🔗 لینک کانفیگ:\n" . implode("\n\n", $formatted_configs);
+        
     } elseif ($has_subscription) {
         $main = $subscription_url;
         $extra = '';
     } elseif ($has_config) {
-        $main = implode("\n\n", $configs);
+        $main = implode("</code>\n\n<code>", $configs);
         $extra = '';
     }
 
