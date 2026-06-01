@@ -2973,7 +2973,15 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
     }
     $output_config_link = "";
     $config = "";
-    $output_config_link = $marzban_list_get['sublink'] == "onsublink" ? $dataoutput['subscription_url'] : "";
+    $output_config_link = "";
+    if ($marzban_list_get['sublink'] == "onsublink") {
+        $output_config_link = $dataoutput['subscription_url'];
+    } elseif ($marzban_list_get['sublink'] == "bothsubandconfig") {
+        $output_config_link = $dataoutput['subscription_url'] . "\n\n";
+        for ($i = 0; $i < count($dataoutput['configs']); $i++) {
+            $output_config_link .= $dataoutput['configs'][$i] . "\n\n";
+        }
+    }
     if ($marzban_list_get['config'] == "onconfig" && is_array($dataoutput['configs'])) {
         for ($i = 0; $i < count($dataoutput['configs']); ++$i) {
             $output_config_link .= "\n" . $dataoutput['configs'][$i];
@@ -3936,7 +3944,15 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
     update("invoice", "Status", "active", "username", $username_ac);
     $output_config_link = "";
     $config = "";
-    $output_config_link = $marzban_list_get['sublink'] == "onsublink" ? $dataoutput['subscription_url'] : "";
+    $output_config_link = "";
+    if ($marzban_list_get['sublink'] == "onsublink") {
+        $output_config_link = $dataoutput['subscription_url'];
+    } elseif ($marzban_list_get['sublink'] == "bothsubandconfig") {
+        $output_config_link = $dataoutput['subscription_url'] . "\n\n";
+        for ($i = 0; $i < count($dataoutput['configs']); $i++) {
+            $output_config_link .= $dataoutput['configs'][$i] . "\n\n";
+        }
+    }
     if ($marzban_list_get['config'] == "onconfig" && is_array($dataoutput['configs'])) {
         foreach ($dataoutput['configs'] as $link) {
             $config .= "\n" . $link;
@@ -4472,7 +4488,15 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
         $stmt->execute();
         $stmt->close();
         $config = "";
-        $output_config_link = $marzban_list_get['sublink'] == "onsublink" ? $dataoutput['subscription_url'] : "";
+        $output_config_link = "";
+    if ($marzban_list_get['sublink'] == "onsublink") {
+        $output_config_link = $dataoutput['subscription_url'];
+    } elseif ($marzban_list_get['sublink'] == "bothsubandconfig") {
+        $output_config_link = $dataoutput['subscription_url'] . "\n\n";
+        for ($i = 0; $i < count($dataoutput['configs']); $i++) {
+            $output_config_link .= $dataoutput['configs'][$i] . "\n\n";
+        }
+    }
         if ($marzban_list_get['config'] == "onconfig") {
             if (is_array($dataoutput['configs'])) {
                 foreach ($dataoutput['configs'] as $configs) {

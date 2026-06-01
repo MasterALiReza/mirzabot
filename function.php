@@ -825,7 +825,15 @@ function DirectPayment($order_id, $image = 'images.jpg')
                 $config .= "\n" . $link;
             }
         }
-        $output_config_link = $marzban_list_get['sublink'] == "onsublink" ? $dataoutput['subscription_url'] : "";
+        $output_config_link = "";
+    if ($marzban_list_get['sublink'] == "onsublink") {
+        $output_config_link = $dataoutput['subscription_url'];
+    } elseif ($marzban_list_get['sublink'] == "bothsubandconfig") {
+        $output_config_link = $dataoutput['subscription_url'] . "\n\n";
+        for ($i = 0; $i < count($dataoutput['configs']); $i++) {
+            $output_config_link .= $dataoutput['configs'][$i] . "\n\n";
+        }
+    }
         $textbotlang['textbot']['afterPay'] = $marzban_list_get['type'] == "Manualsale" ? $textbotlang['textbot']['manual'] : $textbotlang['textbot']['afterPay'];
         $textbotlang['textbot']['afterPay'] = $marzban_list_get['type'] == "WGDashboard" ? $textbotlang['textbot']['wgDashboard'] : $textbotlang['textbot']['afterPay'];
         $textbotlang['textbot']['afterPay'] = $marzban_list_get['type'] == "ibsng" || $marzban_list_get['type'] == "mikrotik" ? $textbotlang['textbot']['afterPayIbsng'] : $textbotlang['textbot']['afterPay'];

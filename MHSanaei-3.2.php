@@ -42,7 +42,7 @@ function get_client_MHSanaei($email, $namepanel) {
     return request_MHSanaei($url, 'GET', $panel['password_panel']);
 }
 
-function addClient_MHSanaei($namepanel, $usernameac, $Expire, $Total, $subid, $inboundid, $name_product, $note = "") {
+function addClient_MHSanaei($namepanel, $usernameac, $Expire, $Total, $subid, $inboundid, $name_product, $note = "", $tgId = "") {
     $panel = select("marzban_panel", "*", "name_panel", $namepanel, "select");
     
     if ($name_product == "usertest") {
@@ -69,6 +69,13 @@ function addClient_MHSanaei($namepanel, $usernameac, $Expire, $Total, $subid, $i
         }
     }
 
+    $limitIp = isset($panel['limit_panel']) && is_numeric($panel['limit_panel']) ? intval($panel['limit_panel']) : 0;
+    
+    $inbounds_array = [];
+    if (!empty($inboundid)) {
+        $inbounds_array = array_map('intval', explode(',', $inboundid));
+    }
+
     $data = array(
         "client" => array(
             "email" => $usernameac,
@@ -77,9 +84,11 @@ function addClient_MHSanaei($namepanel, $usernameac, $Expire, $Total, $subid, $i
             "expiryTime" => $timeservice,
             "subId" => $subid,
             "comment" => $note,
-            "reset" => 0
+            "reset" => 0,
+            "tgId" => (string)$tgId,
+            "limitIp" => $limitIp
         ),
-        "inboundIds" => array(intval($inboundid))
+        "inboundIds" => $inbounds_array
     );
     
     $url = $panel['url_panel'] . '/panel/api/clients/add';
@@ -141,7 +150,7 @@ function MHSanaei_router($methodName, $args) {
             $subId = bin2hex(random_bytes(8));
             $inbounds = ($Get_Data_Product['inbounds'] != null) ? $Get_Data_Product['inbounds'] : $Get_Data_Panel['inboundid'];
             
-            $data_Output = addClient_MHSanaei($name_panel, $usernameC, $expire, $data_limit, $subId, $inbounds, $Get_Data_Product['name_product'], $note);
+            $data_Output = addClient_MHSanaei($name_panel, $usernameC, $expire, $data_limit, $subId, $inbounds, $Get_Data_Product['name_product'], $note, isset($Data_Config['from_id']) ? $Data_Config['from_id'] : "");
             if (isset($data_Output['msg']) && !$data_Output['success']) {
                 return array('status' => 'Unsuccessful', 'msg' => $data_Output['msg']);
             } elseif (isset($data_Output['success']) && !$data_Output['success']) {
@@ -150,7 +159,8 @@ function MHSanaei_router($methodName, $args) {
                 $Output = ['status' => 'successful', 'username' => $usernameC];
                 $subLinksRes = get_subLinks_MHSanaei($name_panel, $subId);
                 $Output['configs'] = (isset($subLinksRes['success']) && $subLinksRes['success']) ? $subLinksRes['obj'] : [];
-                $Output['subscription_url'] = $Get_Data_Panel['url_panel'] . '/sub/' . $subId;
+                $domain = (!empty($Get_Data_Panel['linksubx']) && $Get_Data_Panel['linksubx'] != "none") ? rtrim($Get_Data_Panel['linksubx'], '/') : rtrim($Get_Data_Panel['url_panel'], '/');
+                $Output['subscription_url'] = $domain . '/sub/' . $subId;
                 
                 $inoice = ($Get_Data_Panel['subvip'] == "onsubvip") ? select("invoice", "*", "username", $usernameC, "select") : false;
                 if ($inoice != false) {
@@ -181,10 +191,10 @@ function MHSanaei_router($methodName, $args) {
                 
                 $subLinksRes = get_subLinks_MHSanaei($name_panel, $user_data['subId']);
                 $links_user = (isset($subLinksRes['success']) && $subLinksRes['success']) ? $subLinksRes['obj'] : [];
-                
-                $linksub = $Get_Data_Panel['url_panel'] . "/sub/" . $user_data['subId'];
+                $domain = (!empty($Get_Data_Panel['linksubx']) && $Get_Data_Panel['linksubx'] != "none") ? rtrim($Get_Data_Panel['linksubx'], '/') : rtrim($Get_Data_Panel['url_panel'], '/');
+                $subscription_url = $domain . '/sub/' . $user_data['subId'];
                 $inoice = (isset($Get_Data_Panel['subvip']) && $Get_Data_Panel['subvip'] == "onsubvip") ? select("invoice", "*", "username", $username, "select") : false;
-                if ($inoice != false) $linksub = "https://$domainhosts/sub/" . $inoice['id_invoice'];
+                if ($inoice != false) $subscription_url = "https://$domainhosts/sub/" . $inoice['id_invoice'];
                 
                 $is_online = get_online_MHSanaei($name_panel, $username);
                 return array(
@@ -195,7 +205,7 @@ function MHSanaei_router($methodName, $args) {
                     'online_at' => $is_online,
                     'used_traffic' => $user_data['up'] + $user_data['down'],
                     'links' => $links_user,
-                    'subscription_url' => $linksub,
+                    'subscription_url' => $subscription_url,
                     'sub_updated_at' => null,
                     'sub_last_user_agent' => null,
                 );

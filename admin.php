@@ -6131,7 +6131,15 @@ if ($datain == "settimecornremove" && $adminrulecheck['rule'] == "administrator"
     $stmt->bindParam(':Status', $Status, PDO::PARAM_STR);
     $stmt->bindParam(':notifctions', $notifctions, PDO::PARAM_STR);
     $stmt->execute();
-    $output_config_link = $marzban_list_get['sublink'] == "onsublink" ? $DataUserOut['subscription_url'] : "";
+    $output_config_link = "";
+    if ($marzban_list_get['sublink'] == "onsublink") {
+        $output_config_link = $DataUserOut['subscription_url'];
+    } elseif ($marzban_list_get['sublink'] == "bothsubandconfig") {
+        $output_config_link = $DataUserOut['subscription_url'] . "\n\n";
+        for ($i = 0; $i < count($DataUserOut['configs']); $i++) {
+            $output_config_link .= $DataUserOut['configs'][$i] . "\n\n";
+        }
+    }
     $config = "";
     if ($marzban_list_get['config'] == "onconfig" && is_array($DataUserOut['configs'])) {
         foreach ($DataUserOut['configs'] as $link) {
@@ -6534,7 +6542,15 @@ if ($datain == "settimecornremove" && $adminrulecheck['rule'] == "administrator"
             return;
         }
         $randomString = bin2hex(random_bytes(5));
-        $output_config_link = $panel['sublink'] == "onsublink" ? $dataoutput['subscription_url'] : "";
+        $output_config_link = "";
+    if ($panel['sublink'] == "onsublink") {
+        $output_config_link = $dataoutput['subscription_url'];
+    } elseif ($panel['sublink'] == "bothsubandconfig") {
+        $output_config_link = $dataoutput['subscription_url'] . "\n\n";
+        for ($i = 0; $i < count($dataoutput['configs']); $i++) {
+            $output_config_link .= $dataoutput['configs'][$i] . "\n\n";
+        }
+    }
         $config = "";
         if ($marzban_list_get['config'] == "onconfig" && is_array($dataoutput['configs'])) {
             foreach ($dataoutput['configs'] as $link) {
@@ -9429,8 +9445,9 @@ if ($datain == "settimecornday" && $adminrulecheck['rule'] == "administrator") {
     ][$panel['config']];
     $statussublink = [
         'onsublink' => $textbotlang['Admin']['Status']['statuson'],
-        'offsublink' => $textbotlang['Admin']['Status']['statusoff']
-    ][$panel['sublink']];
+        'offsublink' => $textbotlang['Admin']['Status']['statusoff'],
+        'bothsubandconfig' => $textbotlang['Admin']['Status']['statusboth'] ?? "🟡 ساب + کانفیگ"
+    ][$panel['sublink']] ?? $textbotlang['Admin']['Status']['statusoff'];
     $statusshowbuy = [
         'active' => $textbotlang['Admin']['Status']['statuson'],
         'disable' => $textbotlang['Admin']['Status']['statusoff']
@@ -9577,6 +9594,8 @@ if ($datain == "settimecornday" && $adminrulecheck['rule'] == "administrator") {
         update("marzban_panel", "config", $valuenew, "code_panel", $code_panel);
     } elseif ($type == "sublink") {
         if ($value == "onsublink") {
+            $valuenew = "bothsubandconfig";
+        } elseif ($value == "bothsubandconfig") {
             $valuenew = "offsublink";
         } else {
             $valuenew = "onsublink";
@@ -9684,8 +9703,9 @@ if ($datain == "settimecornday" && $adminrulecheck['rule'] == "administrator") {
     ][$panel['config']];
     $statussublink = [
         'onsublink' => $textbotlang['Admin']['Status']['statuson'],
-        'offsublink' => $textbotlang['Admin']['Status']['statusoff']
-    ][$panel['sublink']];
+        'offsublink' => $textbotlang['Admin']['Status']['statusoff'],
+        'bothsubandconfig' => $textbotlang['Admin']['Status']['statusboth'] ?? "🟡 ساب + کانفیگ"
+    ][$panel['sublink']] ?? $textbotlang['Admin']['Status']['statusoff'];
     $statusshowbuy = [
         'active' => $textbotlang['Admin']['Status']['statuson'],
         'disable' => $textbotlang['Admin']['Status']['statusoff']

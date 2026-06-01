@@ -858,7 +858,15 @@ switch ($data['actions']) {
             return;
         }
         $config = "";
-        $output_config_link = $panel['sublink'] == "onsublink" ? $dataoutput['subscription_url'] : "";
+        $output_config_link = "";
+    if ($panel['sublink'] == "onsublink") {
+        $output_config_link = $dataoutput['subscription_url'];
+    } elseif ($panel['sublink'] == "bothsubandconfig") {
+        $output_config_link = $dataoutput['subscription_url'] . "\n\n";
+        for ($i = 0; $i < count($dataoutput['configs']); $i++) {
+            $output_config_link .= $dataoutput['configs'][$i] . "\n\n";
+        }
+    }
         if ($panel['config'] == "onconfig" && is_array($dataoutput['configs'])) {
             foreach ($dataoutput['configs'] as $link) {
                 $config .= "\n" . $link;
