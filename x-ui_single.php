@@ -5,68 +5,86 @@ ini_set('error_log', 'error_log');
 function panel_login_cookie($code_panel)
 {
     $panel = select("marzban_panel", "*", "code_panel", $code_panel, "select");
+    $base_url = rtrim($panel['url_panel'], '/');
     
-    // First attempt: JSON payload (supported by MHSanaei 3.2+ and modern x-ui)
-    $curl = curl_init();
-    $payload = json_encode(array(
+    // We try with /login first (standard), then without /login (for custom MHSanaei paths)
+    $login_urls = [
+        $base_url . '/login',
+        $base_url
+    ];
+    
+    $payload_json = json_encode(array(
         'username' => $panel['username_panel'],
         'password' => $panel['password_panel'],
         'twoFactorCode' => ''
     ));
-    curl_setopt_array($curl, array(
-        CURLOPT_URL => rtrim($panel['url_panel'], '/') . '/login',
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_ENCODING => '',
-        CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT_MS => 10000,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        CURLOPT_SSL_VERIFYPEER => false,
-        CURLOPT_CUSTOMREQUEST => 'POST',
-        CURLOPT_POSTFIELDS => $payload,
-        CURLOPT_HTTPHEADER => array(
-            'Content-Type: application/json',
-            'Accept: application/json'
-        ),
-        CURLOPT_COOKIEJAR => 'cookie.txt',
-    ));
-    $response = curl_exec($curl);
-    $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+    $payload_form = "username={$panel['username_panel']}&password=" . urlencode($panel['password_panel']);
     
-    if (!curl_error($curl) && $http_code == 200) {
-        $decoded = json_decode($response, true);
-        if (isset($decoded['success']) && $decoded['success']) {
-            curl_close($curl);
-            return $response;
-        }
-    }
-    curl_close($curl);
+    $last_error = '';
 
-    // Second attempt: urlencoded form POST (fallback for old x-ui panels)
-    $curl = curl_init();
-    curl_setopt_array($curl, array(
-        CURLOPT_URL => rtrim($panel['url_panel'], '/') . '/login',
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_ENCODING => '',
-        CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT_MS => 10000,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        CURLOPT_SSL_VERIFYPEER => false,
-        CURLOPT_CUSTOMREQUEST => 'POST',
-        CURLOPT_POSTFIELDS => "username={$panel['username_panel']}&password=" . urlencode($panel['password_panel']),
-        CURLOPT_COOKIEJAR => 'cookie.txt',
-    ));
-    $response = curl_exec($curl);
-    if (curl_error($curl)) {
-        curl_close($curl);
-        return json_encode(array(
-            'success' => false,
-            'msg' => curl_error($curl)
+    foreach ($login_urls as $url) {
+        // Attempt 1: JSON payload (supported by MHSanaei 3.2+ and modern x-ui)
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => $url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT_MS => 5000,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => $payload_json,
+            CURLOPT_HTTPHEADER => array(
+                'Content-Type: application/json',
+                'Accept: application/json'
+            ),
+            CURLOPT_COOKIEJAR => 'cookie.txt',
         ));
+        $response = curl_exec($curl);
+        $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        if (!curl_error($curl) && $http_code == 200) {
+            $decoded = json_decode($response, true);
+            if (isset($decoded['success']) && $decoded['success']) {
+                curl_close($curl);
+                return $response;
+            }
+        }
+        $last_error = curl_error($curl) ? curl_error($curl) : 'Invalid response or HTTP code: ' . $http_code;
+        curl_close($curl);
+        
+        // Attempt 2: urlencoded form POST (fallback for old x-ui panels)
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => $url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT_MS => 5000,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => $payload_form,
+            CURLOPT_COOKIEJAR => 'cookie.txt',
+        ));
+        $response = curl_exec($curl);
+        $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        if (!curl_error($curl) && $http_code == 200) {
+            $decoded = json_decode($response, true);
+            if (isset($decoded['success']) && $decoded['success']) {
+                curl_close($curl);
+                return $response;
+            }
+        }
+        curl_close($curl);
     }
-    curl_close($curl);
-    return $response;
+    
+    return json_encode(array(
+        'success' => false,
+        'msg' => $last_error ? $last_error : 'Login failed on all attempted URLs'
+    ));
 }
 function login($code_panel, $verify = true)
 {
