@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 session_start();
 
 require_once __DIR__ . '/inc/config.php';
@@ -88,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <?= $textbotlang['panel']['loginUsernamePlaceholder'] ?></h2>
         <cite><?= $textbotlang['panel']['loginPasswordLabel'] ?></cite>
       </div>
-      <div class="auth-foot">Â© <?= date('Y') ?> <?= $textbotlang['panel']['loginPasswordPlaceholder'] ?></div>
+      <div class="auth-foot">© <?= date('Y') ?> <?= $textbotlang['panel']['loginPasswordPlaceholder'] ?></div>
     </aside>
     <main class="auth-main">
       <div class="auth-box" style="animation:fadeUp .5s ease-out">
@@ -108,7 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           </div>
           <div class="field">
             <label for="password"><?= $textbotlang['panel']['loginErrorTitle'] ?></label>
-            <input type="password" id="password" name="password" class="input" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+            <input type="password" id="password" name="password" class="input" placeholder="••••••••"
               autocomplete="current-password" required maxlength="200">
           </div>
           <button type="submit" class="btn btn-primary" id="loginBtn">

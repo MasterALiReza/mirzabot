@@ -1,4 +1,4 @@
-﻿#!/bin/bash
+#!/bin/bash
 # Checking Root Access
 if [[ $EUID -ne 0 ]]; then
     echo -e "\033[31m[ERROR]\033[0m Please run this script as \033[1mroot\033[0m."
@@ -63,24 +63,24 @@ check_ssl_status() {
             expiry_timestamp=$(date -d "$expiry_date" +%s)
             days_remaining=$(( ($expiry_timestamp - $current_date) / 86400 ))
             if [ $days_remaining -gt 0 ]; then
-                echo -e "\033[32mâœ… SSL Certificate: $days_remaining days remaining (Domain: $domain)\033[0m"
+                echo -e "\033[32m✅ SSL Certificate: $days_remaining days remaining (Domain: $domain)\033[0m"
             else
-                echo -e "\033[31mâŒ SSL Certificate: Expired (Domain: $domain)\033[0m"
+                echo -e "\033[31m❌ SSL Certificate: Expired (Domain: $domain)\033[0m"
             fi
         else
-            echo -e "\033[33mâš ï¸ SSL Certificate: Not found for domain $domain\033[0m"
+            echo -e "\033[33m⚠️ SSL Certificate: Not found for domain $domain\033[0m"
         fi
     else
-        echo -e "\033[33mâš ï¸ Cannot check SSL: Config file not found\033[0m"
+        echo -e "\033[33m⚠️ Cannot check SSL: Config file not found\033[0m"
     fi
 }
 # Check bot installation status
 check_bot_status() {
     if [ -f "/var/www/html/mirzaprobotconfig/config.php" ]; then
-        echo -e "\033[32mâœ… Bot is installed\033[0m"
+        echo -e "\033[32m✅ Bot is installed\033[0m"
         check_ssl_status
     else
-        echo -e "\033[31mâŒ Bot is not installed\033[0m"
+        echo -e "\033[31m❌ Bot is not installed\033[0m"
     fi
 }
 # Display Logo
@@ -89,12 +89,12 @@ function show_logo() {
     echo -e "\033[1;34m"
     echo "================================================================================="
     echo ""
-    echo "â–ˆâ–ˆâ–ˆâ•—   â–ˆâ–ˆâ–ˆâ•—â–ˆâ–ˆâ•—â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•— â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•— â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•—  â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•—  â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•— â–ˆâ–ˆâ–ˆâ•—   â–ˆâ–ˆâ•—â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•—â–ˆâ–ˆâ•—   "
-    echo "â–ˆâ–ˆâ–ˆâ–ˆâ•— â–ˆâ–ˆâ–ˆâ–ˆâ•‘â–ˆâ–ˆâ•‘â–ˆâ–ˆâ•”â•â•â–ˆâ–ˆâ•—â•šâ•â•â–ˆâ–ˆâ–ˆâ•”â•â–ˆâ–ˆâ•”â•â•â–ˆâ–ˆâ•— â–ˆâ–ˆâ•”â•â•â–ˆâ–ˆâ•—â–ˆâ–ˆâ•”â•â•â–ˆâ–ˆâ•—â–ˆâ–ˆâ–ˆâ–ˆâ•—  â–ˆâ–ˆâ•‘â–ˆâ–ˆâ•”â•â•â•â•â•â–ˆâ–ˆâ•‘   "
-    echo "â–ˆâ–ˆâ•”â–ˆâ–ˆâ–ˆâ–ˆâ•”â–ˆâ–ˆâ•‘â–ˆâ–ˆâ•‘â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•”â•  â–ˆâ–ˆâ–ˆâ•”â• â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•‘ â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•”â•â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•‘â–ˆâ–ˆâ•”â–ˆâ–ˆâ•— â–ˆâ–ˆâ•‘â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•—  â–ˆâ–ˆâ•‘   "
-    echo "â–ˆâ–ˆâ•‘â•šâ–ˆâ–ˆâ•”â•â–ˆâ–ˆâ•‘â–ˆâ–ˆâ•‘â–ˆâ–ˆâ•”â•â•â–ˆâ–ˆâ•— â–ˆâ–ˆâ–ˆâ•”â•  â–ˆâ–ˆâ•”â•â•â–ˆâ–ˆâ•‘ â–ˆâ–ˆâ•”â•â•â•â• â–ˆâ–ˆâ•”â•â•â–ˆâ–ˆâ•‘â–ˆâ–ˆâ•‘â•šâ–ˆâ–ˆâ•—â–ˆâ–ˆâ•‘â–ˆâ–ˆâ•”â•â•â•  â–ˆâ–ˆâ•‘   "
-    echo "â–ˆâ–ˆâ•‘ â•šâ•â• â–ˆâ–ˆâ•‘â–ˆâ–ˆâ•‘â–ˆâ–ˆâ•‘  â–ˆâ–ˆâ•‘â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•—â–ˆâ–ˆâ•‘  â–ˆâ–ˆâ•‘ â–ˆâ–ˆâ•‘     â–ˆâ–ˆâ•‘  â–ˆâ–ˆâ•‘â–ˆâ–ˆâ•‘ â•šâ–ˆâ–ˆâ–ˆâ–ˆâ•‘â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•—â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•—"
-    echo "â•šâ•â•     â•šâ•â•â•šâ•â•â•šâ•â•  â•šâ•â•â•šâ•â•â•â•â•â•â•â•šâ•â•  â•šâ•â• â•šâ•â•     â•šâ•â•  â•šâ•â•â•šâ•â•  â•šâ•â•â•â•â•šâ•â•â•â•â•â•â•â•šâ•â•â•â•â•"
+    echo "███╗   ███╗██╗██████╗ ███████╗ █████╗  ██████╗  █████╗ ███╗   ██╗███████╗██╗   "
+    echo "████╗ ████║██║██╔══██╗╚══███╔╝██╔══██╗ ██╔══██╗██╔══██╗████╗  ██║██╔════╝██║   "
+    echo "██╔████╔██║██║██████╔╝  ███╔╝ ███████║ ██████╔╝███████║██╔██╗ ██║█████╗  ██║   "
+    echo "██║╚██╔╝██║██║██╔══██╗ ███╔╝  ██╔══██║ ██╔═══╝ ██╔══██║██║╚██╗██║██╔══╝  ██║   "
+    echo "██║ ╚═╝ ██║██║██║  ██║███████╗██║  ██║ ██║     ██║  ██║██║ ╚████║███████╗█████╗"
+    echo "╚═╝     ╚═╝╚═╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝ ╚═╝     ╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝╚════╝"
     echo ""
     echo "================================================================================="
     echo -e "\033[0m"
@@ -236,14 +236,14 @@ function install_bot() {
         install_bot_with_marzban "$@"  # Pass any arguments (e.g., -v beta)
         return 0
     fi
-    # Function to add the OndÅ™ej SurÃ½ PPA for PHP
+    # Function to add the Ondřej Surý PPA for PHP
     add_php_ppa() {
         sudo add-apt-repository -y ppa:ondrej/php || {
             echo -e "\e[91mError: Failed to add PPA ondrej/php.\033[0m"
             return 1
         }
     }
-    # Function to add the OndÅ™ej SurÃ½ PPA for PHP with locale override
+    # Function to add the Ondřej Surý PPA for PHP with locale override
     add_php_ppa_with_locale() {
         sudo LC_ALL=C.UTF-8 add-apt-repository -y ppa:ondrej/php || {
             echo -e "\e[91mError: Failed to add PPA ondrej/php with locale override.\033[0m"
@@ -732,7 +732,7 @@ EOF
                 echo -e "\e[91mError: Failed to set webhook for bot.\033[0m"
                 exit 1
             }
-            MESSAGE="âœ… The Mirza Pro bot is installed! for start the bot send /start command."
+            MESSAGE="✅ The Mirza Pro bot is installed! for start the bot send /start command."
             curl -s -X POST "https://api.telegram.org/bot${YOUR_BOT_TOKEN}/sendMessage" -d chat_id="${YOUR_CHAT_ID}" -d text="$MESSAGE" || {
                 echo -e "\e[91mError: Failed to send message to Telegram.\033[0m"
                 exit 1
@@ -829,7 +829,7 @@ EOF
 #     else
 #         echo -e "\e[92mMySQL client is already installed.\033[0m"
 #     fi
-#     # Add OndÅ™ej SurÃ½ PPA for PHP 8.2
+#     # Add Ondřej Surý PPA for PHP 8.2
 #     sudo apt install -y software-properties-common || {
 #         echo -e "\e[91mError: Failed to install software-properties-common.\033[0m"
 #         exit 1
@@ -1220,7 +1220,7 @@ EOF
 #         exit 1
 #     }
 #     # Send confirmation message
-#     MESSAGE="âœ… The bot is installed! for start bot send comment /start"
+#     MESSAGE="✅ The bot is installed! for start bot send comment /start"
 #     curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" -d chat_id="${CHAT_ID}" -d text="$MESSAGE" || {
 #         echo -e "\033[31mError: Failed to send message to Telegram.\033[0m"
 #         return 1
@@ -2040,7 +2040,7 @@ function remove_bot() {
 #         return 1
 #     }
 #     # Send Installation Confirmation
-#     MESSAGE="âœ… The bot is installed! for start bot send comment /start"
+#     MESSAGE="✅ The bot is installed! for start bot send comment /start"
 #     curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" -d chat_id="${CHAT_ID}" -d text="$MESSAGE" || {
 #         echo -e "\033[31mError: Failed to send message to Telegram.\033[0m"
 #         return 1
@@ -2768,4 +2768,3 @@ process_arguments() {
 }
 # Call main function
 process_arguments "$1" "$2"
-
