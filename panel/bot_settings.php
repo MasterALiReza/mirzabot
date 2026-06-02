@@ -461,14 +461,28 @@ include __DIR__ . '/inc/layout_head.php';
     .arvan-main-tabs::-webkit-scrollbar, .arvan-sub-tabs::-webkit-scrollbar {
         display: none; /* Chrome, Safari and Opera */
     }
+    .arvan-main-tabs {
+        gap: 6px;
+        justify-content: space-between;
+    }
     .arvan-main-tab-btn {
-        padding: 8px 12px;
-        font-size: 0.85rem;
+        padding: 8px 4px;
+        font-size: 0.65rem;
         border-radius: 8px;
+        flex-direction: column;
+        gap: 6px;
+        flex: 1;
+        min-width: 0;
+    }
+    .arvan-main-tab-btn span {
+        white-space: normal;
+        line-height: 1.2;
+        text-align: center;
+        font-size: 0.65rem;
     }
     .arvan-main-tab-btn svg {
-        width: 18px !important;
-        height: 18px !important;
+        width: 20px !important;
+        height: 20px !important;
     }
     .arvan-sub-tab-btn {
         padding: 8px 12px;
@@ -480,6 +494,49 @@ include __DIR__ . '/inc/layout_head.php';
     .card-body {
         padding: 15px !important;
     }
+}
+
+/* Toggle Switch Styles */
+.arvan-switch {
+    position: relative;
+    display: inline-block;
+    width: 46px;
+    height: 26px;
+    flex-shrink: 0;
+    direction: ltr;
+}
+.arvan-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.arvan-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: var(--sf3);
+    transition: .3s ease;
+    border-radius: 26px;
+    border: 1px solid var(--bd);
+}
+.arvan-slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 2px;
+    bottom: 2px;
+    background-color: #fff;
+    transition: .3s ease;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+input:checked + .arvan-slider {
+    background-color: var(--ac);
+    border-color: var(--ac);
+}
+input:checked + .arvan-slider:before {
+    transform: translateX(20px);
 }
 </style>
 
@@ -531,18 +588,30 @@ include __DIR__ . '/inc/layout_head.php';
                             <div class="arvan-section-content" data-tab="<?= $key ?>" data-sec="<?= htmlspecialchars($section_title) ?>" style="display: <?= $isActiveSec ? 'block' : 'none' ?>;">
                                 <div class="arvan-grid">
                                     <?php foreach($fields as $f): ?>
-                                        <div class="field">
-                                            <label style="font-weight: 600; margin-bottom: 8px; color: var(--fg); font-size: 0.9rem;"><?= $f['label'] ?></label>
-                                            <?php if($f['type'] === 'select'): ?>
-                                                <select name="<?= $f['name'] ?>" class="arvan-select">
-                                                    <?php foreach($f['options'] as $opt_val => $opt_label): ?>
-                                                        <option value="<?= htmlspecialchars($opt_val) ?>" <?= (strval($f['val']) === strval($opt_val)) ? 'selected' : '' ?>><?= htmlspecialchars($opt_label) ?></option>
-                                                    <?php endforeach; ?>
-                                                </select>
-                                            <?php elseif($f['type'] === 'text' || $f['type'] === 'number'): ?>
+                                        <?php if($f['type'] === 'select'): 
+                                            $keys = array_keys($f['options']);
+                                            $val1 = $keys[0]; 
+                                            $val2 = $keys[1]; 
+                                            $currentVal = (strval($f['val']) === strval($val1)) ? $val1 : $val2;
+                                            $isChecked = ($currentVal === $val1);
+                                        ?>
+                                            <div class="field toggle-field" style="display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; background: var(--bg); border-radius: 12px; border: 1px solid var(--bd);">
+                                                <div style="display: flex; flex-direction: column; gap: 4px;">
+                                                    <label style="font-weight: 500; margin: 0; color: var(--fg); font-size: 0.95rem; cursor: pointer;" for="chk_<?= $f['name'] ?>"><?= $f['label'] ?></label>
+                                                    <span style="font-size: 0.75rem; color: var(--mute);"><?= $isChecked ? $f['options'][$val1] : $f['options'][$val2] ?></span>
+                                                </div>
+                                                <input type="hidden" name="<?= $f['name'] ?>" id="hidden_<?= $f['name'] ?>" value="<?= htmlspecialchars($currentVal) ?>">
+                                                <label class="arvan-switch">
+                                                    <input type="checkbox" id="chk_<?= $f['name'] ?>" <?= $isChecked ? 'checked' : '' ?> onchange="document.getElementById('hidden_<?= $f['name'] ?>').value = this.checked ? '<?= $val1 ?>' : '<?= $val2 ?>'; this.closest('.toggle-field').querySelector('span').innerText = this.checked ? '<?= $f['options'][$val1] ?>' : '<?= $f['options'][$val2] ?>';">
+                                                    <span class="arvan-slider"></span>
+                                                </label>
+                                            </div>
+                                        <?php elseif($f['type'] === 'text' || $f['type'] === 'number'): ?>
+                                            <div class="field" style="display: flex; flex-direction: column;">
+                                                <label style="font-weight: 600; margin-bottom: 8px; color: var(--fg); font-size: 0.9rem;"><?= $f['label'] ?></label>
                                                 <input type="<?= $f['type'] ?>" name="<?= $f['name'] ?>" class="arvan-input" value="<?= htmlspecialchars($f['val'] ?? '') ?>" placeholder="<?= htmlspecialchars($f['placeholder'] ?? '') ?>">
-                                            <?php endif; ?>
-                                        </div>
+                                            </div>
+                                        <?php endif; ?>
                                     <?php endforeach; ?>
                                 </div>
                             </div>

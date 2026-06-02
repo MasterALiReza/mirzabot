@@ -276,8 +276,8 @@ include __DIR__ . '/inc/layout_head.php';
                 <?= safe_date($p['time'] ?? null, 'Y/m/d H:i') ?>
               </td>
               <td data-label="وضعیت"><span class="tag <?= $cls ?>"><?= $lbl ?></span></td>
-              <td data-label="عملیات">
-                <div style="display:flex; gap:4px; justify-content: flex-end; align-items: center;">
+              <td data-label="عملیات" style="justify-content: space-between !important;">
+                <div style="display:flex; gap:4px; align-items: center;">
                     <?php if ($st === 'waiting'): ?>
                       <a href="payment.php?action=confirm&id=<?= urlencode($p['id_order']) ?>&_csrf=<?= csrf_token() ?>" class="btn-icon" style="color:var(--success)" title="تایید" onclick="return confirm('آیا از تایید این تراکنش مطمئن هستید؟')">
                           <?= icon('check', 16) ?>
@@ -286,7 +286,7 @@ include __DIR__ . '/inc/layout_head.php';
                           <?= icon('x', 16) ?>
                       </a>
                     <?php endif; ?>
-                    <a href="payment.php?action=delete&id=<?= urlencode($p['id_order']) ?>&_csrf=<?= csrf_token() ?>" class="btn-icon" style="color:var(--danger)" title="حذف" onclick="return confirm('آیا از حذف این تراکنش مطمئن هستید؟')">
+                    <a href="payment.php?action=delete&id=<?= urlencode($p['id_order']) ?>&_csrf=<?= csrf_token() ?>" class="btn-icon" style="color:#ef4444" title="حذف" onclick="return confirm('آیا از حذف این تراکنش مطمئن هستید؟')">
                         <?= icon('trash', 16) ?>
                     </a>
                 </div>
