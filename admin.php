@@ -2516,6 +2516,22 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
     sendmessage($from_id, $textbotlang['Admin']['Channel']['setChannelReport'], $setting_panel, 'HTML');
     update("setting", "Channel_Report", $text);
     step('home', $from_id);
+} elseif ($text == $textbotlang['keyboard']['adminMenuStatus'] && $adminrulecheck['rule'] == "administrator") {
+    sendmessage($from_id, $textbotlang['users']['selectoption'], $keyboard_status_mgmt, 'HTML');
+} elseif ($text == $textbotlang['keyboard']['adminMenuUsers'] && $adminrulecheck['rule'] == "administrator") {
+    sendmessage($from_id, $textbotlang['users']['selectoption'], $keyboard_users_mgmt, 'HTML');
+} elseif ($text == $textbotlang['keyboard']['adminMenuServers'] && $adminrulecheck['rule'] == "administrator") {
+    sendmessage($from_id, $textbotlang['users']['selectoption'], $keyboard_server_mgmt, 'HTML');
+} elseif ($text == $textbotlang['keyboard']['adminMenuShop'] && $adminrulecheck['rule'] == "administrator") {
+    sendmessage($from_id, $textbotlang['users']['selectoption'], $keyboard_shop_mgmt, 'HTML');
+} elseif ($text == $textbotlang['keyboard']['adminMenuFinancial'] && $adminrulecheck['rule'] == "administrator") {
+    sendmessage($from_id, $textbotlang['users']['selectoption'], $keyboard_financial_mgmt, 'HTML');
+} elseif ($text == $textbotlang['keyboard']['adminMenuSupport'] && $adminrulecheck['rule'] == "administrator") {
+    sendmessage($from_id, $textbotlang['users']['selectoption'], $keyboard_support_mgmt, 'HTML');
+} elseif ($text == $textbotlang['keyboard']['adminMenuBack'] && $adminrulecheck['rule'] == "administrator") {
+    sendmessage($from_id, $textbotlang['users']['selectoption'], $keyboardadmin, 'HTML');
+} elseif ($text == $textbotlang['keyboard']['adminMenuSettings'] && $adminrulecheck['rule'] == "administrator") {
+    sendmessage($from_id, $textbotlang['users']['selectoption'], $setting_panel, 'HTML');
 } elseif ($text == $textbotlang['keyboard']['shopSettings'] && $adminrulecheck['rule'] == "administrator") {
     sendmessage($from_id, $textbotlang['users']['selectoption'], $shopkeyboard, 'HTML');
 } elseif ($text == $textbotlang['keyboard']['addProduct'] && $adminrulecheck['rule'] == "administrator") {

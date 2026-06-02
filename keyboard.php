@@ -128,16 +128,59 @@ $keyboardPanel = json_encode([
     'resize_keyboard' => true
 ]);
 if ($adminrulecheck['rule'] == "administrator") {
-    $keyboardadmin = json_encode([
+    $keyboard_server_mgmt = json_encode([
+        'keyboard' => [
+            [['text' => $textbotlang['Admin']['btnKeyboard']['managementPanel']], ['text' => $textbotlang['Admin']['btnKeyboard']['addPanel']]],
+            [['text' => $textbotlang['keyboard']['panelFeatures']]],
+            [['text' => $textbotlang['keyboard']['adminMenuBack']]]
+        ],
+        'resize_keyboard' => true
+    ]);
+    $keyboard_shop_mgmt = json_encode([
+        'keyboard' => [
+            [['text' => $textbotlang['keyboard']['shopSettings']]],
+            [['text' => $textbotlang['keyboard']['quickSetTimePrice']], ['text' => $textbotlang['keyboard']['quickSetVolumePrice']]],
+            [['text' => $textbotlang['keyboard']['adminMenuBack']]]
+        ],
+        'resize_keyboard' => true
+    ]);
+    $keyboard_financial_mgmt = json_encode([
+        'keyboard' => [
+            [['text' => $textbotlang['keyboard']['financial']]],
+            [['text' => $textbotlang['keyboard']['pendingReceipts']]],
+            [['text' => $textbotlang['keyboard']['adminMenuBack']]]
+        ],
+        'resize_keyboard' => true
+    ]);
+    $keyboard_status_mgmt = json_encode([
         'keyboard' => [
             [['text' => $textbotlang['Admin']['Status']['btn']]],
-            [['text' => $textbotlang['Admin']['btnKeyboard']['managementPanel']], ['text' => $textbotlang['Admin']['btnKeyboard']['addPanel']]],
-            [['text' => $textbotlang['keyboard']['quickSetTimePrice']], ['text' => $textbotlang['keyboard']['quickSetVolumePrice']]],
-            [['text' => $textbotlang['Admin']['btnKeyboard']['manageUser']], ['text' => $textbotlang['keyboard']['shopSettings']]],
-            [['text' => $textbotlang['keyboard']['financial']]],
+            [['text' => $textbotlang['keyboard']['botReport']]],
+            [['text' => $textbotlang['keyboard']['adminMenuBack']]]
+        ],
+        'resize_keyboard' => true
+    ]);
+    $keyboard_users_mgmt = json_encode([
+        'keyboard' => [
+            [['text' => $textbotlang['Admin']['btnKeyboard']['manageUser']]],
+            [['text' => $textbotlang['keyboard']['adminMenuBack']]]
+        ],
+        'resize_keyboard' => true
+    ]);
+    $keyboard_support_mgmt = json_encode([
+        'keyboard' => [
             [['text' => $textbotlang['keyboard']['supportSection']], ['text' => $textbotlang['keyboard']['educationSection']]],
-            [['text' => $textbotlang['keyboard']['botReport']], ['text' => $textbotlang['keyboard']['panelFeatures']]],
-            [['text' => $textbotlang['keyboard']['generalSettings']], ['text' => $textbotlang['keyboard']['pendingReceipts']]],
+            [['text' => $textbotlang['keyboard']['adminMenuBack']]]
+        ],
+        'resize_keyboard' => true
+    ]);
+
+    $keyboardadmin = json_encode([
+        'keyboard' => [
+            [['text' => $textbotlang['keyboard']['adminMenuStatus']]],
+            [['text' => $textbotlang['keyboard']['adminMenuUsers']], ['text' => $textbotlang['keyboard']['adminMenuServers']]],
+            [['text' => $textbotlang['keyboard']['adminMenuFinancial']], ['text' => $textbotlang['keyboard']['adminMenuShop']]],
+            [['text' => $textbotlang['keyboard']['adminMenuSupport']], ['text' => $textbotlang['keyboard']['adminMenuSettings']]],
             [['text' => $textbotlang['users']['backbtn']]]
         ],
         'resize_keyboard' => true
