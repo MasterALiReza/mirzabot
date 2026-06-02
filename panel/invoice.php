@@ -59,72 +59,82 @@ $activeNav = 'invoice';
 include __DIR__ . '/inc/layout_head.php';
 ?>
 
-<!-- Top Statistics Cards -->
 <div class="stats fade-up" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 24px;">
-    
+
     <!-- Stat 1: Total Orders -->
-    <div class="dash-card">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
-            <div style="font-size: 1.1rem; color: var(--cf); font-weight: 600;">کل سفارشات</div>
+    <div class="dash-card" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 140px;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
             <div class="icon-glow bg-blue">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
             </div>
+            <div style="font-size: 1.05rem; color: var(--cf); font-weight: 600;">کل سفارشات</div>
         </div>
-        <div style="font-size: 2.4rem; font-weight: 700; color: var(--ct); margin-bottom: 12px; line-height: 1;">
-            <?= number_format($globalTotal) ?>
-        </div>
-        <div style="font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; gap: 6px;">
-            <span class="status-pill neutral">سفارش ثبت شده در ربات</span>
+        <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto;">
+            <div style="font-size: 2.2rem; font-weight: 700; color: var(--ct); line-height: 1;">
+                <?= number_format($globalTotal) ?>
+            </div>
+            <div style="font-size: 0.85rem; font-weight: 500;">
+                <span class="status-pill neutral" style="padding: 4px 10px;">سفارش ثبت شده</span>
+            </div>
         </div>
     </div>
     
     <!-- Stat 2: Total Revenue -->
-    <div class="dash-card">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
-            <div style="font-size: 1.1rem; color: var(--cf); font-weight: 600;">مجموع درآمد</div>
+    <div class="dash-card" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 140px;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
             <div class="icon-glow bg-emerald">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
             </div>
+            <div style="font-size: 1.05rem; color: var(--cf); font-weight: 600;">مجموع درآمد</div>
         </div>
-        <div style="font-size: 2.4rem; font-weight: 700; color: var(--ct); margin-bottom: 12px; line-height: 1; direction: ltr; display:flex; justify-content:flex-end;">
-            <?= $globalRevenue >= 1_000_000
-                ? number_format($globalRevenue / 1_000_000, 1) . '<span style="font-size:1.2rem;font-weight:600;margin-left:6px;align-self:flex-end;margin-bottom:2px">میلیون</span>'
-                : number_format($globalRevenue) ?>
-        </div>
-        <div style="font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; justify-content: flex-end; gap: 6px;">
-            <span class="status-pill success">از فروش کل سفارشات</span>
+        <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto;">
+            <div style="display: flex; align-items: baseline; gap: 6px;">
+                <span style="font-size: 2.2rem; font-weight: 700; color: var(--ct); line-height: 1; direction: ltr;">
+                    <?= $globalRevenue >= 1_000_000 ? number_format($globalRevenue / 1_000_000, 1) : number_format($globalRevenue) ?>
+                </span>
+                <span style="font-size: 1rem; font-weight: 600; color: var(--cf);">
+                    <?= $globalRevenue >= 1_000_000 ? 'میلیون تومان' : 'تومان' ?>
+                </span>
+            </div>
+            <div style="font-size: 0.85rem; font-weight: 500;">
+                <span class="status-pill success" style="padding: 4px 10px;">فروش کل</span>
+            </div>
         </div>
     </div>
     
     <!-- Stat 3: Active Services -->
-    <div class="dash-card">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
-            <div style="font-size: 1.1rem; color: var(--cf); font-weight: 600;">سرویس‌های فعال</div>
+    <div class="dash-card" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 140px;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
             <div class="icon-glow bg-purple">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
             </div>
+            <div style="font-size: 1.05rem; color: var(--cf); font-weight: 600;">سرویس‌های فعال</div>
         </div>
-        <div style="font-size: 2.4rem; font-weight: 700; color: var(--ct); margin-bottom: 12px; line-height: 1;">
-            <?= number_format($globalActive) ?>
-        </div>
-        <div style="font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; gap: 6px;">
-            <span class="status-pill neutral">در حال استفاده</span>
+        <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto;">
+            <div style="font-size: 2.2rem; font-weight: 700; color: var(--ct); line-height: 1;">
+                <?= number_format($globalActive) ?>
+            </div>
+            <div style="font-size: 0.85rem; font-weight: 500;">
+                <span class="status-pill neutral" style="padding: 4px 10px;">در حال استفاده</span>
+            </div>
         </div>
     </div>
     
     <!-- Stat 4: Unpaid Orders -->
-    <div class="dash-card">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
-            <div style="font-size: 1.1rem; color: var(--cf); font-weight: 600;">پرداخت نشده</div>
+    <div class="dash-card" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 140px;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
             <div class="icon-glow bg-amber">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
             </div>
+            <div style="font-size: 1.05rem; color: var(--cf); font-weight: 600;">پرداخت نشده</div>
         </div>
-        <div style="font-size: 2.4rem; font-weight: 700; color: var(--ct); margin-bottom: 12px; line-height: 1;">
-            <?= number_format($globalUnpaid) ?>
-        </div>
-        <div style="font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; gap: 6px;">
-            <span class="status-pill warning">معلق یا رها شده</span>
+        <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto;">
+            <div style="font-size: 2.2rem; font-weight: 700; color: var(--ct); line-height: 1;">
+                <?= number_format($globalUnpaid) ?>
+            </div>
+            <div style="font-size: 0.85rem; font-weight: 500;">
+                <span class="status-pill warning" style="padding: 4px 10px;">رها شده</span>
+            </div>
         </div>
     </div>
 
