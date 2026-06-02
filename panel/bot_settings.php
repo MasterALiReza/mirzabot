@@ -274,13 +274,14 @@ include __DIR__ . '/inc/layout_head.php';
         </div>
     </div>
     
-    <form method="POST" class="card-body" style="display:flex; flex-direction:column; gap:20px;">
-        <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
-        <input type="hidden" name="current_tab" value="<?= $tab ?>">
-        
+    <div class="card-body" style="display:flex; flex-direction:column; gap:20px;">
         <?php foreach($schema[$tab]['sections'] as $section_title => $fields): ?>
-            <div style="border: 1px solid var(--bd); border-radius: 10px; overflow: hidden; background: var(--bg);">
-                <div style="background: var(--sf); padding: 12px 15px; font-weight: bold; border-bottom: 1px solid var(--bd); color: var(--fg); font-size: 0.9rem;">
+            <form method="POST" style="border: 1px solid var(--bd); border-radius: 10px; overflow: hidden; background: var(--bg); box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
+                <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
+                <input type="hidden" name="current_tab" value="<?= $tab ?>">
+                
+                <div style="background: var(--sf); padding: 12px 15px; font-weight: bold; border-bottom: 1px solid var(--bd); color: var(--fg); font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 4px; height: 16px; background: var(--ac); border-radius: 2px;"></div>
                     <?= $section_title ?>
                 </div>
                 <div style="padding: 15px; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
@@ -299,15 +300,15 @@ include __DIR__ . '/inc/layout_head.php';
                         </div>
                     <?php endforeach; ?>
                 </div>
-            </div>
+                
+                <div style="padding: 12px 15px; background: var(--sf); border-top: 1px solid var(--bd); display: flex; justify-content: flex-end;">
+                    <button type="submit" class="btn btn-primary" style="padding: 8px 24px; font-size: 0.9rem; border-radius: 6px;">
+                        <?= icon('check', 16) ?> ذخیره تنظیمات <?= $section_title ?>
+                    </button>
+                </div>
+            </form>
         <?php endforeach; ?>
-        
-        <div style="margin-top:10px;">
-            <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 12px; font-size: 1rem;">
-                <?= icon('check', 18) ?> ذخیره تنظیمات <?= $schema[$tab]['title'] ?>
-            </button>
-        </div>
-    </form>
+    </div>
 </div>
 
 <?php include __DIR__ . '/inc/layout_foot.php'; ?>
