@@ -1,0 +1,112 @@
+/* Mobile UI/UX Optimizations (Mobile-First & Fitts Law) */
+
+@media (max-width: 768px) {
+    /* 1. Touch Targets (Minimum 44px height for touch friendly elements) */
+    .btn, .input, .select, .textarea, .search-box input, .arvan-input, .arvan-select {
+        min-height: 44px;
+    }
+    
+    .btn-sm, .btn-icon {
+        min-height: 38px;
+        min-width: 38px;
+    }
+
+    .icon-btn {
+        min-width: 44px;
+        min-height: 44px;
+    }
+    
+    /* 2. Fix Tables */
+    .tbl-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        box-shadow: inset -10px 0 10px -10px rgba(0,0,0,0.1);
+    }
+
+    table {
+        min-width: 650px !important;
+    }
+    
+    /* 3. Toolbar & Forms (Stacking and 100% width) */
+    .toolbar-end {
+        flex-direction: column;
+        align-items: stretch !important;
+        width: 100%;
+        gap: 10px;
+    }
+    
+    .toolbar-end .select, 
+    .toolbar-end .search-box, 
+    .toolbar-end .btn {
+        width: 100%;
+        margin: 0;
+    }
+    
+    /* 4. Bottom Nav (Safe Area + Spacing) */
+    .bottom-nav {
+        padding-bottom: env(safe-area-inset-bottom, 15px) !important;
+        padding-top: 8px !important;
+        background: var(--sf);
+        box-shadow: 0 -4px 15px rgba(0,0,0,0.15);
+        border-top: none;
+    }
+    
+    .bnav-item {
+        padding: 8px 4px !important;
+    }
+
+    .bnav-item svg {
+        width: 24px;
+        height: 24px;
+        margin-bottom: 3px;
+    }
+
+    /* 5. Modals / Bottom Sheets */
+    .modal-veil {
+        align-items: flex-end !important;
+        padding: 0 !important;
+    }
+
+    .modal {
+        margin: 0 !important;
+        border-radius: 20px 20px 0 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        max-height: 90vh !important;
+        bottom: 0;
+    }
+    
+    /* 6. Dashboard Cards */
+    .dash-card {
+        padding: 18px !important;
+    }
+
+    .stats {
+        grid-template-columns: 1fr !important;
+        gap: 15px !important;
+    }
+    
+    /* 7. Spacing adjustments */
+    .page-head h1 {
+        font-size: 1.3rem !important;
+    }
+    
+    .content {
+        padding: 15px !important;
+        padding-bottom: 80px !important; /* Make room for bottom nav */
+    }
+}
+
+/* Extra small devices */
+@media (max-width: 480px) {
+    .card-head {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    .card-head > div {
+        width: 100%;
+    }
+}
