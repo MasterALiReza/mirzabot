@@ -273,7 +273,8 @@ include __DIR__ . '/inc/layout_head.php';
                     </div>
                 <?php endif; ?>
             </div>
-    </div>
+        </div>
+    </div> <!-- Close u-sidebar properly -->
 
     <div class="u-main-col" style="display:flex;flex-direction:column;gap:16px">
 
