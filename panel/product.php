@@ -213,7 +213,7 @@ $panelsCount = count(array_unique(array_filter(array_column($products, 'Location
 <div class="modal-veil" id="addModal">
   <div class="modal">
     <div class="modal-head">
-      <h3><?= $textbotlang['panel']['productAddProductTitle'] ?? 'افزودن محصول جدید' ?></h3>
+      <h3>افزودن محصول جدید</h3>
       <button class="modal-x" onclick="closeModal('addModal')"><?= icon('close', 14) ?></button>
     </div>
     <form method="POST">
@@ -222,27 +222,27 @@ $panelsCount = count(array_unique(array_filter(array_column($products, 'Location
         <input type="hidden" name="action" value="add">
         <div class="form-grid">
           <div class="field full">
-            <label><?= $textbotlang['panel']['productFieldProductName'] ?? 'نام محصول' ?></label>
-            <input type="text" name="name_product" class="input" placeholder="<?= htmlspecialchars($textbotlang['panel']['productNameExample'] ?? 'مثال: سرور آلمان ۳۰ روزه') ?>" required>
+            <label>نام محصول</label>
+            <input type="text" name="name_product" class="input" placeholder="مثال: سرور آلمان ۳۰ روزه" required>
           </div>
           <div class="field">
-            <label><?= $textbotlang['panel']['productFieldPriceToman'] ?? 'قیمت (تومان)' ?></label>
-            <input type="number" name="price_product" class="input" placeholder="<?= htmlspecialchars($textbotlang['panel']['productZeroValue'] ?? '50000') ?>" min="0">
+            <label>قیمت (تومان)</label>
+            <input type="number" name="price_product" class="input" placeholder="50000" min="0">
           </div>
           <div class="field">
-            <label><?= $textbotlang['panel']['productFieldVolumeGb'] ?? 'حجم (گیگابایت)' ?></label>
-            <input type="number" name="volume_product" class="input" placeholder="<?= htmlspecialchars($textbotlang['panel']['productFiftyValue'] ?? '50') ?>" min="0">
+            <label>حجم (گیگابایت)</label>
+            <input type="number" name="volume_product" class="input" placeholder="50" min="0">
           </div>
           <div class="field">
-            <label><?= $textbotlang['panel']['productFieldServiceDays'] ?? 'مدت زمان (روز)' ?></label>
-            <input type="number" name="time_product" class="input" placeholder="<?= htmlspecialchars($textbotlang['panel']['productThirtyValue'] ?? '30') ?>" min="0">
+            <label>مدت زمان (روز)</label>
+            <input type="number" name="time_product" class="input" placeholder="30" min="0">
           </div>
           <div class="field">
-            <label><?= $textbotlang['panel']['productFieldCategory'] ?? 'دسته‌بندی' ?></label>
-            <input type="text" name="cetegory_product" class="input" placeholder="<?= htmlspecialchars($textbotlang['panel']['productTypeExample'] ?? 'مثال: ایرانسل') ?>">
+            <label>دسته‌بندی</label>
+            <input type="text" name="cetegory_product" class="input" placeholder="مثال: ایرانسل">
           </div>
           <div class="field">
-            <label><?= $textbotlang['panel']['productFieldLocation'] ?? 'پنل/سرور' ?></label>
+            <label>پنل/سرور</label>
             <select name="namepanel" class="select">
               <option value="">-- انتخاب پنل --</option>
               <?php foreach ($panels as $pl): ?>
@@ -252,22 +252,22 @@ $panelsCount = count(array_unique(array_filter(array_column($products, 'Location
             </select>
           </div>
           <div class="field">
-            <label><?= $textbotlang['panel']['productFieldProductType'] ?? 'نوع پروتکل' ?></label>
+            <label>سطح دسترسی محصول</label>
             <select name="agent_product" class="select">
-              <option value="f">V2ray</option>
-              <option value="n">Wireguard</option>
-              <option value="n2">OpenVPN</option>
+              <option value="f">کاربر عادی</option>
+              <option value="n">نماینده</option>
+              <option value="n2">نماینده پیشرفته</option>
             </select>
           </div>
           <div class="field full">
-            <label><?= $textbotlang['panel']['productFieldDescription'] ?? 'توضیحات محصول' ?></label>
-            <input type="text" name="note_product" class="input" placeholder="<?= htmlspecialchars($textbotlang['panel']['productDescriptionOptional'] ?? 'توضیحات (اختیاری)') ?>">
+            <label>توضیحات محصول</label>
+            <input type="text" name="note_product" class="input" placeholder="توضیحات (اختیاری)">
           </div>
         </div>
       </div>
       <div class="modal-foot">
-        <button type="submit" class="btn btn-primary"><?= icon('plus', 13) ?> <?= $textbotlang['panel']['productSaveBtn'] ?? 'ذخیره' ?></button>
-        <button type="button" class="btn btn-ghost" onclick="closeModal('addModal')"><?= $textbotlang['panel']['productCancelBtn'] ?? 'انصراف' ?></button>
+        <button type="submit" class="btn btn-primary"><?= icon('plus', 13) ?> ذخیره محصول</button>
+        <button type="button" class="btn btn-ghost" onclick="closeModal('addModal')">انصراف</button>
       </div>
     </form>
   </div>
@@ -276,7 +276,7 @@ $panelsCount = count(array_unique(array_filter(array_column($products, 'Location
 <div class="modal-veil" id="editModal">
   <div class="modal">
     <div class="modal-head">
-      <h3><?= $textbotlang['panel']['productEditProductTitle'] ?? 'ویرایش محصول' ?></h3>
+      <h3>ویرایش محصول</h3>
       <button class="modal-x" onclick="closeModal('editModal')"><?= icon('close', 14) ?></button>
     </div>
     <form method="POST">
@@ -286,27 +286,27 @@ $panelsCount = count(array_unique(array_filter(array_column($products, 'Location
         <input type="hidden" name="edit_id" id="edit_id">
         <div class="form-grid">
           <div class="field full">
-            <label><?= $textbotlang['panel']['productFieldProductName'] ?? 'نام محصول' ?></label>
+            <label>نام محصول</label>
             <input type="text" name="name_product" id="edit_name" class="input" required>
           </div>
           <div class="field">
-            <label><?= $textbotlang['panel']['productFieldPriceToman'] ?? 'قیمت (تومان)' ?></label>
+            <label>قیمت (تومان)</label>
             <input type="number" name="price_product" id="edit_price" class="input" min="0">
           </div>
           <div class="field">
-            <label><?= $textbotlang['panel']['productFieldVolumeGb'] ?? 'حجم (گیگابایت)' ?></label>
+            <label>حجم (گیگابایت)</label>
             <input type="number" name="volume_product" id="edit_volume" class="input" min="0">
           </div>
           <div class="field">
-            <label><?= $textbotlang['panel']['productFieldServiceDays'] ?? 'مدت زمان (روز)' ?></label>
+            <label>مدت زمان (روز)</label>
             <input type="number" name="time_product" id="edit_time" class="input" min="0">
           </div>
           <div class="field">
-            <label><?= $textbotlang['panel']['productFieldCategory'] ?? 'دسته‌بندی' ?></label>
+            <label>دسته‌بندی</label>
             <input type="text" name="cetegory_product" id="edit_cat" class="input">
           </div>
           <div class="field">
-            <label><?= $textbotlang['panel']['productFieldLocation'] ?? 'پنل/سرور' ?></label>
+            <label>پنل/سرور</label>
             <select name="namepanel" id="edit_panel" class="select">
               <option value="">-- انتخاب پنل --</option>
               <?php foreach ($panels as $pl): ?>
@@ -316,22 +316,22 @@ $panelsCount = count(array_unique(array_filter(array_column($products, 'Location
             </select>
           </div>
           <div class="field">
-            <label><?= $textbotlang['panel']['productFieldProductType'] ?? 'نوع پروتکل' ?></label>
+            <label>سطح دسترسی محصول</label>
             <select name="agent_product" id="edit_agent" class="select">
-              <option value="f">V2ray</option>
-              <option value="n">Wireguard</option>
-              <option value="n2">OpenVPN</option>
+              <option value="f">کاربر عادی</option>
+              <option value="n">نماینده</option>
+              <option value="n2">نماینده پیشرفته</option>
             </select>
           </div>
           <div class="field full">
-            <label><?= $textbotlang['panel']['productFieldDescription'] ?? 'توضیحات محصول' ?></label>
+            <label>توضیحات محصول</label>
             <input type="text" name="note_product" id="edit_note" class="input">
           </div>
         </div>
       </div>
       <div class="modal-foot">
-        <button type="submit" class="btn btn-primary"><?= icon('check', 13) ?> <?= $textbotlang['panel']['productSaveBtn'] ?? 'ذخیره تغییرات' ?></button>
-        <button type="button" class="btn btn-ghost" onclick="closeModal('editModal')"><?= $textbotlang['panel']['productCancelBtn'] ?? 'انصراف' ?></button>
+        <button type="submit" class="btn btn-primary"><?= icon('check', 13) ?> ذخیره تغییرات</button>
+        <button type="button" class="btn btn-ghost" onclick="closeModal('editModal')">انصراف</button>
       </div>
     </form>
   </div>
