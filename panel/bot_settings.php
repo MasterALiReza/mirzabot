@@ -304,6 +304,49 @@ include __DIR__ . '/inc/layout_head.php';
     flex: 1;
     min-width: 0;
 }
+.arvan-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+.arvan-select {
+    width: 100%;
+    padding: 12px;
+    padding-left: 35px; /* RTL arrow padding */
+    border-radius: 8px;
+    border: 1px solid var(--bd);
+    background: var(--bg);
+    color: var(--fg);
+    font-size: 0.95rem;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: left 12px center;
+    background-size: 16px;
+    transition: all 0.2s ease;
+}
+.arvan-select:focus {
+    outline: none;
+    border-color: var(--ac);
+    box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.1);
+}
+.arvan-input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid var(--bd);
+    background: var(--bg);
+    color: var(--fg);
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+.arvan-input:focus {
+    outline: none;
+    border-color: var(--ac);
+    box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.1);
+}
 @media (max-width: 768px) {
     .arvan-layout {
         flex-direction: column;
@@ -317,6 +360,11 @@ include __DIR__ . '/inc/layout_head.php';
         width: 100%;
         padding: 10px 15px;
         overflow-x: auto;
+    }
+}
+@media (max-width: 480px) {
+    .arvan-grid {
+        grid-template-columns: 1fr;
     }
 }
 </style>
@@ -365,18 +413,18 @@ include __DIR__ . '/inc/layout_head.php';
                 <input type="hidden" name="current_tab" value="<?= htmlspecialchars($tab) ?>">
                 <input type="hidden" name="current_sec" value="<?= htmlspecialchars($sec) ?>">
                 
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+                <div class="arvan-grid">
                     <?php foreach($schema[$tab]['sections'][$sec] as $f): ?>
                         <div class="field">
                             <label style="font-weight: 600; margin-bottom: 8px; color: var(--fg); font-size: 0.9rem;"><?= $f['label'] ?></label>
                             <?php if($f['type'] === 'select'): ?>
-                                <select name="<?= $f['name'] ?>" class="select" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--bd); background: var(--bg); color: var(--fg); font-size: 0.95rem;">
+                                <select name="<?= $f['name'] ?>" class="arvan-select">
                                     <?php foreach($f['options'] as $opt_val => $opt_label): ?>
                                         <option value="<?= $opt_val ?>" <?= (strval($f['val']) === strval($opt_val)) ? 'selected' : '' ?>><?= $opt_label ?></option>
                                     <?php endforeach; ?>
                                 </select>
                             <?php elseif($f['type'] === 'text' || $f['type'] === 'number'): ?>
-                                <input type="<?= $f['type'] ?>" name="<?= $f['name'] ?>" class="input" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--bd); background: var(--bg); color: var(--fg); font-size: 0.95rem;" value="<?= htmlspecialchars($f['val'] ?? '') ?>" placeholder="<?= $f['placeholder'] ?? '' ?>">
+                                <input type="<?= $f['type'] ?>" name="<?= $f['name'] ?>" class="arvan-input" value="<?= htmlspecialchars($f['val'] ?? '') ?>" placeholder="<?= $f['placeholder'] ?? '' ?>">
                             <?php endif; ?>
                         </div>
                     <?php endforeach; ?>
