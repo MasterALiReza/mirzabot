@@ -35,6 +35,16 @@ try {
 }
 $totalPages = max(1, (int) ceil($total / $perPage));
 
+// Calculate Global Stats
+try {
+  $globalTotal = db_count($pdo, "SELECT COUNT(*) FROM service_other");
+  $globalPending = db_count($pdo, "SELECT COUNT(*) FROM service_other WHERE status = 'pending'");
+  $globalDone = db_count($pdo, "SELECT COUNT(*) FROM service_other WHERE status = 'done'");
+  $globalReject = db_count($pdo, "SELECT COUNT(*) FROM service_other WHERE status = 'reject'");
+} catch (Exception $e) {
+  $globalTotal = 0; $globalPending = 0; $globalDone = 0; $globalReject = 0;
+}
+
 $typeMap = [
   'change_location' => $textbotlang['panel']['serviceChangeLocationLabel'],
   'extra_user' => $textbotlang['panel']['serviceExtraVolumeLabel'],
@@ -50,22 +60,87 @@ $activeNav = 'service';
 include __DIR__ . '/inc/layout_head.php';
 ?>
 
+<!-- Top Statistics Cards -->
+<div class="stats fade-up" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 24px;">
+    
+    <div class="dash-card">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+            <div style="font-size: 0.95rem; color: var(--cf); font-weight: 600;">کل درخواست‌ها</div>
+            <div class="icon-glow bg-blue">
+                <?= icon('layers', 20) ?>
+            </div>
+        </div>
+        <div style="font-size: 2.2rem; font-weight: 700; color: var(--ct); margin-bottom: 12px; line-height: 1;">
+            <?= number_format($globalTotal) ?>
+        </div>
+        <div style="font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; gap: 6px;">
+            <span class="status-pill neutral">تراکنش دستی ثبت شده</span>
+        </div>
+    </div>
+    
+    <div class="dash-card">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+            <div style="font-size: 0.95rem; color: var(--cf); font-weight: 600;">در انتظار انجام</div>
+            <div class="icon-glow bg-amber">
+                <?= icon('clock', 20) ?>
+            </div>
+        </div>
+        <div style="font-size: 2.2rem; font-weight: 700; color: var(--ct); margin-bottom: 12px; line-height: 1;">
+            <?= number_format($globalPending) ?>
+        </div>
+        <div style="font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; gap: 6px;">
+            <span class="status-pill warning">نیازمند بررسی</span>
+        </div>
+    </div>
+    
+    <div class="dash-card">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+            <div style="font-size: 0.95rem; color: var(--cf); font-weight: 600;">انجام شده</div>
+            <div class="icon-glow bg-emerald">
+                <?= icon('check-circle', 20) ?>
+            </div>
+        </div>
+        <div style="font-size: 2.2rem; font-weight: 700; color: var(--ct); margin-bottom: 12px; line-height: 1;">
+            <?= number_format($globalDone) ?>
+        </div>
+        <div style="font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; gap: 6px;">
+            <span class="status-pill success">موفق</span>
+        </div>
+    </div>
+    
+    <div class="dash-card">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+            <div style="font-size: 0.95rem; color: var(--cf); font-weight: 600;">رد شده</div>
+            <div class="icon-glow bg-red">
+                <?= icon('x-circle', 20) ?>
+            </div>
+        </div>
+        <div style="font-size: 2.2rem; font-weight: 700; color: var(--ct); margin-bottom: 12px; line-height: 1;">
+            <?= number_format($globalReject) ?>
+        </div>
+        <div style="font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; gap: 6px;">
+            <span class="status-pill danger">لغو شده</span>
+        </div>
+    </div>
+
+</div>
+
 <div class="card fade-up">
   <div class="toolbar">
     <div class="toolbar-title"><?= $textbotlang['panel']['servicesPageHeading'] ?> <small>(<?= number_format($total) ?>)</small></div>
     <form method="GET" id="srvForm" class="toolbar-end">
       <select name="status" class="select" style="width:auto" onchange="document.getElementById('srvForm').submit()">
-        <option value=""><?= $textbotlang['panel']['serviceColUser'] ?></option>
-        <option value="done" <?= $status === 'done' ? 'selected' : '' ?>><?= $textbotlang['panel']['serviceColType'] ?></option>
-        <option value="pending" <?= $status === 'pending' ? 'selected' : '' ?>><?= $textbotlang['panel']['serviceColService'] ?></option>
-        <option value="reject" <?= $status === 'reject' ? 'selected' : '' ?>><?= $textbotlang['panel']['serviceColStatus'] ?></option>
+        <option value="">همه وضعیت‌ها</option>
+        <option value="done" <?= $status === 'done' ? 'selected' : '' ?>>انجام شده</option>
+        <option value="pending" <?= $status === 'pending' ? 'selected' : '' ?>>در انتظار</option>
+        <option value="reject" <?= $status === 'reject' ? 'selected' : '' ?>>رد شده</option>
       </select>
       <div class="search-box" style="min-width:240px">
         <?= icon('search', 14) ?>
-        <input type="text" name="q" placeholder=$textbotlang['panel']['serviceSearchServicePlaceholder'] value="<?= htmlspecialchars($search) ?>"
+        <input type="text" name="q" placeholder="<?= htmlspecialchars($textbotlang['panel']['serviceSearchServicePlaceholder'] ?? 'جستجو') ?>" value="<?= htmlspecialchars($search) ?>"
           autocomplete="off">
         <button type="button" class="search-clear">✕</button>
-        <button type="submit" class="search-btn"><?= $textbotlang['panel']['serviceColDate'] ?></button>
+        <button type="submit" class="search-btn">جستجو</button>
       </div>
       <?php if ($search || $status): ?>
         <a href="service.php" class="btn-link" style="font-size:.78rem"><?= $textbotlang['panel']['serviceColPanel'] ?></a>
@@ -78,13 +153,13 @@ include __DIR__ . '/inc/layout_head.php';
       <thead>
         <tr>
           <th>#</th>
-          <th><?= $textbotlang['panel']['serviceColProduct'] ?></th>
-          <th><?= $textbotlang['panel']['serviceColAmount'] ?></th>
-          <th><?= $textbotlang['panel']['serviceDetailTitle'] ?></th>
-          <th><?= $textbotlang['panel']['serviceDetailUser'] ?></th>
-          <th><?= $textbotlang['panel']['serviceDetailType'] ?></th>
-          <th><?= $textbotlang['panel']['serviceDetailService'] ?></th>
-          <th><?= $textbotlang['panel']['serviceDetailStatus'] ?></th>
+          <th><?= $textbotlang['panel']['serviceDetailUser'] ?? 'کاربر' ?></th>
+          <th><?= $textbotlang['panel']['userColUsername'] ?? 'یوزرنیم' ?></th>
+          <th><?= $textbotlang['panel']['serviceColType'] ?? 'نوع' ?></th>
+          <th><?= $textbotlang['panel']['serviceColAmount'] ?? 'مقدار' ?></th>
+          <th><?= $textbotlang['panel']['serviceColPrice'] ?? 'قیمت' ?></th>
+          <th><?= $textbotlang['panel']['serviceColDate'] ?? 'تاریخ' ?></th>
+          <th><?= $textbotlang['panel']['serviceColStatus'] ?? 'وضعیت' ?></th>
         </tr>
       </thead>
       <tbody>
@@ -114,6 +189,27 @@ include __DIR__ . '/inc/layout_head.php';
             ];
             [$cls, $lbl] = $stMap[$s['status'] ?? ''] ?? ['tag-plain', $s['status'] ?? '—'];
             $typeLabel = $typeMap[$s['type'] ?? ''] ?? ($s['type'] ?? '—');
+            
+            $rawVal = $s['value'] ?? '';
+            $valStr = $rawVal;
+            if (str_starts_with(trim($rawVal), '{')) {
+                $decoded = json_decode($rawVal, true);
+                if (is_array($decoded)) {
+                    $parts = [];
+                    if (isset($decoded['volumebuy'])) $parts[] = $decoded['volumebuy'] . ' گیگ';
+                    if (isset($decoded['time'])) $parts[] = $decoded['time'] . ' روز';
+                    if (isset($decoded['server_id'])) $parts[] = 'سرور ' . $decoded['server_id'];
+                    if (isset($decoded['plan_id'])) $parts[] = 'پلن ' . $decoded['plan_id'];
+                    if (isset($decoded['server_name'])) $parts[] = $decoded['server_name'];
+                    if (empty($parts)) {
+                        foreach ($decoded as $k => $v) {
+                            if (is_scalar($v)) $parts[] = "$k: $v";
+                        }
+                    }
+                    $valStr = implode(' - ', $parts);
+                }
+            }
+            if ($valStr === '' || $valStr === '[]' || $valStr === '{}') $valStr = '—';
             ?>
             <tr>
               <td class="cf"><?= $i++ ?></td>
@@ -122,8 +218,8 @@ include __DIR__ . '/inc/layout_head.php';
                 <?= !empty($s['username']) ? '<span class="cm" style="color:var(--ac)">@' . htmlspecialchars(trunc($s['username'], 18)) . '</span>' : '<span class="cf">—</span>' ?>
               </td>
               <td style="font-size:.82rem;color:var(--text2)"><?= htmlspecialchars($typeLabel) ?></td>
-              <td class="cn" style="font-size:.82rem"><?= htmlspecialchars(trunc($s['value'] ?? '—', 20)) ?></td>
-              <td class="cn cs"><?= number_format((int) ($s['price'] ?? 0)) ?> <span class="cf"><?= $textbotlang['panel']['serviceDetailDate'] ?></span></td>
+              <td class="cn" style="font-size:.82rem; direction:ltr; text-align:right"><?= htmlspecialchars(trunc($valStr, 40)) ?></td>
+              <td class="cn cs"><?= number_format((int) ($s['price'] ?? 0)) ?> <span class="cf"><?= $textbotlang['panel']['dashUnitToman'] ?? 'تومان' ?></span></td>
               <td class="cf"><?= safe_date($s['time'] ?? null, 'Y/m/d') ?></td>
               <td><span class="tag <?= $cls ?>"><?= $lbl ?></span></td>
             </tr>
