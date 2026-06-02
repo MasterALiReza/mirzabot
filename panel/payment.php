@@ -71,41 +71,40 @@ include __DIR__ . '/inc/layout_head.php';
 
 <div class="stats" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px">
   <div class="stat success">
-    <div class="stat-label"><?= $textbotlang['panel']['paymentTransactionsHeading'] ?></div>
-    <div class="stat-num"><?= number_format($totalSuccess) ?><small><?= $textbotlang['panel']['paymentAllStatuses'] ?></small></div>
-    <div class="stat-meta"><?= $textbotlang['panel']['paymentAllMethods'] ?></div>
+    <div class="stat-label">جمع تراکنش‌های موفق</div>
+    <div class="stat-num"><?= number_format($totalSuccess) ?> <small style="font-size: 0.6em; opacity: 0.8;">تومان</small></div>
+    <div class="stat-meta">از ابتدای فعالیت</div>
   </div>
   <div class="stat">
-    <div class="stat-label"><?= $textbotlang['panel']['paymentSearchBtn'] ?></div>
+    <div class="stat-label">تعداد کل</div>
     <div class="stat-num"><?= number_format($total) ?></div>
-    <div class="stat-meta"><?= $textbotlang['panel']['paymentClearBtn'] ?></div>
+    <div class="stat-meta">رکورد تراکنش</div>
   </div>
   <div class="stat warn">
-    <div class="stat-label"><?= $textbotlang['panel']['paymentColUser'] ?></div>
+    <div class="stat-label">امروز</div>
     <div class="stat-num"><?= number_format($todayCount) ?></div>
-    <div class="stat-meta"><?= $textbotlang['panel']['paymentColAmount'] ?></div>
+    <div class="stat-meta">تراکنش جدید امروز</div>
   </div>
 </div>
 
 <div class="card">
   <div class="toolbar">
-    <div class="toolbar-title"><?= $textbotlang['panel']['paymentColMethod'] ?> <small>(<?= number_format($total) ?>)</small></div>
+    <div class="toolbar-title">گزارش تراکنش‌ها <small>(<?= number_format($total) ?>)</small></div>
     <form method="GET" class="toolbar-end">
       <select name="status" class="select" style="width:auto" onchange="this.form.submit()">
-        <option value=""><?= $textbotlang['panel']['paymentColStatus'] ?></option>
+        <option value="">همه وضعیت‌ها</option>
         <?php foreach ($statusMap as $k => [$_, $lbl]): ?>
           <option value="<?= $k ?>" <?= $status === $k ? 'selected' : '' ?>><?= $lbl ?></option>
         <?php endforeach; ?>
       </select>
       <div class="search-box" style="min-width:230px">
         <?= icon('search', 14) ?>
-        <input type="text" name="q" placeholder=$textbotlang['panel']['paymentSearchTransactionPlaceholder']
-          value="<?= htmlspecialchars($search) ?>">
+        <input type="text" name="q" placeholder="جستجوی شناسه سفارش یا کاربر..." value="<?= htmlspecialchars($search) ?>">
         <button type="button" class="search-clear">✕</button>
-        <button type="submit" class="search-btn"><?= $textbotlang['panel']['paymentColTrackingCode'] ?></button>
+        <button type="submit" class="search-btn">جستجو</button>
       </div>
       <?php if ($search || $status): ?>
-        <a href="payment.php" class="btn-link" style="font-size:.78rem"><?= $textbotlang['panel']['paymentColDate'] ?></a>
+        <a href="payment.php" class="btn-link" style="font-size:.78rem;margin-right:10px">پاک‌سازی فیلتر</a>
       <?php endif; ?>
     </form>
   </div>
@@ -115,21 +114,21 @@ include __DIR__ . '/inc/layout_head.php';
       <thead>
         <tr>
           <th>#</th>
-          <th><?= $textbotlang['panel']['paymentColAuthority'] ?></th>
-          <th><?= $textbotlang['panel']['paymentColDescription'] ?></th>
-          <th><?= $textbotlang['panel']['paymentDetailsTitle'] ?></th>
-          <th><?= $textbotlang['panel']['paymentDetailUser'] ?></th>
-          <th><?= $textbotlang['panel']['paymentDetailAmount'] ?></th>
-          <th><?= $textbotlang['panel']['paymentDetailMethod'] ?></th>
+          <th>کاربر</th>
+          <th>شناسه تراکنش</th>
+          <th>مبلغ</th>
+          <th>روش پرداخت</th>
+          <th>تاریخ</th>
+          <th>وضعیت</th>
         </tr>
       </thead>
       <tbody>
         <?php if (empty($payments)): ?>
           <tr>
-            <td>
+            <td colspan="7">
               <div class="empty">
                 <div class="empty-mark">—</div>
-                <p><?= $textbotlang['panel']['paymentDetailStatus'] ?></p>
+                <p>هیچ تراکنشی یافت نشد</p>
               </div>
             </td>
           </tr>
@@ -148,7 +147,7 @@ include __DIR__ . '/inc/layout_head.php';
                 <?= htmlspecialchars(trunc((string) ($p['id_order'] ?? '—'), 18)) ?>
               </td>
               <td class="cell-strong cell-num"><?= number_format((int) ($p['price'] ?? 0)) ?> <span
-                  style="color:var(--text-dim);font-weight:400;font-size:.72rem"><?= $textbotlang['panel']['paymentDetailTrackingCode'] ?></span></td>
+                  style="color:var(--text-dim);font-weight:400;font-size:.72rem">تومان</span></td>
               <td style="font-size:.8rem"><?= htmlspecialchars($method) ?></td>
               <td style="font-size:.78rem;color:var(--text-dim);white-space:nowrap">
                 <?= safe_date($p['time'] ?? null, 'Y/m/d H:i') ?>
@@ -161,7 +160,7 @@ include __DIR__ . '/inc/layout_head.php';
   </div>
 
   <div class="tbl-foot">
-    <span><?= number_format($total) ?> <?= $textbotlang['panel']['paymentDetailDate'] ?> <?= $page ?> <?= $textbotlang['panel']['paymentCloseBtn'] ?> <?= $totalPages ?></span>
+    <span><?= number_format($total) ?> رکورد، صفحه <?= $page ?> از <?= $totalPages ?></span>
     <div class="pager">
       <?php $qs = fn($p) => '?q=' . urlencode($search) . '&status=' . urlencode($status) . '&page=' . $p; ?>
       <a class="<?= $page <= 1 ? 'disabled' : '' ?>" href="<?= $qs(max(1, $page - 1)) ?>">‹</a>
