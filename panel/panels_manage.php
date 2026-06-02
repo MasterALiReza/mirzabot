@@ -187,8 +187,8 @@ include __DIR__ . '/inc/layout_head.php';
                         <tr>
                             <td data-label="#" class="cf"><?= $i++ ?></td>
                             <td data-label="<?= $textbotlang['panel']['panelsColName'] ?>" class="cs" style="font-weight:600"><?= htmlspecialchars($p['name_panel'] ?? '—') ?></td>
-                            <td data-label="<?= $textbotlang['panel']['panelsColUrl'] ?>" class="cm" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:ltr;text-align:left;">
-                                <a href="<?= htmlspecialchars($p['url_panel'] ?? '#') ?>" target="_blank" style="color:var(--ac);text-decoration:none">
+                            <td data-label="<?= $textbotlang['panel']['panelsColUrl'] ?>">
+                                <a href="<?= htmlspecialchars($p['url_panel'] ?? '#') ?>" target="_blank" style="color:var(--ac);text-decoration:none;display:inline-block;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:ltr;vertical-align:middle;">
                                     <?= htmlspecialchars($p['url_panel'] ?? '—') ?>
                                 </a>
                             </td>
