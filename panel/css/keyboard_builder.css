@@ -50,6 +50,7 @@
     position: relative;
     border-radius: 6px;
     transition: background 0.2s;
+    direction: ltr; /* Force LTR to match Telegram's visual array rendering */
 }
 
 /* The empty row at the bottom where users can drop items to create a new row */
@@ -93,6 +94,7 @@
     font-weight: 500;
     transition: transform 0.1s, opacity 0.1s;
     position: relative;
+    direction: rtl; /* Reset text direction to RTL */
 }
 
 .kb-btn span {

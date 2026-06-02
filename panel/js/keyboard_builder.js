@@ -186,6 +186,7 @@ document.addEventListener("DOMContentLoaded", () => {
             delayOnTouchOnly: true,
             forceFallback: true, // Fixes iOS and Safari dragging issues
             fallbackClass: "sortable-fallback",
+            fallbackOnBody: true, // Fixes drag offset on mobile/scrolled containers
             filter: ".add-inline-btn, .remove-btn", // Prevent dragging these
             onEnd: ensureEmptyRowAtBottom
         };
@@ -209,6 +210,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 delayOnTouchOnly: true,
                 forceFallback: true,
                 fallbackClass: "sortable-fallback",
+                fallbackOnBody: true,
                 filter: ".add-inline-btn, .remove-btn",
                 onEnd: ensureEmptyRowAtBottom
             };
