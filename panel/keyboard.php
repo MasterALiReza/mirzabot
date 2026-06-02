@@ -165,6 +165,17 @@ $initial_data = [
         </div>
         
     </div>
+
+    <!-- Add Button Modal -->
+    <div id="addBtnModalVeil" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+        <div style="background:#fff; padding:20px; border-radius:12px; width:90%; max-width:350px; text-align:center;">
+            <h4 style="margin-top:0;">انتخاب دکمه جدید</h4>
+            <p style="font-size:12px; color:#64748b;">یک دکمه از لیست زیر انتخاب کنید:</p>
+            <div id="addBtnList" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:15px; justify-content:center; max-height:250px; overflow-y:auto; padding-bottom:10px;">
+            </div>
+            <button onclick="document.getElementById('addBtnModalVeil').style.display='none'" style="margin-top:20px; width:100%; padding:10px; border-radius:8px; border:none; background:#e2e8f0; font-family:inherit; cursor:pointer; font-weight:bold;">انصراف</button>
+        </div>
+    </div>
 </body>
 
 </html>

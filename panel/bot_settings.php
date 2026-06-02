@@ -453,6 +453,34 @@ include __DIR__ . '/inc/layout_head.php';
         grid-template-columns: 1fr;
     }
 }
+@media (max-width: 600px) {
+    .arvan-main-tabs, .arvan-sub-tabs {
+        -ms-overflow-style: none; /* IE and Edge */
+        scrollbar-width: none; /* Firefox */
+    }
+    .arvan-main-tabs::-webkit-scrollbar, .arvan-sub-tabs::-webkit-scrollbar {
+        display: none; /* Chrome, Safari and Opera */
+    }
+    .arvan-main-tab-btn {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+        border-radius: 8px;
+    }
+    .arvan-main-tab-btn svg {
+        width: 18px !important;
+        height: 18px !important;
+    }
+    .arvan-sub-tab-btn {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
+    .card-head {
+        padding: 0 10px !important;
+    }
+    .card-body {
+        padding: 15px !important;
+    }
+}
 </style>
 
 <div class="fade-up">

@@ -184,18 +184,18 @@ include __DIR__ . '/inc/layout_head.php';
             $method = $methodMap[$methodRaw] ?? ($methodRaw ?: '—');
             ?>
             <tr>
-              <td style="color:var(--text-dim)"><?= $i++ ?></td>
-              <td class="cell-mono"><?= htmlspecialchars($p['id_user'] ?? '—') ?></td>
-              <td class="cell-mono" style="color:var(--accent)">
+              <td data-label="#" style="color:var(--text-dim)"><?= $i++ ?></td>
+              <td data-label="کاربر" class="cell-mono"><?= htmlspecialchars($p['id_user'] ?? '—') ?></td>
+              <td data-label="شناسه تراکنش" class="cell-mono" style="color:var(--accent)">
                 <?= htmlspecialchars(trunc((string) ($p['id_order'] ?? '—'), 18)) ?>
               </td>
-              <td class="cell-strong cell-num"><?= number_format((int) ($p['price'] ?? 0)) ?> <span style="color:var(--text-dim);font-weight:400;font-size:.72rem">تومان</span></td>
-              <td style="font-size:.8rem"><?= htmlspecialchars($method) ?></td>
-              <td style="font-size:.78rem;color:var(--text-dim);white-space:nowrap">
+              <td data-label="مبلغ" class="cell-strong cell-num"><?= number_format((int) ($p['price'] ?? 0)) ?> <span style="color:var(--text-dim);font-weight:400;font-size:.72rem">تومان</span></td>
+              <td data-label="روش پرداخت" style="font-size:.8rem"><?= htmlspecialchars($method) ?></td>
+              <td data-label="تاریخ" style="font-size:.78rem;color:var(--text-dim);white-space:nowrap">
                 <?= safe_date($p['time'] ?? null, 'Y/m/d H:i') ?>
               </td>
-              <td><span class="tag <?= $cls ?>"><?= $lbl ?></span></td>
-              <td style="text-align:left; white-space:nowrap;">
+              <td data-label="وضعیت"><span class="tag <?= $cls ?>"><?= $lbl ?></span></td>
+              <td data-label="عملیات" style="text-align:left; white-space:nowrap;">
                 <div class="actions">
                     <?php if ($st === 'waiting'): ?>
                       <a href="payment.php?action=confirm&id=<?= urlencode($p['id_order']) ?>&_csrf=<?= csrf_token() ?>" class="btn-icon" style="color:var(--success)" title="تایید" onclick="return confirm('آیا از تایید این تراکنش مطمئن هستید؟')">

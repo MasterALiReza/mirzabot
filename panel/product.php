@@ -179,17 +179,17 @@ $panelsCount = count(array_unique(array_filter(array_column($products, 'Location
           <?php $i = 1;
           foreach ($products as $p): ?>
             <tr>
-              <td class="cf"><?= $i++ ?></td>
-              <td class="cs"><?= htmlspecialchars($p['name_product'] ?? '') ?></td>
-              <td class="cn cs"><?= number_format((int) ($p['price_product'] ?? 0)) ?> <span class="cf"><?= $textbotlang['panel']['dashUnitToman'] ?? 'تومان' ?></span></td>
-              <td class="cn"><?= htmlspecialchars($p['Volume_constraint'] ?? '—') ?> <span class="cf">GB</span></td>
-              <td class="cn"><?= htmlspecialchars($p['Service_time'] ?? '—') ?> <span class="cf"><?= $textbotlang['panel']['productDayUnit'] ?? 'روز' ?></span></td>
-              <td class="cf"><?= htmlspecialchars(trunc($p['Location'] ?? '—', 16)) ?></td>
-              <td><?php if (!empty($p['category'])): ?><span
+              <td data-label="#" class="cf"><?= $i++ ?></td>
+              <td data-label="<?= $textbotlang['panel']['productColName'] ?? 'نام محصول' ?>" class="cs"><?= htmlspecialchars($p['name_product'] ?? '') ?></td>
+              <td data-label="<?= $textbotlang['panel']['productColPrice'] ?? 'قیمت' ?>" class="cn cs"><?= number_format((int) ($p['price_product'] ?? 0)) ?> <span class="cf"><?= $textbotlang['panel']['dashUnitToman'] ?? 'تومان' ?></span></td>
+              <td data-label="<?= $textbotlang['panel']['productColVolume'] ?? 'حجم' ?>" class="cn"><?= htmlspecialchars($p['Volume_constraint'] ?? '—') ?> <span class="cf">GB</span></td>
+              <td data-label="<?= $textbotlang['panel']['productColTime'] ?? 'مدت زمان' ?>" class="cn"><?= htmlspecialchars($p['Service_time'] ?? '—') ?> <span class="cf"><?= $textbotlang['panel']['productDayUnit'] ?? 'روز' ?></span></td>
+              <td data-label="<?= $textbotlang['panel']['productColLocation'] ?? 'سرور/پنل' ?>" class="cf"><?= htmlspecialchars(trunc($p['Location'] ?? '—', 16)) ?></td>
+              <td data-label="<?= $textbotlang['panel']['productColCategory'] ?? 'دسته‌بندی' ?>"><?php if (!empty($p['category'])): ?><span
                     class="tag tag-info"><?= htmlspecialchars($p['category']) ?></span><?php else: ?><span
                     class="cf">—</span><?php endif; ?></td>
-              <td class="cm" style="font-size:.72rem"><?= htmlspecialchars($p['code_product'] ?? '') ?></td>
-              <td>
+              <td data-label="<?= $textbotlang['panel']['productColId'] ?? 'کد' ?>" class="cm" style="font-size:.72rem"><?= htmlspecialchars($p['code_product'] ?? '') ?></td>
+              <td data-label="<?= $textbotlang['panel']['productColActions'] ?? 'عملیات' ?>">
                 <div style="display:flex;gap:5px">
                   <button class="btn btn-ghost btn-sm btn-icon" title=$textbotlang['panel']['productEditBtn']
                     onclick="openEditModal(<?= htmlspecialchars(json_encode($p), ENT_QUOTES) ?>)">

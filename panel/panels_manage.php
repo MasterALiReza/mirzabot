@@ -185,24 +185,24 @@ include __DIR__ . '/inc/layout_head.php';
                         ]);
                         ?>
                         <tr>
-                            <td class="cf"><?= $i++ ?></td>
-                            <td class="cs" style="font-weight:600"><?= htmlspecialchars($p['name_panel'] ?? '—') ?></td>
-                            <td class="cm" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:ltr;text-align:left;">
+                            <td data-label="#" class="cf"><?= $i++ ?></td>
+                            <td data-label="<?= $textbotlang['panel']['panelsColName'] ?>" class="cs" style="font-weight:600"><?= htmlspecialchars($p['name_panel'] ?? '—') ?></td>
+                            <td data-label="<?= $textbotlang['panel']['panelsColUrl'] ?>" class="cm" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:ltr;text-align:left;">
                                 <a href="<?= htmlspecialchars($p['url_panel'] ?? '#') ?>" target="_blank" style="color:var(--ac);text-decoration:none">
                                     <?= htmlspecialchars($p['url_panel'] ?? '—') ?>
                                 </a>
                             </td>
-                            <td>
+                            <td data-label="<?= $textbotlang['panel']['panelsColType'] ?>">
                                 <span class="tag tag-plain" style="text-transform:uppercase"><?= htmlspecialchars($type) ?></span>
                             </td>
-                            <td>
+                            <td data-label="<?= $textbotlang['panel']['panelsColStatus'] ?>">
                                 <?php if ($isActive): ?>
                                     <span class="tag tag-ok"><?= $textbotlang['panel']['panelsStatusActive'] ?></span>
                                 <?php else: ?>
                                     <span class="tag tag-no"><?= $textbotlang['panel']['panelsStatusInactive'] ?></span>
                                 <?php endif; ?>
                             </td>
-                            <td>
+                            <td data-label="<?= $textbotlang['panel']['panelsColActions'] ?>">
                                 <div style="display:flex;gap:4px">
                                     <button class="btn btn-ghost btn-sm btn-icon test-conn-btn" data-id="<?= $p['id'] ?>" title="<?= $textbotlang['panel']['panelsActionTest'] ?>">
                                         <?= icon('dashboard', 14) ?>

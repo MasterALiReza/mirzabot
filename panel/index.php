@@ -291,17 +291,17 @@ include __DIR__ . '/inc/layout_head.php';
                             [$pillClass, $label] = $statusMap[$inv['Status'] ?? ''] ?? ['status-pill neutral', $inv['Status'] ?? '—'];
                             ?>
                             <tr style="border-bottom: 1px solid var(--bd);">
-                                <td class="cm cf"><div style="display:flex; align-items:center; gap:8px;">
+                                <td data-label="<?= $textbotlang['panel']['dashColUser'] ?>" class="cm cf"><div style="display:flex; align-items:center; gap:8px;">
                                     <div style="width:28px;height:28px;border-radius:50%;background:rgba(148, 163, 184, 0.1);color:var(--cf);display:flex;align-items:center;justify-content:center;font-size:10px;"><i data-lucide="user"></i></div>
                                     <?= htmlspecialchars($inv['id_user'] ?? '—') ?>
                                 </div></td>
-                                <td class="cs" style="max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+                                <td data-label="<?= $textbotlang['panel']['dashColProduct'] ?>" class="cs" style="max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
                                     <span style="font-weight:600; color:var(--ct)"><?= htmlspecialchars(trunc($inv['name_product'] ?? '—', 20)) ?></span>
                                 </td>
-                                <td class="cn" style="white-space:nowrap; font-weight:500;">
+                                <td data-label="<?= $textbotlang['panel']['dashColAmount'] ?>" class="cn" style="white-space:nowrap; font-weight:500;">
                                     <?= number_format((int) ($inv['price_product'] ?? 0)) ?> <span class="cf" style="font-size:0.75rem"><?= $textbotlang['panel']['dashTomanShort'] ?></span>
                                 </td>
-                                <td><span class="<?= $pillClass ?>"><?= $label ?></span></td>
+                                <td data-label="<?= $textbotlang['panel']['dashColStatus'] ?>"><span class="<?= $pillClass ?>"><?= $label ?></span></td>
                             </tr>
                         <?php endforeach; endif; ?>
                 </tbody>
@@ -350,7 +350,7 @@ include __DIR__ . '/inc/layout_head.php';
                             else $roleClass .= 'neutral';
                             ?>
                             <tr style="border-bottom: 1px solid var(--bd);">
-                                <td>
+                                <td data-label="<?= $textbotlang['panel']['dashColName'] ?>">
                                     <div style="display:flex; align-items:center; gap:10px;">
                                         <div style="width:32px;height:32px;border-radius:10px;background:var(--bg);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;color:var(--cf);">
                                             <i data-lucide="user"></i>
@@ -368,10 +368,10 @@ include __DIR__ . '/inc/layout_head.php';
                                         </div>
                                     </div>
                                 </td>
-                                <td class="cn" style="white-space:nowrap; font-weight:500;">
+                                <td data-label="<?= $textbotlang['panel']['dashColBalance'] ?>" class="cn" style="white-space:nowrap; font-weight:500;">
                                     <?= number_format((int) ($u['Balance'] ?? 0)) ?> <span class="cf" style="font-size:0.75rem"><?= $textbotlang['panel']['dashTomanShort2'] ?></span>
                                 </td>
-                                <td>
+                                <td data-label="<?= $textbotlang['panel']['dashColGroup'] ?>">
                                     <?php if ($isBlocked): ?>
                                         <span class="status-pill danger"><?= $textbotlang['panel']['dashLabelBlocked'] ?></span>
                                     <?php else: ?>

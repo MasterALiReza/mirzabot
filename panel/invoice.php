@@ -189,12 +189,12 @@ include __DIR__ . '/inc/layout_head.php';
             [$cls, $lbl] = $statusMap[$st] ?? ['tag-plain', $st ?: '—'];
             ?>
             <tr>
-              <td class="cf"><?= $i++ ?></td>
-              <td class="cm"><?= htmlspecialchars($inv['id_user'] ?? '—') ?></td>
-              <td class="cs"><?= htmlspecialchars(trunc($inv['name_product'] ?? '—', 28)) ?></td>
-              <td class="cn cs"><?= number_format((int) ($inv['price_product'] ?? 0)) ?> <span class="cf"><?= $textbotlang['panel']['invoiceColTrackingCode'] ?></span></td>
-              <td class="cf"><?= safe_date($inv['time_sell'] ?? null, 'Y/m/d') ?></td>
-              <td><span class="tag <?= $cls ?>"><?= $lbl ?></span></td>
+              <td data-label="#" class="cf"><?= $i++ ?></td>
+              <td data-label="<?= $textbotlang['panel']['invoiceColUser'] ?>" class="cm"><?= htmlspecialchars($inv['id_user'] ?? '—') ?></td>
+              <td data-label="<?= $textbotlang['panel']['invoiceColProduct'] ?>" class="cs"><?= htmlspecialchars(trunc($inv['name_product'] ?? '—', 28)) ?></td>
+              <td data-label="<?= $textbotlang['panel']['invoiceColPrice'] ?>" class="cn cs"><?= number_format((int) ($inv['price_product'] ?? 0)) ?> <span class="cf"><?= $textbotlang['panel']['invoiceColTrackingCode'] ?></span></td>
+              <td data-label="<?= $textbotlang['panel']['invoiceColDate'] ?>" class="cf"><?= safe_date($inv['time_sell'] ?? null, 'Y/m/d') ?></td>
+              <td data-label="<?= $textbotlang['panel']['invoiceColStatus'] ?>"><span class="tag <?= $cls ?>"><?= $lbl ?></span></td>
             </tr>
           <?php endforeach; endif; ?>
       </tbody>

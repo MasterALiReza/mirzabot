@@ -31,6 +31,14 @@ document.addEventListener("DOMContentLoaded", () => {
         };
         btn.appendChild(removeBtn);
         
+        // Mobile tap to show remove btn
+        btn.onclick = (e) => {
+            document.querySelectorAll('.kb-btn.show-actions').forEach(b => {
+                if (b !== btn) b.classList.remove('show-actions');
+            });
+            btn.classList.toggle('show-actions');
+        };
+        
         return btn;
     }
 
@@ -104,25 +112,83 @@ document.addEventListener("DOMContentLoaded", () => {
             lastRow.classList.add("empty-row");
         }
 
-        // Clean up empty-row class from non-empty rows
+        // Clean up empty-row class and add slots
         telegramBoard.querySelectorAll(".telegram-row").forEach(row => {
-            if (row.querySelectorAll('.kb-btn').length > 0) {
+            const keys = row.querySelectorAll('.kb-btn');
+            
+            // Remove existing add-slots
+            row.querySelectorAll('.add-slot').forEach(el => el.remove());
+            
+            if (keys.length > 0) {
                 row.classList.remove("empty-row");
+                // Add slot if row has exactly 1 button
+                if (keys.length === 1) {
+                    const addSlot = document.createElement("div");
+                    addSlot.className = "add-slot";
+                    addSlot.innerHTML = "➕ افزودن";
+                    addSlot.onclick = (e) => {
+                        e.stopPropagation();
+                        openAddPopup(row);
+                    };
+                    row.appendChild(addSlot);
+                }
             }
         });
     }
+
+    let currentRowForAdd = null;
+    window.openAddPopup = function(row) {
+        currentRowForAdd = row;
+        const addBtnList = document.getElementById("addBtnList");
+        addBtnList.innerHTML = "";
+        
+        const unusedBtns = unusedKeysContainer.querySelectorAll('.kb-btn');
+        if (unusedBtns.length === 0) {
+            addBtnList.innerHTML = "<p style='color:#64748b; font-size:14px; width:100%;'>دکمه‌ای برای افزودن وجود ندارد.</p>";
+        } else {
+            unusedBtns.forEach(btn => {
+                const clone = btn.cloneNode(true);
+                const rmBtn = clone.querySelector('.remove-btn');
+                if (rmBtn) rmBtn.remove();
+                
+                clone.style.cursor = "pointer";
+                clone.style.flex = "0 0 auto";
+                clone.style.minWidth = "120px";
+                clone.style.background = "#f8fafc";
+                clone.style.border = "1px dashed #cbd5e1";
+                clone.style.color = "#64748b";
+                
+                clone.onclick = () => {
+                    // Reset styles when added back to row
+                    btn.style.flex = "";
+                    btn.style.minWidth = "";
+                    btn.style.background = "";
+                    btn.style.border = "";
+                    btn.style.color = "";
+                    
+                    row.appendChild(btn); 
+                    document.getElementById('addBtnModalVeil').style.display = 'none';
+                    ensureEmptyRowAtBottom();
+                };
+                addBtnList.appendChild(clone);
+            });
+        }
+        
+        document.getElementById('addBtnModalVeil').style.display = 'flex';
+    };
 
     function initSortables() {
         const sortableOptions = {
             group: "shared",
             animation: 150,
             ghostClass: "sortable-ghost",
-            delay: 150, // Delay to prevent accidental drags when scrolling on mobile
+            delay: window.innerWidth <= 600 ? 150 : 0, // Delay to prevent accidental drags when scrolling on mobile
             delayOnTouchOnly: true,
+            fallbackTolerance: 5,
             forceFallback: true, // Fixes iOS and Safari dragging issues
             fallbackClass: "sortable-fallback",
-            fallbackOnBody: true, // Fixes drag offset on mobile/scrolled containers
-            filter: ".add-inline-btn, .remove-btn", // Prevent dragging these
+            fallbackOnBody: false, // Prevents offset issues on scrolled containers in mobile
+            filter: ".add-inline-btn, .remove-btn, .add-slot", // Prevent dragging these
             onEnd: ensureEmptyRowAtBottom
         };
 
@@ -141,12 +207,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 group: "shared",
                 animation: 150,
                 ghostClass: "sortable-ghost",
-                delay: 150,
+                delay: window.innerWidth <= 600 ? 150 : 0,
                 delayOnTouchOnly: true,
+                fallbackTolerance: 5,
                 forceFallback: true,
                 fallbackClass: "sortable-fallback",
-                fallbackOnBody: true,
-                filter: ".add-inline-btn, .remove-btn",
+                fallbackOnBody: false,
+                filter: ".add-inline-btn, .remove-btn, .add-slot",
                 onEnd: ensureEmptyRowAtBottom
             };
         }

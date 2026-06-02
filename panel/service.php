@@ -212,16 +212,16 @@ include __DIR__ . '/inc/layout_head.php';
             if ($valStr === '' || $valStr === '[]' || $valStr === '{}') $valStr = '—';
             ?>
             <tr>
-              <td class="cf"><?= $i++ ?></td>
-              <td class="cm"><?= htmlspecialchars($s['id_user'] ?? '—') ?></td>
-              <td>
+              <td data-label="#" class="cf"><?= $i++ ?></td>
+              <td data-label="<?= $textbotlang['panel']['serviceDetailUser'] ?? 'کاربر' ?>" class="cm"><?= htmlspecialchars($s['id_user'] ?? '—') ?></td>
+              <td data-label="<?= $textbotlang['panel']['userColUsername'] ?? 'یوزرنیم' ?>">
                 <?= !empty($s['username']) ? '<span class="cm" style="color:var(--ac)">@' . htmlspecialchars(trunc($s['username'], 18)) . '</span>' : '<span class="cf">—</span>' ?>
               </td>
-              <td style="font-size:.82rem;color:var(--text2)"><?= htmlspecialchars($typeLabel) ?></td>
-              <td class="cn" style="font-size:.82rem; direction:ltr; text-align:right"><?= htmlspecialchars(trunc($valStr, 40)) ?></td>
-              <td class="cn cs"><?= number_format((int) ($s['price'] ?? 0)) ?> <span class="cf"><?= $textbotlang['panel']['dashUnitToman'] ?? 'تومان' ?></span></td>
-              <td class="cf"><?= safe_date($s['time'] ?? null, 'Y/m/d') ?></td>
-              <td><span class="tag <?= $cls ?>"><?= $lbl ?></span></td>
+              <td data-label="<?= $textbotlang['panel']['serviceColType'] ?? 'نوع' ?>" style="font-size:.82rem;color:var(--text2)"><?= htmlspecialchars($typeLabel) ?></td>
+              <td data-label="<?= $textbotlang['panel']['serviceColAmount'] ?? 'مقدار' ?>" class="cn" style="font-size:.82rem; direction:ltr; text-align:right"><?= htmlspecialchars(trunc($valStr, 40)) ?></td>
+              <td data-label="<?= $textbotlang['panel']['serviceColPrice'] ?? 'قیمت' ?>" class="cn cs"><?= number_format((int) ($s['price'] ?? 0)) ?> <span class="cf"><?= $textbotlang['panel']['dashUnitToman'] ?? 'تومان' ?></span></td>
+              <td data-label="<?= $textbotlang['panel']['serviceColDate'] ?? 'تاریخ' ?>" class="cf"><?= safe_date($s['time'] ?? null, 'Y/m/d') ?></td>
+              <td data-label="<?= $textbotlang['panel']['serviceColStatus'] ?? 'وضعیت' ?>"><span class="tag <?= $cls ?>"><?= $lbl ?></span></td>
             </tr>
           <?php endforeach; endif; ?>
       </tbody>
