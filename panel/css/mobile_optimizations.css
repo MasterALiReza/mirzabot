@@ -171,6 +171,26 @@
         text-align: right !important; /* Right align internal RTL text */
         direction: rtl !important;
     }
+
+    /* Custom Header layout for Name and User cells to make them look like real cards */
+    .tbl-wrap td[data-label="نام"],
+    .tbl-wrap td[data-label="کاربر"] {
+        padding-right: 12px !important;
+        text-align: right !important;
+        flex: 1 1 100% !important;
+        width: 100% !important;
+    }
+    .tbl-wrap td[data-label="نام"]::before,
+    .tbl-wrap td[data-label="کاربر"]::before {
+        display: none !important;
+    }
+    .tbl-wrap td[data-label="نام"] > div,
+    .tbl-wrap td[data-label="کاربر"] > div {
+        display: flex !important;
+        width: 100%;
+        text-align: right !important;
+        direction: rtl !important;
+    }
     
     /* 3. Toolbar & Forms (Stacking and 100% width) */
     .toolbar-end {

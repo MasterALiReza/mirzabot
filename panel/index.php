@@ -293,9 +293,9 @@ include __DIR__ . '/inc/layout_head.php';
                             [$pillClass, $label] = $statusMap[$inv['Status'] ?? ''] ?? ['status-pill neutral', $inv['Status'] ?? '—'];
                             ?>
                             <tr style="border-bottom: 1px solid var(--bd);">
-                                <td data-label="<?= $textbotlang['panel']['dashColUser'] ?>" class="cm cf"><div style="display:flex; align-items:center; gap:8px;">
-                                    <div style="width:28px;height:28px;border-radius:50%;background:rgba(148, 163, 184, 0.1);color:var(--cf);display:flex;align-items:center;justify-content:center;font-size:10px;"><i data-lucide="user"></i></div>
-                                    <?= htmlspecialchars($inv['id_user'] ?? '—') ?>
+                                <td data-label="<?= $textbotlang['panel']['dashColUser'] ?>" class="cf"><div style="display:flex; align-items:center; gap:8px;">
+                                    <div style="width:28px;height:28px;border-radius:50%;background:rgba(148, 163, 184, 0.1);color:var(--cf);display:flex;align-items:center;justify-content:center;font-size:10px;"><?= icon('user', 14) ?></div>
+                                    <span class="cm"><?= htmlspecialchars($inv['id_user'] ?? '—') ?></span>
                                 </div></td>
                                 <td data-label="<?= $textbotlang['panel']['dashColProduct'] ?>" class="cs" style="max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
                                     <span style="font-weight:600; color:var(--ct)"><?= htmlspecialchars(trunc($inv['name_product'] ?? '—', 20)) ?></span>
@@ -354,18 +354,18 @@ include __DIR__ . '/inc/layout_head.php';
                             <tr style="border-bottom: 1px solid var(--bd);">
                                 <td data-label="<?= $textbotlang['panel']['dashColName'] ?>">
                                     <div style="display:flex; align-items:center; gap:10px;">
-                                        <div style="width:32px;height:32px;border-radius:10px;background:var(--bg);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;color:var(--cf);">
-                                            <i data-lucide="user"></i>
+                                        <div style="width:32px;height:32px;border-radius:50%;background:rgba(148, 163, 184, 0.1);display:flex;align-items:center;justify-content:center;color:var(--cf);">
+                                            <?= icon('user', 16) ?>
                                         </div>
                                         <div style="display:flex; flex-direction:column; justify-content:center;">
                                             <?php if ($name): ?>
                                                 <span class="cs" style="font-weight:600; line-height:1.2;"><?= htmlspecialchars(trunc($name, 14)) ?></span>
-                                                <span style="font-size:0.7rem; color:var(--cf); line-height:1.2; margin-top:2px;"><?= htmlspecialchars($u['id']) ?></span>
+                                                <span class="cm" style="font-size:0.7rem; color:var(--cf); line-height:1.2; margin-top:2px;"><?= htmlspecialchars($u['id']) ?></span>
                                             <?php elseif ($uname): ?>
                                                 <span class="cm" style="color:var(--ac); font-weight:600; line-height:1.2;">@<?= htmlspecialchars(trunc($uname, 12)) ?></span>
-                                                <span style="font-size:0.7rem; color:var(--cf); line-height:1.2; margin-top:2px;"><?= htmlspecialchars($u['id']) ?></span>
+                                                <span class="cm" style="font-size:0.7rem; color:var(--cf); line-height:1.2; margin-top:2px;"><?= htmlspecialchars($u['id']) ?></span>
                                             <?php else: ?>
-                                                <span class="cf" style="font-weight:600;"><?= htmlspecialchars($u['id']) ?></span>
+                                                <span class="cm cf" style="font-weight:600;"><?= htmlspecialchars($u['id']) ?></span>
                                             <?php endif; ?>
                                         </div>
                                     </div>
