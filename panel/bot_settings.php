@@ -86,6 +86,7 @@ $schema = [
                 ['name' => 'set_statuslimitchangeloc', 'label' => 'محدودیت تغییر لوکیشن', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => $row['statuslimitchangeloc'] ?? ''],
             ],
             'حجم و زمان اضافه (اکسترا)' => [
+                ['name' => 'shop_chashbackextend', 'label' => 'درصد کش‌بک تمدید', 'type' => 'number', 'val' => $shop_settings['chashbackextend'] ?? '0'],
                 ['name' => 'shop_statusextra', 'label' => 'فروش حجم اضافه', 'type' => 'select', 'options' => ['onextra' => 'فعال', 'offextra' => 'غیرفعال'], 'val' => $shop_settings['statusextra'] ?? ''],
                 ['name' => 'shop_statustimeextra', 'label' => 'فروش زمان اضافه', 'type' => 'select', 'options' => ['ontimeextraa' => 'فعال', 'offtimeextraa' => 'غیرفعال'], 'val' => $shop_settings['statustimeextra'] ?? ''],
                 ['name' => 'shop_customvolmef', 'label' => 'قیمت حجم اضافه (پلن f)', 'type' => 'number', 'val' => $shop_settings['customvolmef'] ?? ''],
@@ -102,6 +103,10 @@ $schema = [
         'icon' => 'card',
         'sections' => [
             'تنظیمات کلی مالی' => [
+                ['name' => 'pay_minbalance', 'label' => 'حداقل مبلغ پرداخت (عمومی)', 'type' => 'number', 'val' => $pay_settings['minbalance'] ?? ''],
+                ['name' => 'pay_maxbalance', 'label' => 'حداکثر مبلغ پرداخت (عمومی)', 'type' => 'number', 'val' => $pay_settings['maxbalance'] ?? ''],
+                ['name' => 'pay_minbalancepaynotverify', 'label' => 'حداقل پرداخت (احراز نشده)', 'type' => 'number', 'val' => $pay_settings['minbalancepaynotverify'] ?? ''],
+                ['name' => 'pay_maxbalancepaynotverify', 'label' => 'حداکثر پرداخت (احراز نشده)', 'type' => 'number', 'val' => $pay_settings['maxbalancepaynotverify'] ?? ''],
                 ['name' => 'set_showcard', 'label' => 'نمایش شماره کارت در ربات', 'type' => 'select', 'options' => ['1' => 'بله', '0' => 'خیر'], 'val' => $row['showcard'] ?? ''],
                 ['name' => 'set_statuscopycart', 'label' => 'قابلیت کپی شماره کارت', 'type' => 'select', 'options' => ['1' => 'بله', '0' => 'خیر'], 'val' => $row['statuscopycart'] ?? ''],
             ],
@@ -121,24 +126,28 @@ $schema = [
                 ['name' => 'pay_zarinpalstatus', 'label' => 'وضعیت زرین‌پال', 'type' => 'select', 'options' => ['onzarinpal' => 'روشن', 'offzarinpal' => 'خاموش'], 'val' => $pay_settings['zarinpalstatus'] ?? ''],
                 ['name' => 'pay_merchant_zarinpal', 'label' => 'مرچنت زرین‌پال', 'type' => 'text', 'val' => $pay_settings['merchant_zarinpal'] ?? ''],
                 ['name' => 'pay_minbalancezarinpal', 'label' => 'حداقل مبلغ', 'type' => 'number', 'val' => $pay_settings['minbalancezarinpal'] ?? ''],
+                ['name' => 'pay_maxbalancezarinpal', 'label' => 'حداکثر مبلغ', 'type' => 'number', 'val' => $pay_settings['maxbalancezarinpal'] ?? ''],
                 ['name' => 'pay_chashbackzarinpal', 'label' => 'درصد کش‌بک', 'type' => 'number', 'val' => $pay_settings['chashbackzarinpal'] ?? '0'],
             ],
             'درگاه NowPayment' => [
                 ['name' => 'pay_nowpaymentstatus', 'label' => 'وضعیت NowPayment', 'type' => 'select', 'options' => ['onnowpayment' => 'روشن', 'offnowpayment' => 'خاموش'], 'val' => $pay_settings['nowpaymentstatus'] ?? ''],
                 ['name' => 'pay_apinowpayment', 'label' => 'API Key', 'type' => 'text', 'val' => $pay_settings['apinowpayment'] ?? ''],
                 ['name' => 'pay_minbalancenowpayment', 'label' => 'حداقل مبلغ', 'type' => 'number', 'val' => $pay_settings['minbalancenowpayment'] ?? ''],
+                ['name' => 'pay_maxbalancenowpayment', 'label' => 'حداکثر مبلغ', 'type' => 'number', 'val' => $pay_settings['maxbalancenowpayment'] ?? ''],
                 ['name' => 'pay_cashbacknowpayment', 'label' => 'درصد کش‌بک', 'type' => 'number', 'val' => $pay_settings['cashbacknowpayment'] ?? '0'],
             ],
             'درگاه آقای پرداخت' => [
                 ['name' => 'pay_statusaqayepardakht', 'label' => 'وضعیت آقای پرداخت', 'type' => 'select', 'options' => ['onaqayepardakht' => 'روشن', 'offaqayepardakht' => 'خاموش'], 'val' => $pay_settings['statusaqayepardakht'] ?? ''],
                 ['name' => 'pay_merchant_id_aqayepardakht', 'label' => 'مرچنت آیدی', 'type' => 'text', 'val' => $pay_settings['merchant_id_aqayepardakht'] ?? ''],
                 ['name' => 'pay_minbalanceaqayepardakht', 'label' => 'حداقل مبلغ', 'type' => 'number', 'val' => $pay_settings['minbalanceaqayepardakht'] ?? ''],
+                ['name' => 'pay_maxbalanceaqayepardakht', 'label' => 'حداکثر مبلغ', 'type' => 'number', 'val' => $pay_settings['maxbalanceaqayepardakht'] ?? ''],
                 ['name' => 'pay_chashbackaqaypardokht', 'label' => 'درصد کش‌بک', 'type' => 'number', 'val' => $pay_settings['chashbackaqaypardokht'] ?? '0'],
             ],
-            'درگاه ایران پی' => [
+            'درگاه ایران پی 3' => [
                 ['name' => 'pay_statusiranpay3', 'label' => 'وضعیت ایران پی 3', 'type' => 'select', 'options' => ['oniranpay3' => 'روشن', 'offiranpay3' => 'خاموش'], 'val' => $pay_settings['statusiranpay3'] ?? ''],
                 ['name' => 'pay_apiiranpay', 'label' => 'API Key', 'type' => 'text', 'val' => $pay_settings['apiiranpay'] ?? ''],
                 ['name' => 'pay_minbalanceiranpay', 'label' => 'حداقل مبلغ', 'type' => 'number', 'val' => $pay_settings['minbalanceiranpay'] ?? ''],
+                ['name' => 'pay_maxbalanceiranpay', 'label' => 'حداکثر مبلغ', 'type' => 'number', 'val' => $pay_settings['maxbalanceiranpay'] ?? ''],
                 ['name' => 'pay_chashbackiranpay3', 'label' => 'درصد کش‌بک', 'type' => 'number', 'val' => $pay_settings['chashbackiranpay3'] ?? '0'],
             ],
             'ترون و ارز دیجیتال' => [
@@ -147,12 +156,31 @@ $schema = [
                 ['name' => 'pay_urlpaymenttron', 'label' => 'آدرس API TronSeller', 'type' => 'text', 'val' => $pay_settings['urlpaymenttron'] ?? ''],
                 ['name' => 'pay_walletaddress', 'label' => 'آدرس کیف پول TRC20', 'type' => 'text', 'val' => $pay_settings['walletaddress'] ?? ''],
                 ['name' => 'pay_minbalancedigitaltron', 'label' => 'حداقل مبلغ کریپتو', 'type' => 'number', 'val' => $pay_settings['minbalancedigitaltron'] ?? ''],
+                ['name' => 'pay_maxbalancedigitaltron', 'label' => 'حداکثر مبلغ کریپتو', 'type' => 'number', 'val' => $pay_settings['maxbalancedigitaltron'] ?? ''],
             ],
-            'سایر درگاه‌ها' => [
-                ['name' => 'pay_statustarnado', 'label' => 'وضعیت ترنادو', 'type' => 'select', 'options' => ['onternado' => 'روشن', 'offternado' => 'خاموش'], 'val' => $pay_settings['statustarnado'] ?? ''],
-                ['name' => 'pay_apiternado', 'label' => 'API Key ترنادو', 'type' => 'text', 'val' => $pay_settings['apiternado'] ?? ''],
-                ['name' => 'pay_statusSwapWallet', 'label' => 'وضعیت SwapWallet', 'type' => 'select', 'options' => ['onSolutions' => 'روشن', 'offnSolutions' => 'خاموش'], 'val' => $pay_settings['statusSwapWallet'] ?? ''],
+            'درگاه تلگرام استارز' => [
+                ['name' => 'pay_statusstar', 'label' => 'وضعیت استارز', 'type' => 'select', 'options' => ['1' => 'روشن', '0' => 'خاموش'], 'val' => $pay_settings['statusstar'] ?? '0'],
+                ['name' => 'pay_minbalancestar', 'label' => 'حداقل مبلغ', 'type' => 'number', 'val' => $pay_settings['minbalancestar'] ?? ''],
+                ['name' => 'pay_maxbalancestar', 'label' => 'حداکثر مبلغ', 'type' => 'number', 'val' => $pay_settings['maxbalancestar'] ?? ''],
+                ['name' => 'pay_chashbackstar', 'label' => 'درصد کش‌بک', 'type' => 'number', 'val' => $pay_settings['chashbackstar'] ?? '0'],
+            ],
+            'سایر درگاه‌ها و پرداخت‌ها' => [
+                ['name' => 'pay_statusSwapWallet', 'label' => 'وضعیت SwapWallet / ایران پی 1', 'type' => 'select', 'options' => ['onSwapinoBot' => 'روشن', 'offnSolutions' => 'خاموش'], 'val' => $pay_settings['statusSwapWallet'] ?? ''],
                 ['name' => 'pay_marchent_floypay', 'label' => 'مرچنت FloyPay', 'type' => 'text', 'val' => $pay_settings['marchent_floypay'] ?? ''],
+                ['name' => 'pay_minbalanceiranpay1', 'label' => 'حداقل ایران پی 1', 'type' => 'number', 'val' => $pay_settings['minbalanceiranpay1'] ?? ''],
+                ['name' => 'pay_maxbalanceiranpay1', 'label' => 'حداکثر ایران پی 1', 'type' => 'number', 'val' => $pay_settings['maxbalanceiranpay1'] ?? ''],
+                ['name' => 'pay_chashbackiranpay1', 'label' => 'کش‌بک ایران پی 1', 'type' => 'number', 'val' => $pay_settings['chashbackiranpay1'] ?? '0'],
+                ['name' => 'pay_statustarnado', 'label' => 'وضعیت ترنادو / ایران پی 2', 'type' => 'select', 'options' => ['onternado' => 'روشن', 'offternado' => 'خاموش'], 'val' => $pay_settings['statustarnado'] ?? ''],
+                ['name' => 'pay_apiternado', 'label' => 'API Key ترنادو', 'type' => 'text', 'val' => $pay_settings['apiternado'] ?? ''],
+                ['name' => 'pay_minbalanceiranpay2', 'label' => 'حداقل ترنادو', 'type' => 'number', 'val' => $pay_settings['minbalanceiranpay2'] ?? ''],
+                ['name' => 'pay_maxbalanceiranpay2', 'label' => 'حداکثر ترنادو', 'type' => 'number', 'val' => $pay_settings['maxbalanceiranpay2'] ?? ''],
+                ['name' => 'pay_chashbackiranpay2', 'label' => 'کش‌بک ترنادو', 'type' => 'number', 'val' => $pay_settings['chashbackiranpay2'] ?? '0'],
+                ['name' => 'pay_minbalanceplisio', 'label' => 'حداقل Plisio', 'type' => 'number', 'val' => $pay_settings['minbalanceplisio'] ?? ''],
+                ['name' => 'pay_maxbalanceplisio', 'label' => 'حداکثر Plisio', 'type' => 'number', 'val' => $pay_settings['maxbalanceplisio'] ?? ''],
+                ['name' => 'pay_chashbackplisio', 'label' => 'کش‌بک Plisio', 'type' => 'number', 'val' => $pay_settings['chashbackplisio'] ?? '0'],
+                ['name' => 'pay_minbalanceperfect', 'label' => 'حداقل Perfect Money', 'type' => 'number', 'val' => $pay_settings['minbalanceperfect'] ?? ''],
+                ['name' => 'pay_maxbalanceperfect', 'label' => 'حداکثر Perfect Money', 'type' => 'number', 'val' => $pay_settings['maxbalanceperfect'] ?? ''],
+                ['name' => 'pay_chashbackperfect', 'label' => 'کش‌بک Perfect Money', 'type' => 'number', 'val' => $pay_settings['chashbackperfect'] ?? '0'],
             ]
         ]
     ],
