@@ -1,60 +1,33 @@
-document.addEventListener("DOMContentLoaded", async () => {
-    const activeKeyboardContainer = document.getElementById("active-keyboard");
+document.addEventListener("DOMContentLoaded", () => {
+    const telegramBoard = document.getElementById("telegram-board");
     const unusedKeysContainer = document.getElementById("unused-keys");
-    const addRowBtn = document.getElementById("add-row-btn");
     const saveBtn = document.getElementById("save-keyboard-btn");
     
-    let textDict = {};
+    // Load data from global variable injected by PHP
+    const data = window.KEYBOARD_INITIAL_DATA || { keylist: [], userlist: [], text: {} };
+    const textDict = data.text;
     
-    // Fetch current keyboard data
-    try {
-        const response = await fetch("../api/keyboard.php");
-        const data = await response.json();
-        textDict = data.text;
-        
-        renderUnusedKeys(data.keylist);
-        renderActiveKeyboard(data.userlist);
-        initSortables();
-        checkEmptyRows();
-    } catch (error) {
-        console.error("Error fetching keyboard data:", error);
-        alert("خطا در دریافت اطلاعات دکمه‌ها");
-    }
+    let rowSortables = [];
+
+    // Initialize layout
+    renderUnusedKeys(data.keylist);
+    renderActiveKeyboard(data.userlist);
+    ensureEmptyRowAtBottom();
+    initSortables();
 
     function createButtonElement(keyName) {
         const btn = document.createElement("div");
-        btn.className = "kb-btn";
+        btn.className = "kb-btn telegram-btn";
         btn.dataset.key = keyName;
+        // The span helps with text overflow
         btn.innerHTML = `<span>${textDict[keyName] || keyName}</span>`;
         return btn;
     }
 
     function createRowElement() {
-        const rowContainer = document.createElement("div");
-        rowContainer.className = "kb-row-container";
-        
-        const handle = document.createElement("div");
-        handle.className = "row-handle";
-        handle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>`;
-        
         const row = document.createElement("div");
-        row.className = "kb-row";
-        
-        const deleteBtn = document.createElement("div");
-        deleteBtn.className = "row-delete";
-        deleteBtn.title = "حذف ردیف";
-        deleteBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>`;
-        deleteBtn.addEventListener("click", () => {
-            // Move buttons back to unused keys before deleting
-            Array.from(row.children).forEach(btn => unusedKeysContainer.appendChild(btn));
-            rowContainer.remove();
-        });
-
-        rowContainer.appendChild(handle);
-        rowContainer.appendChild(row);
-        rowContainer.appendChild(deleteBtn);
-        
-        return rowContainer;
+        row.className = "telegram-row";
+        return row;
     }
 
     function renderUnusedKeys(keylist) {
@@ -67,40 +40,73 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     function renderActiveKeyboard(userlist) {
-        activeKeyboardContainer.innerHTML = "";
+        telegramBoard.innerHTML = "";
         userlist.forEach(rowArr => {
             const rowEl = createRowElement();
-            const innerRow = rowEl.querySelector('.kb-row');
+            let hasItems = false;
             rowArr.forEach(item => {
                 if (item.text) {
-                    innerRow.appendChild(createButtonElement(item.text));
+                    rowEl.appendChild(createButtonElement(item.text));
+                    hasItems = true;
                 }
             });
-            activeKeyboardContainer.appendChild(rowEl);
+            if (hasItems) {
+                telegramBoard.appendChild(rowEl);
+            }
         });
     }
 
-    let rowSortables = [];
-    
-    function initSortables() {
-        // Sortable for rearranging rows
-        new Sortable(activeKeyboardContainer, {
-            animation: 150,
-            handle: ".row-handle",
-            ghostClass: "sortable-ghost",
-            onEnd: checkEmptyRows
+    function ensureEmptyRowAtBottom() {
+        // Check if the last row is empty
+        const rows = telegramBoard.querySelectorAll(".telegram-row");
+        let lastRow = rows.length > 0 ? rows[rows.length - 1] : null;
+        
+        // Remove empty rows that are NOT the last row
+        rows.forEach(row => {
+            if (row.children.length === 0 && row !== lastRow) {
+                if (rowSortables.includes(row.sortableInstance)) {
+                    // Cleanup Sortable instance
+                    row.sortableInstance.destroy();
+                    rowSortables = rowSortables.filter(s => s !== row.sortableInstance);
+                }
+                row.remove();
+            }
         });
 
+        // Re-evaluate last row
+        const updatedRows = telegramBoard.querySelectorAll(".telegram-row");
+        lastRow = updatedRows.length > 0 ? updatedRows[updatedRows.length - 1] : null;
+
+        if (!lastRow || lastRow.children.length > 0) {
+            // Last row has items, create a new empty row
+            const newEmptyRow = createRowElement();
+            newEmptyRow.classList.add("empty-row");
+            telegramBoard.appendChild(newEmptyRow);
+            initRowSortable(newEmptyRow);
+        } else {
+            // Last row is already empty
+            lastRow.classList.add("empty-row");
+        }
+
+        // Clean up empty-row class from non-empty rows
+        telegramBoard.querySelectorAll(".telegram-row").forEach(row => {
+            if (row.children.length > 0) {
+                row.classList.remove("empty-row");
+            }
+        });
+    }
+
+    function initSortables() {
         // Sortable for unused keys area
         new Sortable(unusedKeysContainer, {
             group: "shared",
             animation: 150,
             ghostClass: "sortable-ghost",
-            onEnd: checkEmptyRows
+            onEnd: ensureEmptyRowAtBottom
         });
 
         // Initialize sortable for existing rows
-        document.querySelectorAll(".kb-row").forEach(initRowSortable);
+        document.querySelectorAll(".telegram-row").forEach(initRowSortable);
     }
 
     function initRowSortable(rowElement) {
@@ -108,26 +114,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             group: "shared",
             animation: 150,
             ghostClass: "sortable-ghost",
-            onEnd: checkEmptyRows
+            onEnd: ensureEmptyRowAtBottom
         });
+        rowElement.sortableInstance = sortable;
         rowSortables.push(sortable);
-    }
-
-    addRowBtn.addEventListener("click", () => {
-        const newRow = createRowElement();
-        activeKeyboardContainer.appendChild(newRow);
-        initRowSortable(newRow.querySelector('.kb-row'));
-        checkEmptyRows();
-    });
-
-    function checkEmptyRows() {
-        document.querySelectorAll(".kb-row").forEach(row => {
-            if (row.children.length === 0) {
-                row.classList.add("empty-row");
-            } else {
-                row.classList.remove("empty-row");
-            }
-        });
     }
 
     saveBtn.addEventListener("click", async () => {
@@ -136,15 +126,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const keyboardData = [];
         
-        document.querySelectorAll(".kb-row-container").forEach(rowContainer => {
+        document.querySelectorAll(".telegram-row").forEach(row => {
             const rowData = [];
-            const row = rowContainer.querySelector('.kb-row');
             Array.from(row.children).forEach(btn => {
                 if (btn.dataset.key) {
                     rowData.push({ text: btn.dataset.key });
                 }
             });
-            // Telegram allows empty rows? Usually not, so let's only add non-empty rows.
+            // Only add non-empty rows
             if (rowData.length > 0) {
                 keyboardData.push(rowData);
             }

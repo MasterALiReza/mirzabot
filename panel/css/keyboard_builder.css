@@ -5,7 +5,7 @@
     padding: 20px;
     margin-top: 50px;
     direction: rtl;
-    max-width: 900px;
+    max-width: 600px;
     margin-left: auto;
     margin-right: auto;
 }
@@ -33,52 +33,34 @@
 }
 
 /* Telegram active keyboard area */
-#active-keyboard {
+.telegram-board {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    min-height: 100px;
+    gap: 8px;
+    background: #eef2f5;
+    padding: 10px;
+    border-radius: 12px;
 }
 
 /* A keyboard row */
-.kb-row-container {
+.telegram-row {
     display: flex;
-    align-items: stretch;
-    background: #f8fafc;
-    border-radius: 8px;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
-
-.row-handle {
-    cursor: grab;
-    padding: 0 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #94a3b8;
-    background: #f1f5f9;
-    border-top-right-radius: 8px;
-    border-bottom-right-radius: 8px;
-    border-left: 1px solid #e2e8f0;
-}
-
-.row-handle:active {
-    cursor: grabbing;
-}
-
-.kb-row {
-    flex: 1;
-    display: flex;
-    gap: 10px;
-    min-height: 50px;
-    padding: 10px;
+    gap: 8px;
+    min-height: 48px;
     position: relative;
-    flex-wrap: wrap;
+    border-radius: 6px;
+    transition: background 0.2s;
 }
 
-.kb-row.empty-row::after {
-    content: 'دکمه‌ها را اینجا رها کنید';
+/* The empty row at the bottom where users can drop items to create a new row */
+.telegram-row.empty-row {
+    border: 2px dashed #cbd5e1;
+    background: rgba(255, 255, 255, 0.4);
+    min-height: 48px;
+}
+
+.telegram-row.empty-row::after {
+    content: '+ کشیدن دکمه به اینجا برای ردیف جدید';
     position: absolute;
     top: 50%;
     left: 50%;
@@ -86,46 +68,48 @@
     color: #94a3b8;
     font-size: 13px;
     pointer-events: none;
-}
-
-.row-delete {
-    cursor: pointer;
-    padding: 0 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #ef4444;
-    background: #fef2f2;
-    border-top-left-radius: 8px;
-    border-bottom-left-radius: 8px;
-    border-right: 1px solid #e2e8f0;
-    transition: background 0.2s;
-}
-
-.row-delete:hover {
-    background: #fee2e2;
+    width: 100%;
+    text-align: center;
 }
 
 /* Individual button */
 .kb-btn {
     flex: 1;
-    min-width: 120px;
-    background: #ffffff;
-    border: 1px solid #cbd5e1;
+    min-width: 0; /* allows flex shrink */
+    background: #2c3847; /* Telegram dark theme keyboard button */
+    color: #ffffff;
     border-radius: 6px;
-    padding: 10px 10px;
+    padding: 12px 5px;
     text-align: center;
     font-size: 14px;
     cursor: grab;
     user-select: none;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 6px;
-    color: #1e293b;
     font-weight: 500;
-    transition: transform 0.1s;
+    transition: transform 0.1s, opacity 0.1s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.kb-btn span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 5px;
+}
+
+/* Unused button styling */
+#unused-keys .kb-btn {
+    background: #ffffff;
+    color: #1e293b;
+    border: 1px solid #cbd5e1;
+    flex: 0 0 auto;
+    min-width: 120px;
 }
 
 .kb-btn:active {
@@ -134,31 +118,14 @@
 }
 
 .sortable-ghost {
-    opacity: 0.4;
-    background: #e2e8f0;
+    opacity: 0.3;
 }
 
 .actions-bar {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
-    margin-top: 10px;
-}
-
-.add-row-btn {
-    background: #eff6ff;
-    color: #3b82f6;
-    border: 1px solid #bfdbfe;
-    border-radius: 8px;
-    padding: 10px 15px;
-    cursor: pointer;
-    font-weight: bold;
-    font-family: inherit;
-    transition: all 0.2s;
-}
-
-.add-row-btn:hover {
-    background: #dbeafe;
+    margin-top: 20px;
 }
 
 .save-keyboard-btn {
@@ -166,13 +133,15 @@
     color: white;
     border: none;
     border-radius: 8px;
-    padding: 12px 25px;
+    padding: 14px 40px;
     cursor: pointer;
     font-weight: bold;
-    font-size: 15px;
+    font-size: 16px;
     font-family: inherit;
     box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
     transition: all 0.2s;
+    width: 100%;
+    max-width: 300px;
 }
 
 .save-keyboard-btn:hover {
@@ -183,23 +152,5 @@
 @media (max-width: 600px) {
     .keyboard-app-container {
         padding: 10px;
-    }
-    
-    .kb-row-container {
-        flex-direction: column;
-    }
-
-    .row-handle, .row-delete {
-        border-radius: 0;
-        border: none;
-        padding: 5px;
-    }
-
-    .row-handle {
-        border-bottom: 1px solid #e2e8f0;
-    }
-
-    .row-delete {
-        border-top: 1px solid #e2e8f0;
     }
 }
