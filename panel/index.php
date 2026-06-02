@@ -97,14 +97,16 @@ $recentInvoices = [];
 $recentUsers = [];
 try {
     $recentInvoices = db_fetchAll($pdo, "
-        SELECT i.*, u.username, u.name 
+        SELECT i.*, u.username, u.namecustom as name 
         FROM invoice i 
         LEFT JOIN user u ON i.id_user = u.id 
         ORDER BY i.time_sell DESC 
         LIMIT 6
     ");
     $recentUsers = db_fetchAll($pdo, "SELECT * FROM user ORDER BY register DESC LIMIT 6");
-} catch (Exception $e) {}
+} catch (Exception $e) {
+    error_log('index.php recent query error: ' . $e->getMessage());
+}
 
 $pageTitle = $textbotlang['panel']['dashboardTitle'];
 $activeNav = 'dashboard';
