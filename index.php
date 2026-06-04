@@ -4067,16 +4067,42 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
         $marzban_list_get = select("marzban_panel", "*", "name_panel", $nameloc['Service_location'], "select");
         $configs_to_send = [];
 
-        // Collect configs (works for both 3x-ui sanaei multi-inbound and x-ui single)
-        if (isset($DataUserOut['configs']) && is_array($DataUserOut['configs']) && !empty($DataUserOut['configs'])) {
-            foreach ($DataUserOut['configs'] as $conf) {
-                $conf = trim((string)$conf);
-                if ($conf !== '') {
-                    $configs_to_send[] = $conf;
-                }
+        // DataUser returns 'links' (not 'configs') for marzban/x-ui/marzneshin/sanaei
+        // CreateUser returns 'configs' — we check both for safety
+        $raw_links = [];
+        if (!empty($DataUserOut['links']) && is_array($DataUserOut['links'])) {
+            $raw_links = $DataUserOut['links'];
+        } elseif (!empty($DataUserOut['configs']) && is_array($DataUserOut['configs'])) {
+            $raw_links = $DataUserOut['configs'];
+        }
+
+        foreach ($raw_links as $conf) {
+            $conf = trim((string)$conf);
+            if ($conf !== '') {
+                $configs_to_send[] = $conf;
             }
         }
 
+        // Fallback for marzban (version_panel=0) where links may be null:
+        // fetch from subscription_url directly
+        if (empty($configs_to_send) && !empty($DataUserOut['subscription_url'])) {
+            try {
+                $sub_content = outputlink($DataUserOut['subscription_url']);
+                if (!empty($sub_content)) {
+                    if (isBase64($sub_content)) {
+                        $sub_content = base64_decode($sub_content);
+                    }
+                    foreach (explode("\n", trim($sub_content)) as $conf) {
+                        $conf = trim($conf);
+                        if ($conf !== '') {
+                            $configs_to_send[] = $conf;
+                        }
+                    }
+                }
+            } catch (Throwable $e) {
+                // silently ignore if subscription fetch fails
+            }
+        }
         if (!empty($configs_to_send)) {
             telegram('answerCallbackQuery', [
                 'callback_query_id' => $update->callback_query->id,
