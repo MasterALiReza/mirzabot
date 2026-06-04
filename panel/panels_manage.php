@@ -6,14 +6,11 @@ require_auth();
 
 // Ensure sanaei_group column exists safely
 try {
-    // Check if column exists first to prevent error in MySQL/SQLite
     $colCheck = $pdo->query("SELECT sanaei_group FROM marzban_panel LIMIT 1");
 } catch (Exception $e) {
     try {
         $pdo->exec("ALTER TABLE marzban_panel ADD COLUMN sanaei_group VARCHAR(255) DEFAULT ''");
-    } catch (Exception $ex) {
-        // Ignore if error occurs
-    }
+    } catch (Exception $ex) {}
 }
 
 // TEST CONNECTION AJAX
@@ -39,13 +36,10 @@ if (isset($_GET['action']) && $_GET['action'] === 'test_connection' && isset($_G
             strpos($msgLower, 'unsuccessful') !== false ||
             empty($msg)
         )) {
-            // These errors typically mean it reached the panel but the user didn't exist
-            // Or the response was generic 'Unsuccessful' but not a connection timeout
             echo json_encode(['success' => true, 'message' => 'اتصال با موفقیت برقرار شد. پنل در دسترس است.']);
         } elseif ($res['status'] === 'Unsuccessful') {
             echo json_encode(['success' => false, 'message' => 'خطا در اتصال: ' . $msg]);
         } else {
-            // Connected successfully
             echo json_encode(['success' => true, 'message' => 'اتصال با موفقیت برقرار شد.']);
         }
     } catch (Exception $e) {
@@ -63,8 +57,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $password_panel = trim($_POST['password_panel'] ?? '');
     $type = trim($_POST['type'] ?? 'marzban');
     $status = trim($_POST['status'] ?? 'active');
+    $agent = trim($_POST['agent'] ?? 'all');
+    
     $inboundid = trim($_POST['inboundid'] ?? '1');
     $sanaei_group = trim($_POST['sanaei_group'] ?? '');
+    $inboundstatus = trim($_POST['inboundstatus'] ?? 'offinbounddisable');
+    $inbound_deactive = trim($_POST['inbound_deactive'] ?? '0');
+    $conecton = trim($_POST['conecton'] ?? 'offconecton');
+    
+    $MethodUsername = trim($_POST['MethodUsername'] ?? $textbotlang['keyboard']['numericIdRandom']);
+    $namecustom = trim($_POST['namecustom'] ?? 'vpn');
+    $limit_panel = trim($_POST['limit_panel'] ?? 'unlimted');
+    $sublink = trim($_POST['sublink'] ?? 'onsublink');
+    $config = trim($_POST['config'] ?? 'offconfig');
+    
+    $Methodextend = trim($_POST['Methodextend'] ?? $textbotlang['keyboard']['resetVolumeTime']);
+    $status_extend = trim($_POST['status_extend'] ?? 'on_extend');
+    $TestAccount = trim($_POST['TestAccount'] ?? 'ONTestAccount');
+    $val_usertest = trim($_POST['val_usertest'] ?? '100');
+    $time_usertest = trim($_POST['time_usertest'] ?? '1');
+    $on_hold_test = trim($_POST['on_hold_test'] ?? '1');
+    
+    $changeloc = trim($_POST['changeloc'] ?? 'offchangeloc');
+    $subvip = trim($_POST['subvip'] ?? 'offsubvip');
+    
+    $mainvolume = json_encode(['f' => $_POST['mainvolume_f'] ?? "1", 'n' => $_POST['mainvolume_n'] ?? "1", 'n2' => $_POST['mainvolume_n2'] ?? "1"]);
+    $maxvolume = json_encode(['f' => $_POST['maxvolume_f'] ?? "1000", 'n' => $_POST['maxvolume_n'] ?? "1000", 'n2' => $_POST['maxvolume_n2'] ?? "1000"]);
+    $maintime = json_encode(['f' => $_POST['maintime_f'] ?? "1", 'n' => $_POST['maintime_n'] ?? "1", 'n2' => $_POST['maintime_n2'] ?? "1"]);
+    $maxtime = json_encode(['f' => $_POST['maxtime_f'] ?? "365", 'n' => $_POST['maxtime_n'] ?? "365", 'n2' => $_POST['maxtime_n2'] ?? "365"]);
+    $customvolume = json_encode(['f' => $_POST['customvolume_f'] ?? "0", 'n' => $_POST['customvolume_n'] ?? "0", 'n2' => $_POST['customvolume_n2'] ?? "0"]);
+    
+    $priceextravolume = json_encode(['f' => $_POST['priceextravolume_f'] ?? "4000", 'n' => $_POST['priceextravolume_n'] ?? "4000", 'n2' => $_POST['priceextravolume_n2'] ?? "4000"]);
+    $pricecustomvolume = json_encode(['f' => $_POST['pricecustomvolume_f'] ?? "4000", 'n' => $_POST['pricecustomvolume_n'] ?? "4000", 'n2' => $_POST['pricecustomvolume_n2'] ?? "4000"]);
+    $pricecustomtime = json_encode(['f' => $_POST['pricecustomtime_f'] ?? "4000", 'n' => $_POST['pricecustomtime_n'] ?? "4000", 'n2' => $_POST['pricecustomtime_n2'] ?? "4000"]);
+    $priceextratime = json_encode(['f' => $_POST['priceextratime_f'] ?? "4000", 'n' => $_POST['priceextratime_n'] ?? "4000", 'n2' => $_POST['priceextratime_n2'] ?? "4000"]);
+    
+    $priceChangeloc = trim($_POST['priceChangeloc'] ?? '0');
 
     if ($action === 'add') {
         try {
@@ -75,29 +103,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $code_panel = '7e' . ($max_num + 1);
 
             db_query($pdo, "INSERT INTO marzban_panel 
-                (name_panel, url_panel, username_panel, password_panel, type, status, code_panel, MethodUsername, inboundstatus, inbound_deactive, agent, inboundid, conecton, Methodextend, namecustom, limit_panel, TestAccount, sublink, config, version_panel, on_hold_test, subvip, changeloc, status_extend, priceChangeloc, sanaei_group) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+                (name_panel, url_panel, username_panel, password_panel, type, status, code_panel, MethodUsername, inboundstatus, inbound_deactive, agent, inboundid, conecton, Methodextend, namecustom, limit_panel, TestAccount, sublink, config, version_panel, on_hold_test, subvip, changeloc, status_extend, priceChangeloc, sanaei_group, mainvolume, maxvolume, maintime, maxtime, customvolume, priceextravolume, pricecustomvolume, pricecustomtime, priceextratime, val_usertest, time_usertest) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '0', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
                 [
                     $name_panel, $url_panel, $username_panel, $password_panel, $type, $status, $code_panel,
-                    '1', // MethodUsername default
-                    'offinbounddisable', // inboundstatus default
-                    '0', // inbound_deactive
-                    'all', // agent
-                    '1', // inboundid
-                    'offconecton', // conecton
-                    '1', // Methodextend default
-                    'vpn', // namecustom
-                    'unlimted', // limit_panel
-                    'ONTestAccount', // TestAccount
-                    'onsublink', // sublink
-                    'offconfig', // config
-                    '0', // version_panel
-                    '1', // on_hold_test
-                    'offsubvip', // subvip
-                    'offchangeloc', // changeloc
-                    'on_extend', // status_extend
-                    '0', // priceChangeloc
-                    $sanaei_group // sanaei_group
+                    $MethodUsername, $inboundstatus, $inbound_deactive, $agent, $inboundid, $conecton, $Methodextend,
+                    $namecustom, $limit_panel, $TestAccount, $sublink, $config, $on_hold_test, $subvip, $changeloc,
+                    $status_extend, $priceChangeloc, $sanaei_group, $mainvolume, $maxvolume, $maintime, $maxtime,
+                    $customvolume, $priceextravolume, $pricecustomvolume, $pricecustomtime, $priceextratime, $val_usertest, $time_usertest
                 ]
             );
             flash('success', 'پنل جدید با موفقیت اضافه شد.');
@@ -109,8 +122,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     } elseif ($action === 'edit' && isset($_POST['id'])) {
         $id = (int)$_POST['id'];
         try {
-            db_query($pdo, "UPDATE marzban_panel SET name_panel = ?, url_panel = ?, username_panel = ?, password_panel = ?, type = ?, status = ?, inboundid = ?, sanaei_group = ? WHERE id = ?",
-                [$name_panel, $url_panel, $username_panel, $password_panel, $type, $status, $inboundid, $sanaei_group, $id]
+            db_query($pdo, "UPDATE marzban_panel SET 
+                name_panel = ?, url_panel = ?, username_panel = ?, password_panel = ?, type = ?, status = ?, agent = ?, 
+                MethodUsername = ?, inboundstatus = ?, inbound_deactive = ?, inboundid = ?, conecton = ?, Methodextend = ?,
+                namecustom = ?, limit_panel = ?, TestAccount = ?, sublink = ?, config = ?, on_hold_test = ?, subvip = ?,
+                changeloc = ?, status_extend = ?, priceChangeloc = ?, sanaei_group = ?, mainvolume = ?, maxvolume = ?,
+                maintime = ?, maxtime = ?, customvolume = ?, priceextravolume = ?, pricecustomvolume = ?, pricecustomtime = ?,
+                priceextratime = ?, val_usertest = ?, time_usertest = ?
+                WHERE id = ?",
+                [
+                    $name_panel, $url_panel, $username_panel, $password_panel, $type, $status, $agent,
+                    $MethodUsername, $inboundstatus, $inbound_deactive, $inboundid, $conecton, $Methodextend,
+                    $namecustom, $limit_panel, $TestAccount, $sublink, $config, $on_hold_test, $subvip,
+                    $changeloc, $status_extend, $priceChangeloc, $sanaei_group, $mainvolume, $maxvolume,
+                    $maintime, $maxtime, $customvolume, $priceextravolume, $pricecustomvolume, $pricecustomtime,
+                    $priceextratime, $val_usertest, $time_usertest, $id
+                ]
             );
             flash('success', 'پنل با موفقیت ویرایش شد.');
         } catch (Exception $e) {
@@ -191,14 +218,23 @@ include __DIR__ . '/inc/layout_head.php';
                         $type = $p['type'] ?? 'marzban';
                         $panelData = json_encode([
                             'id' => $p['id'],
-                            'name_panel' => $p['name_panel'],
-                            'url_panel' => $p['url_panel'],
-                            'username_panel' => $p['username_panel'],
-                            'password_panel' => $p['password_panel'],
-                            'type' => $type,
-                            'status' => $p['status'],
-                            'inboundid' => $p['inboundid'] ?? '1',
-                            'sanaei_group' => $p['sanaei_group'] ?? ''
+                            'name_panel' => $p['name_panel'], 'url_panel' => $p['url_panel'],
+                            'username_panel' => $p['username_panel'], 'password_panel' => $p['password_panel'],
+                            'type' => $type, 'status' => $p['status'], 'agent' => $p['agent'],
+                            'inboundid' => $p['inboundid'], 'sanaei_group' => $p['sanaei_group'],
+                            'inboundstatus' => $p['inboundstatus'], 'inbound_deactive' => $p['inbound_deactive'],
+                            'conecton' => $p['conecton'], 'MethodUsername' => $p['MethodUsername'],
+                            'namecustom' => $p['namecustom'], 'limit_panel' => $p['limit_panel'],
+                            'sublink' => $p['sublink'], 'config' => $p['config'],
+                            'Methodextend' => $p['Methodextend'], 'status_extend' => $p['status_extend'],
+                            'TestAccount' => $p['TestAccount'], 'val_usertest' => $p['val_usertest'],
+                            'time_usertest' => $p['time_usertest'], 'on_hold_test' => $p['on_hold_test'],
+                            'changeloc' => $p['changeloc'], 'subvip' => $p['subvip'],
+                            'mainvolume' => $p['mainvolume'], 'maxvolume' => $p['maxvolume'],
+                            'maintime' => $p['maintime'], 'maxtime' => $p['maxtime'], 'customvolume' => $p['customvolume'],
+                            'priceextravolume' => $p['priceextravolume'], 'pricecustomvolume' => $p['pricecustomvolume'],
+                            'pricecustomtime' => $p['pricecustomtime'], 'priceextratime' => $p['priceextratime'],
+                            'priceChangeloc' => $p['priceChangeloc']
                         ]);
                         ?>
                         <tr>
@@ -241,85 +277,277 @@ include __DIR__ . '/inc/layout_head.php';
 
 <!-- Add/Edit Panel Modal -->
 <div id="panelModalVeil" class="modal-veil">
-    <div class="modal" style="max-width:500px">
+    <div class="modal" style="max-width:650px;width:95%">
         <div class="modal-head">
-            <h3 id="panelModalTitle">افزودن پنل جدید</h3>
+            <h3 id="panelModalTitle">مدیریت پنل</h3>
             <button type="button" class="modal-x" onclick="closePanelModal()">
                 <?= icon('x', 16) ?>
             </button>
         </div>
+        
+        <div class="tabs-nav" style="display:flex;gap:5px;padding:0 20px;border-bottom:1px solid var(--border);overflow-x:auto;">
+            <button type="button" class="tab-btn active" onclick="switchTab('tab-general')">اصلی</button>
+            <button type="button" class="tab-btn" onclick="switchTab('tab-inbounds')">اینباند</button>
+            <button type="button" class="tab-btn" onclick="switchTab('tab-users')">کاربران</button>
+            <button type="button" class="tab-btn" onclick="switchTab('tab-tests')">تست و تمدید</button>
+            <button type="button" class="tab-btn" onclick="switchTab('tab-prices')">قیمت‌ها</button>
+        </div>
+
         <form method="post" action="panels_manage.php">
-            <div class="modal-body" style="display:flex;flex-direction:column;gap:15px">
-                <input type="hidden" name="action" id="panelAction" value="add">
+            <input type="hidden" name="action" id="panelAction" value="add">
             <input type="hidden" name="id" id="panelId" value="">
             
-            <div class="field-group">
-                <label>نوع پنل</label>
-                <select name="type" id="panelType" class="input" required>
-                    <option value="marzban">Marzban (مرزبان)</option>
-                    <option value="marzneshin">Marzneshin (مرزنشین)</option>
-                    <option value="MHSanaei-3.2">MHSanaei (سنایی)</option>
-                    <option value="x-ui_single">X-UI (ایکس یو آی)</option>
-                    <option value="alireza_single">Alireza (علیرضا)</option>
-                    <option value="hiddify">Hiddify (هیدیفای)</option>
-                    <option value="s_ui">S-UI (اس یو آی)</option>
-                    <option value="WGDashboard">WGDashboard (وایرگارد)</option>
-                    <option value="ibsng">IBSng</option>
-                    <option value="mikrotik">Mikrotik</option>
-                    <option value="Manualsale">Manual (دستی)</option>
-                </select>
-            </div>
-
-            <div class="field-group">
-                <label>نام پنل</label>
-                <input type="text" name="name_panel" id="panelName" class="input" required placeholder="مثلا: سرور آلمان 1">
-            </div>
-
-            <div class="field-group">
-                <label>آدرس پنل (URL)</label>
-                <input type="url" name="url_panel" id="panelUrl" class="input" required placeholder="https://panel.example.com:2053" style="direction:ltr;text-align:left;">
-            </div>
-
-            <div class="field-group">
-                <label>نام کاربری پنل</label>
-                <input type="text" name="username_panel" id="panelUsername" class="input" placeholder="admin" style="direction:ltr;text-align:left;">
-            </div>
-
-            <div class="field-group">
-                <label>رمز عبور پنل</label>
-                <input type="password" name="password_panel" id="panelPassword" class="input" placeholder="••••••••" style="direction:ltr;text-align:left;">
-            </div>
-
-            <div class="field-group inboundid-group" style="display:none;">
-                <label>شناسه اینباند (Inbound ID)</label>
-                <div id="sanaeiInboundsFetcher" style="display:none; margin-bottom:10px; padding:10px; border:1px solid var(--border); border-radius:8px; background:var(--bg-sec);">
-                    <div style="display:flex; gap:10px; margin-bottom:10px; align-items:center;">
-                        <button type="button" class="btn btn-secondary" onclick="fetchSanaeiInbounds()" style="font-size:12px; padding:6px 12px; border:1px solid var(--border); border-radius:6px; background:var(--bg); cursor:pointer;">دریافت لیست اینباندها</button>
-                        <span id="inboundsLoader" style="display:none; font-size:12px; color:var(--ts);">در حال دریافت...</span>
+            <div class="modal-body" style="min-height:350px; max-height:55vh; overflow-y:auto; padding:20px;">
+                
+                <!-- TAB 1: GENERAL -->
+                <div id="tab-general" class="tab-content active">
+                    <div class="field-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:15px">
+                        <div class="field-group">
+                            <label>نوع پنل</label>
+                            <select name="type" id="panelType" class="input" required>
+                                <option value="marzban">Marzban (مرزبان)</option>
+                                <option value="marzneshin">Marzneshin (مرزنشین)</option>
+                                <option value="MHSanaei-3.2">MHSanaei (سنایی)</option>
+                                <option value="x-ui_single">X-UI (ایکس یو آی)</option>
+                                <option value="alireza_single">Alireza (علیرضا)</option>
+                                <option value="hiddify">Hiddify (هیدیفای)</option>
+                                <option value="s_ui">S-UI (اس یو آی)</option>
+                                <option value="WGDashboard">WGDashboard (وایرگارد)</option>
+                                <option value="ibsng">IBSng</option>
+                                <option value="mikrotik">Mikrotik</option>
+                                <option value="Manualsale">Manual (دستی)</option>
+                            </select>
+                        </div>
+                        <div class="field-group">
+                            <label>نام پنل</label>
+                            <input type="text" name="name_panel" id="panelName" class="input" required placeholder="مثلا: سرور آلمان 1">
+                        </div>
+                        <div class="field-group">
+                            <label>وضعیت اتصال</label>
+                            <select name="status" id="panelStatus" class="input">
+                                <option value="active">فعال</option>
+                                <option value="deactive">غیرفعال</option>
+                            </select>
+                        </div>
+                        <div class="field-group">
+                            <label>دسترسی نمایندگان</label>
+                            <select name="agent" id="panelAgent" class="input">
+                                <option value="all">همه</option>
+                                <option value="f">فقط فروشنده عادی</option>
+                                <option value="n">فقط نماینده (درصددهی)</option>
+                                <option value="n2">فقط نماینده (درصددهی عمده)</option>
+                            </select>
+                        </div>
                     </div>
-                    <div id="inboundsList" style="display:flex; flex-direction:column; gap:8px; max-height:150px; overflow-y:auto;">
-                        <small style="color:var(--ts);font-size:11px;">برای نمایش اینباندها روی دکمه بالا کلیک کنید.</small>
+                    
+                    <div class="field-group" style="margin-top:15px">
+                        <label>آدرس پنل (URL)</label>
+                        <input type="url" name="url_panel" id="panelUrl" class="input" required placeholder="https://panel.example.com:2053" style="direction:ltr;text-align:left;">
+                    </div>
+                    <div class="field-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:15px">
+                        <div class="field-group">
+                            <label>نام کاربری پنل</label>
+                            <input type="text" name="username_panel" id="panelUsername" class="input" placeholder="admin" style="direction:ltr;text-align:left;">
+                        </div>
+                        <div class="field-group">
+                            <label>رمز عبور پنل</label>
+                            <input type="password" name="password_panel" id="panelPassword" class="input" placeholder="••••••••" style="direction:ltr;text-align:left;">
+                        </div>
                     </div>
                 </div>
-                <input type="text" name="inboundid" id="panelInboundId" class="input" placeholder="مثلا: 1,2,3" style="direction:ltr;text-align:left;" oninput="updateInboundCheckboxes()">
-                <small style="color:var(--ts);font-size:12px;">برای پنل ثنایی و ایکس‌یوآی می‌توانید چندین شناسه را با کاما وارد کنید یا از لیست انتخاب کنید.</small>
+
+                <!-- TAB 2: INBOUNDS -->
+                <div id="tab-inbounds" class="tab-content">
+                    <div class="field-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:15px">
+                        <div class="field-group">
+                            <label>وضعیت اینباندها (تک‌پورت)</label>
+                            <select name="inboundstatus" id="panelInboundStatus" class="input">
+                                <option value="oninbounddisable">فعال (On)</option>
+                                <option value="offinbounddisable">غیرفعال (Off)</option>
+                            </select>
+                        </div>
+                        <div class="field-group">
+                            <label>غیرفعال‌سازی پس از اتمام</label>
+                            <select name="inbound_deactive" id="panelInboundDeactive" class="input">
+                                <option value="1">بله</option>
+                                <option value="0">خیر</option>
+                            </select>
+                        </div>
+                        <div class="field-group">
+                            <label>وضعیت اتصال API</label>
+                            <select name="conecton" id="panelConecton" class="input">
+                                <option value="onconecton">روشن</option>
+                                <option value="offconecton">خاموش</option>
+                            </select>
+                        </div>
+                        <div class="field-group sanaei-group">
+                            <label>گروه‌بندی سنایی</label>
+                            <input type="text" name="sanaei_group" id="panelSanaeiGroup" class="input" placeholder="VIP" style="direction:ltr;text-align:left;">
+                        </div>
+                    </div>
+
+                    <div class="field-group inboundid-group" style="margin-top:15px">
+                        <label>شناسه اینباند (Inbound ID)</label>
+                        <div id="sanaeiInboundsFetcher" style="display:none; margin-bottom:10px; padding:10px; border:1px solid var(--border); border-radius:8px; background:var(--bg-sec);">
+                            <div style="display:flex; gap:10px; margin-bottom:10px; align-items:center;">
+                                <button type="button" class="btn btn-secondary" onclick="fetchSanaeiInbounds()" style="font-size:12px; padding:6px 12px; border:1px solid var(--border); border-radius:6px; background:var(--bg); cursor:pointer;">دریافت لیست اینباندها</button>
+                                <span id="inboundsLoader" style="display:none; font-size:12px; color:var(--ts);">در حال دریافت...</span>
+                            </div>
+                            <div id="inboundsList" style="display:flex; flex-direction:column; gap:8px; max-height:150px; overflow-y:auto;">
+                                <small style="color:var(--ts);font-size:11px;">برای نمایش اینباندها روی دکمه بالا کلیک کنید.</small>
+                            </div>
+                        </div>
+                        <input type="text" name="inboundid" id="panelInboundId" class="input" placeholder="1,2,3" style="direction:ltr;text-align:left;" oninput="updateInboundCheckboxes()">
+                        <small style="color:var(--ts);font-size:12px;">میتوانید چند شناسه را با کاما جدا کنید.</small>
+                    </div>
+                </div>
+
+                <!-- TAB 3: USERS -->
+                <div id="tab-users" class="tab-content">
+                    <div class="field-group">
+                        <label>روش ایجاد نام کاربری</label>
+                        <select name="MethodUsername" id="panelMethodUsername" class="input">
+                            <option value="<?= $textbotlang['keyboard']['numericIdRandom'] ?? 'numericIdRandom' ?>">آیدی عددی تصادفی</option>
+                            <option value="<?= $textbotlang['users']['customusername'] ?? 'customusername' ?>">نام کاربری دلخواه</option>
+                            <option value="<?= $textbotlang['keyboard']['customTextSequential'] ?? 'customTextSequential' ?>">متن دلخواه + عدد ترتیبی</option>
+                            <option value="<?= $textbotlang['keyboard']['usernameSequential'] ?? 'usernameSequential' ?>">نام کاربری + عدد ترتیبی</option>
+                            <option value="<?= $textbotlang['keyboard']['numericIdSequential'] ?? 'numericIdSequential' ?>">آیدی عددی ترتیبی</option>
+                            <option value="<?= $textbotlang['keyboard']['agentCustomTextSequential'] ?? 'agentCustomTextSequential' ?>">متن دلخواه نماینده + عدد ترتیبی</option>
+                        </select>
+                    </div>
+                    
+                    <div class="field-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:15px">
+                        <div class="field-group">
+                            <label>پیشوند کاستوم</label>
+                            <input type="text" name="namecustom" id="panelNamecustom" class="input" placeholder="vpn" style="direction:ltr;text-align:left;">
+                        </div>
+                        <div class="field-group">
+                            <label>محدودیت IP</label>
+                            <select name="limit_panel" id="panelLimitPanel" class="input">
+                                <option value="unlimted">نامحدود</option>
+                                <?php for($j=1; $j<=100; $j++): ?>
+                                    <option value="<?= $j ?>"><?= $j ?> کاربره</option>
+                                <?php endfor; ?>
+                            </select>
+                        </div>
+                        <div class="field-group">
+                            <label>نمایش ساب‌لینک</label>
+                            <select name="sublink" id="panelSublink" class="input">
+                                <option value="onsublink">بله</option>
+                                <option value="offsublink">خیر</option>
+                            </select>
+                        </div>
+                        <div class="field-group">
+                            <label>نمایش کانفیگ‌ها</label>
+                            <select name="config" id="panelConfig" class="input">
+                                <option value="onconfig">بله</option>
+                                <option value="offconfig">خیر</option>
+                            </select>
+                        </div>
+                        <div class="field-group">
+                            <label>امکان تغییر لوکیشن</label>
+                            <select name="changeloc" id="panelChangeloc" class="input">
+                                <option value="onchangeloc">بله</option>
+                                <option value="offchangeloc">خیر</option>
+                            </select>
+                        </div>
+                        <div class="field-group">
+                            <label>وضعیت VIP کاربر</label>
+                            <select name="subvip" id="panelSubvip" class="input">
+                                <option value="onsubvip">فعال</option>
+                                <option value="offsubvip">غیرفعال</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 4: TESTS & EXTENDS -->
+                <div id="tab-tests" class="tab-content">
+                    <div class="field-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:15px">
+                        <div class="field-group">
+                            <label>روش تمدید</label>
+                            <select name="Methodextend" id="panelMethodextend" class="input">
+                                <option value="<?= $textbotlang['keyboard']['resetVolumeTime'] ?? 'reset' ?>">ریست حجم و زمان</option>
+                                <option value="<?= $textbotlang['keyboard']['addVolumeTime'] ?? 'add' ?>">افزودن به حجم و زمان</option>
+                            </select>
+                        </div>
+                        <div class="field-group">
+                            <label>قابلیت تمدید سرویس</label>
+                            <select name="status_extend" id="panelStatusExtend" class="input">
+                                <option value="on_extend">مجاز</option>
+                                <option value="off_extend">غیرمجاز</option>
+                            </select>
+                        </div>
+                        <div class="field-group">
+                            <label>اکانت تست</label>
+                            <select name="TestAccount" id="panelTestAccount" class="input">
+                                <option value="ONTestAccount">روشن</option>
+                                <option value="OFFTestAccount">خاموش</option>
+                            </select>
+                        </div>
+                        <div class="field-group">
+                            <label>تست در انتظار</label>
+                            <select name="on_hold_test" id="panelOnHoldTest" class="input">
+                                <option value="1">بله</option>
+                                <option value="0">خیر</option>
+                            </select>
+                        </div>
+                        <div class="field-group">
+                            <label>حجم اکانت تست (مگابایت)</label>
+                            <input type="text" name="val_usertest" id="panelValUsertest" class="input" placeholder="100">
+                        </div>
+                        <div class="field-group">
+                            <label>زمان اکانت تست (ساعت)</label>
+                            <input type="text" name="time_usertest" id="panelTimeUsertest" class="input" placeholder="1">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 5: PRICES & LIMITS -->
+                <div id="tab-prices" class="tab-content">
+                    <p style="font-size:12px;color:var(--ts);margin-top:0;margin-bottom:15px">تمامی محدودیت‌ها و قیمت‌ها برای هر سه سطح فروشنده قابل شخصی‌سازی است.</p>
+                    
+                    <?php 
+                    $priceFields = [
+                        ['id'=>'mainvolume', 'label'=>'حجم اصلی (GB)'],
+                        ['id'=>'maxvolume', 'label'=>'حداکثر حجم مجاز (GB)'],
+                        ['id'=>'maintime', 'label'=>'زمان اصلی (روز)'],
+                        ['id'=>'maxtime', 'label'=>'حداکثر زمان مجاز (روز)'],
+                        ['id'=>'customvolume', 'label'=>'حجم دلخواه مجاز (1 یا 0)'],
+                        ['id'=>'priceextravolume', 'label'=>'قیمت حجم اضافه (تومان)'],
+                        ['id'=>'pricecustomvolume', 'label'=>'قیمت حجم دلخواه (تومان)'],
+                        ['id'=>'pricecustomtime', 'label'=>'قیمت زمان دلخواه (تومان)'],
+                        ['id'=>'priceextratime', 'label'=>'قیمت زمان اضافه (تومان)']
+                    ];
+                    
+                    foreach($priceFields as $pf): ?>
+                        <div style="border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:15px">
+                            <label style="display:block;margin-bottom:8px;font-weight:600;font-size:13px;color:var(--text)"><?= $pf['label'] ?></label>
+                            <div style="display:flex;gap:10px;">
+                                <div style="flex:1">
+                                    <small style="color:var(--ts)">عادی (f)</small>
+                                    <input type="text" name="<?= $pf['id'] ?>_f" id="<?= $pf['id'] ?>_f" class="input" style="direction:ltr;text-align:center">
+                                </div>
+                                <div style="flex:1">
+                                    <small style="color:var(--ts)">درصددهی (n)</small>
+                                    <input type="text" name="<?= $pf['id'] ?>_n" id="<?= $pf['id'] ?>_n" class="input" style="direction:ltr;text-align:center">
+                                </div>
+                                <div style="flex:1">
+                                    <small style="color:var(--ts)">عمده (n2)</small>
+                                    <input type="text" name="<?= $pf['id'] ?>_n2" id="<?= $pf['id'] ?>_n2" class="input" style="direction:ltr;text-align:center">
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                    
+                    <div class="field-group">
+                        <label>قیمت تغییر لوکیشن (تومان - سراسری)</label>
+                        <input type="text" name="priceChangeloc" id="panelPriceChangeloc" class="input" placeholder="0" style="direction:ltr;text-align:center">
+                    </div>
+                </div>
+
             </div>
             
-            <div class="field-group sanaei-group" style="display:none;">
-                <label>گروه بندی (Sanaei Group)</label>
-                <input type="text" name="sanaei_group" id="panelSanaeiGroup" class="input" placeholder="مثلا: VIP" style="direction:ltr;text-align:left;">
-                <small style="color:var(--ts);font-size:12px;">گروه پیش‌فرض برای کاربرانی که در این پنل ساخته می‌شوند.</small>
-            </div>
-
-            <div class="field-group">
-                <label>وضعیت اتصال</label>
-                <select name="status" id="panelStatus" class="input">
-                    <option value="active">فعال</option>
-                    <option value="deactive">غیرفعال</option>
-                </select>
-            </div>
-
-            </div>
             <div class="modal-foot">
                 <button type="button" class="btn btn-ghost" onclick="closePanelModal()">انصراف</button>
                 <button type="submit" class="btn btn-primary" style="margin-right:auto">ذخیره پنل</button>
@@ -348,6 +576,11 @@ include __DIR__ . '/inc/layout_head.php';
 </div>
 
 <style>
+.tab-btn { background:none; border:none; padding:8px 12px; color:var(--ts); cursor:pointer; font-weight:600; border-bottom:2px solid transparent; transition:0.2s; white-space:nowrap; }
+.tab-btn.active { color:var(--ac); border-bottom-color:var(--ac); }
+.tab-content { display:none; flex-direction:column; gap:15px; }
+.tab-content.active { display:flex; }
+
 .spinner {
     width: 30px;
     height: 30px;
@@ -360,6 +593,14 @@ include __DIR__ . '/inc/layout_head.php';
 </style>
 
 <script>
+function switchTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    
+    document.getElementById(tabId).classList.add('active');
+    event.currentTarget.classList.add('active');
+}
+
 function openPanelModal(action, btn = null) {
     const modalVeil = document.getElementById('panelModalVeil');
     const title = document.getElementById('panelModalTitle');
@@ -369,6 +610,9 @@ function openPanelModal(action, btn = null) {
     if (btn && btn.getAttribute('data-panel')) {
         data = JSON.parse(btn.getAttribute('data-panel'));
     }
+    
+    // Switch to first tab safely
+    document.querySelectorAll('.tab-btn')[0].click();
     
     if (action === 'add') {
         title.innerText = 'افزودن پنل جدید';
@@ -380,20 +624,84 @@ function openPanelModal(action, btn = null) {
         document.getElementById('panelPassword').value = '';
         document.getElementById('panelType').value = 'marzban';
         document.getElementById('panelStatus').value = 'active';
+        document.getElementById('panelAgent').value = 'all';
+        
+        document.getElementById('panelInboundStatus').value = 'offinbounddisable';
+        document.getElementById('panelInboundDeactive').value = '0';
+        document.getElementById('panelConecton').value = 'offconecton';
         document.getElementById('panelInboundId').value = '1';
         document.getElementById('panelSanaeiGroup').value = '';
+        
+        document.getElementById('panelNamecustom').value = 'vpn';
+        document.getElementById('panelLimitPanel').value = 'unlimted';
+        document.getElementById('panelSublink').value = 'onsublink';
+        document.getElementById('panelConfig').value = 'offconfig';
+        document.getElementById('panelChangeloc').value = 'offchangeloc';
+        document.getElementById('panelSubvip').value = 'offsubvip';
+        
+        document.getElementById('panelStatusExtend').value = 'on_extend';
+        document.getElementById('panelTestAccount').value = 'ONTestAccount';
+        document.getElementById('panelOnHoldTest').value = '1';
+        document.getElementById('panelValUsertest').value = '100';
+        document.getElementById('panelTimeUsertest').value = '1';
+        
+        document.getElementById('panelPriceChangeloc').value = '0';
+        
+        const jsonFields = ['mainvolume','maxvolume','maintime','maxtime','customvolume','priceextravolume','pricecustomvolume','pricecustomtime','priceextratime'];
+        jsonFields.forEach(f => {
+            document.getElementById(f+'_f').value = '';
+            document.getElementById(f+'_n').value = '';
+            document.getElementById(f+'_n2').value = '';
+        });
+        
     } else if (action === 'edit' && data) {
         title.innerText = 'ویرایش پنل: ' + data.name_panel;
         actionInput.value = 'edit';
-        document.getElementById('panelId').value = data.id;
-        document.getElementById('panelName').value = data.name_panel;
-        document.getElementById('panelUrl').value = data.url_panel;
-        document.getElementById('panelUsername').value = data.username_panel;
-        document.getElementById('panelPassword').value = data.password_panel;
-        document.getElementById('panelType').value = data.type;
-        document.getElementById('panelStatus').value = data.status;
+        document.getElementById('panelId').value = data.id || '';
+        document.getElementById('panelName').value = data.name_panel || '';
+        document.getElementById('panelUrl').value = data.url_panel || '';
+        document.getElementById('panelUsername').value = data.username_panel || '';
+        document.getElementById('panelPassword').value = data.password_panel || '';
+        document.getElementById('panelType').value = data.type || 'marzban';
+        document.getElementById('panelStatus').value = data.status || 'active';
+        document.getElementById('panelAgent').value = data.agent || 'all';
+        
+        document.getElementById('panelInboundStatus').value = data.inboundstatus || 'offinbounddisable';
+        document.getElementById('panelInboundDeactive').value = data.inbound_deactive || '0';
+        document.getElementById('panelConecton').value = data.conecton || 'offconecton';
         document.getElementById('panelInboundId').value = data.inboundid || '1';
         document.getElementById('panelSanaeiGroup').value = data.sanaei_group || '';
+        
+        if (data.MethodUsername) document.getElementById('panelMethodUsername').value = data.MethodUsername;
+        document.getElementById('panelNamecustom').value = data.namecustom || 'vpn';
+        document.getElementById('panelLimitPanel').value = data.limit_panel || 'unlimted';
+        document.getElementById('panelSublink').value = data.sublink || 'onsublink';
+        document.getElementById('panelConfig').value = data.config || 'offconfig';
+        document.getElementById('panelChangeloc').value = data.changeloc || 'offchangeloc';
+        document.getElementById('panelSubvip').value = data.subvip || 'offsubvip';
+        
+        if (data.Methodextend) document.getElementById('panelMethodextend').value = data.Methodextend;
+        document.getElementById('panelStatusExtend').value = data.status_extend || 'on_extend';
+        document.getElementById('panelTestAccount').value = data.TestAccount || 'ONTestAccount';
+        document.getElementById('panelOnHoldTest').value = data.on_hold_test || '1';
+        document.getElementById('panelValUsertest').value = data.val_usertest || '100';
+        document.getElementById('panelTimeUsertest').value = data.time_usertest || '1';
+        
+        document.getElementById('panelPriceChangeloc').value = data.priceChangeloc || '0';
+        
+        const jsonFields = ['mainvolume','maxvolume','maintime','maxtime','customvolume','priceextravolume','pricecustomvolume','pricecustomtime','priceextratime'];
+        jsonFields.forEach(f => {
+            try {
+                const j = JSON.parse(data[f] || '{}');
+                document.getElementById(f+'_f').value = j.f || '';
+                document.getElementById(f+'_n').value = j.n || '';
+                document.getElementById(f+'_n2').value = j.n2 || '';
+            } catch(e) {
+                document.getElementById(f+'_f').value = '';
+                document.getElementById(f+'_n').value = '';
+                document.getElementById(f+'_n2').value = '';
+            }
+        });
     }
     
     togglePanelFields();
@@ -436,16 +744,12 @@ const resultView = document.getElementById('testConnResult');
 testBtns.forEach(btn => {
     btn.addEventListener('click', async () => {
         const id = btn.getAttribute('data-id');
-        
-        // Show modal & loader
         loader.style.display = 'block';
         resultView.style.display = 'none';
         testModalVeil.classList.add('open');
-        
         try {
             const res = await fetch(`panels_manage.php?action=test_connection&id=${id}`);
             const data = await res.json();
-            
             loader.style.display = 'none';
             resultView.style.display = 'block';
             
@@ -463,7 +767,6 @@ testBtns.forEach(btn => {
                 title.style.color = '#ef4444';
             }
             msg.innerText = data.message;
-            
         } catch (err) {
             loader.style.display = 'none';
             resultView.style.display = 'block';
@@ -491,13 +794,11 @@ function closeTestConnModal() {
     function toggleInboundSelection(cb) {
         const val = document.getElementById('panelInboundId').value;
         let ids = val.split(',').map(x => x.trim()).filter(x => x !== '');
-        
         if (cb.checked) {
             if (!ids.includes(cb.value)) ids.push(cb.value);
         } else {
             ids = ids.filter(id => id !== cb.value);
         }
-        
         document.getElementById('panelInboundId').value = ids.join(',');
     }
 
@@ -505,15 +806,12 @@ function closeTestConnModal() {
         const url = document.getElementById('panelUrl').value;
         const user = document.getElementById('panelUsername').value;
         const pass = document.getElementById('panelPassword').value;
-        
         if (!url || !user || !pass) {
             alert('لطفاً ابتدا فیلدهای آدرس، نام کاربری و رمزعبور پنل را پر کنید.');
             return;
         }
-
         const loader = document.getElementById('inboundsLoader');
         const list = document.getElementById('inboundsList');
-        
         loader.style.display = 'inline';
         list.innerHTML = '<small style="color:var(--ts)">در حال دریافت اطلاعات از پنل...</small>';
 
@@ -522,10 +820,7 @@ function closeTestConnModal() {
         formData.append('username_panel', user);
         formData.append('password_panel', pass);
 
-        fetch('ajax/sanaei_inbounds.php', {
-            method: 'POST',
-            body: formData
-        })
+        fetch('ajax/sanaei_inbounds.php', { method: 'POST', body: formData })
         .then(res => res.json())
         .then(data => {
             loader.style.display = 'none';
@@ -534,20 +829,13 @@ function closeTestConnModal() {
                     list.innerHTML = '<small style="color:var(--ts)">هیچ اینباندی یافت نشد.</small>';
                     return;
                 }
-                
                 const currentIds = document.getElementById('panelInboundId').value.split(',').map(x => x.trim());
                 list.innerHTML = '';
-                
                 data.inbounds.forEach(inb => {
                     const isChecked = currentIds.includes(String(inb.id));
                     const label = document.createElement('label');
-                    label.style.display = 'flex';
-                    label.style.alignItems = 'center';
-                    label.style.gap = '8px';
-                    label.style.cursor = 'pointer';
-                    label.style.fontSize = '13px';
-                    label.style.color = 'var(--text)';
-                    
+                    label.style.display = 'flex'; label.style.alignItems = 'center'; label.style.gap = '8px';
+                    label.style.cursor = 'pointer'; label.style.fontSize = '13px'; label.style.color = 'var(--text)';
                     label.innerHTML = `
                         <input type="checkbox" class="inbound-checkbox" value="${inb.id}" ${isChecked ? 'checked' : ''} onchange="toggleInboundSelection(this)">
                         <span>ID: <b>${inb.id}</b> - ${inb.remark} <span style="color:var(--ts); font-size:11px;">(${inb.protocol} - ${inb.port})</span></span>
@@ -557,8 +845,7 @@ function closeTestConnModal() {
             } else {
                 list.innerHTML = `<small style="color:var(--red)">خطا: ${data.msg || 'نامشخص'}</small>`;
             }
-        })
-        .catch(err => {
+        }).catch(err => {
             loader.style.display = 'none';
             list.innerHTML = '<small style="color:var(--red)">خطا در ارتباط با سرور.</small>';
             console.error(err);

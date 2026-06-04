@@ -811,14 +811,14 @@ input:checked + .arvan-slider:before {
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+(function() {
     const mainTabs = document.querySelectorAll('.arvan-main-tab-btn');
     const subTabs = document.querySelectorAll('.arvan-sub-tab-btn');
     const tabContents = document.querySelectorAll('.arvan-tab-content');
     const secContents = document.querySelectorAll('.arvan-section-content');
     
     mainTabs.forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.onclick = function() {
             mainTabs.forEach(b => b.classList.remove('active'));
             this.classList.add('active');
             
@@ -826,7 +826,8 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('current_tab_input').value = targetTab;
             
             tabContents.forEach(c => c.style.display = 'none');
-            document.getElementById('tab-content-' + targetTab).style.display = 'block';
+            const targetContent = document.getElementById('tab-content-' + targetTab);
+            if(targetContent) targetContent.style.display = 'block';
             
             const targetSubTabs = document.querySelectorAll(`.arvan-sub-tab-btn[data-tab="${targetTab}"]`);
             if (targetSubTabs.length > 0) {
@@ -837,11 +838,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     document.getElementById('current_sec_input').value = activeSubTab.getAttribute('data-sec');
                 }
             }
-        });
+        };
     });
     
     subTabs.forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.onclick = function() {
             const targetTab = this.getAttribute('data-tab');
             const targetSec = this.getAttribute('data-sec');
             
@@ -858,9 +859,9 @@ document.addEventListener('DOMContentLoaded', function() {
             if (targetContent) {
                 targetContent.style.display = 'block';
             }
-        });
+        };
     });
-});
+})();
 </script>
 
 <?php include __DIR__ . '/inc/layout_foot.php'; ?>
