@@ -50,7 +50,7 @@
     position: relative;
     border-radius: 6px;
     transition: background 0.2s;
-    direction: rtl; /* Use RTL for Persian layout */
+    direction: ltr; /* Match Telegram's array-order rendering (left-to-right) */
     justify-content: center; /* Center single buttons */
 }
 
