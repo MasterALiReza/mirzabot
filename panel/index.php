@@ -158,10 +158,10 @@ include __DIR__ . '/inc/layout_head.php';
                 <?php if ($todayRevenue > 0): ?>
                     <span class="status-pill success">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px;"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-                        <?= $todayRevenue >= 1_000_000 ? number_format($todayRevenue / 1_000_000, 1) . ' میلیون' : number_format($todayRevenue) ?> <?= $textbotlang['panel']['dashUnitToman'] ?>
+                        <?= $todayRevenue >= 1_000_000 ? number_format($todayRevenue / 1_000_000, 1) . ' <small style="font-size: 0.72rem; font-weight: 500; opacity: 0.95;">میلیون تومان</small>' : number_format($todayRevenue) . ' <small style="font-size: 0.72rem; font-weight: 500; opacity: 0.95;">تومان</small>' ?>
                     </span>
                 <?php else: ?>
-                    <span class="status-pill neutral">0 <?= $textbotlang['panel']['dashUnitToman'] ?> امروز</span>
+                    <span class="status-pill neutral">0 <small style="font-size: 0.72rem; font-weight: 500; opacity: 0.95;">تومان</small> امروز</span>
                 <?php endif; ?>
             </div>
             <div class="dash-card-value-flex">
