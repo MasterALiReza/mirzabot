@@ -213,9 +213,10 @@ window.initUI = function(context) {
         if (!tbl) return;
         inp.addEventListener('input', function () {
             var q = inp.value.trim().toLowerCase();
-            tbl.querySelectorAll('tbody tr').forEach(function (tr) {
-                if (tr.querySelector('.empty')) return;
-                tr.style.display = !q || tr.textContent.toLowerCase().includes(q) ? '' : 'none';
+            var items = tbl.querySelectorAll('tbody tr, .filterable-item');
+            items.forEach(function (item) {
+                if (item.classList.contains('empty') || item.querySelector('.empty')) return;
+                item.style.display = !q || item.textContent.toLowerCase().includes(q) ? '' : 'none';
             });
         });
     });

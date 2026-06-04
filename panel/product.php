@@ -163,52 +163,52 @@ $panelsCount = count(array_unique(array_filter(array_column($products, 'Location
         </div>
       </div>
     </div>
-    <div class="tbl-wrap">
-      <table id="prodTbl" class="tbl-xl">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>نام محصول</th>
-            <th>قیمت</th>
-            <th>حجم</th>
-            <th>مدت زمان</th>
-            <th>سرور/پنل</th>
-            <th>دسته‌بندی</th>
-            <th>کد</th>
-            <th>عملیات</th>
-          </tr>
-        </thead>
-        <tbody>
-          <?php $i = 1;
-          foreach ($products as $p): ?>
-            <tr>
-              <td data-label="#" class="cf"><?= $i++ ?></td>
-              <td data-label="نام محصول" class="cs"><?= htmlspecialchars($p['name_product'] ?? '') ?></td>
-              <td data-label="قیمت" class="cn cs"><?= number_format((int) ($p['price_product'] ?? 0)) ?> <span class="cf">تومان</span></td>
-              <td data-label="حجم" class="cn"><?= htmlspecialchars($p['Volume_constraint'] ?? '—') ?> <span class="cf">GB</span></td>
-              <td data-label="مدت زمان" class="cn"><?= htmlspecialchars($p['Service_time'] ?? '—') ?> <span class="cf">روز</span></td>
-              <td data-label="سرور/پنل" class="cf"><?= htmlspecialchars(trunc($p['Location'] ?? '—', 16)) ?></td>
-              <td data-label="دسته‌بندی"><?php if (!empty($p['category'])): ?><span
-                    class="tag tag-info"><?= htmlspecialchars($p['category']) ?></span><?php else: ?><span
-                    class="cf">—</span><?php endif; ?></td>
-              <td data-label="کد" class="cm" style="font-size:.72rem"><?= htmlspecialchars($p['code_product'] ?? '') ?></td>
-              <td data-label="عملیات">
-                <div style="display:flex;gap:5px">
+    <div class="product-grid" id="prodTbl">
+      <?php foreach ($products as $p): ?>
+        <div class="product-card filterable-item">
+            <div class="pc-head">
+                <div>
+                    <h3 class="pc-title"><?= htmlspecialchars($p['name_product'] ?? '') ?></h3>
+                    <div class="pc-price">
+                        <?= number_format((int) ($p['price_product'] ?? 0)) ?> <small>تومان</small>
+                    </div>
+                </div>
+                <?php if (!empty($p['category'])): ?>
+                    <span class="tag tag-info"><?= htmlspecialchars($p['category']) ?></span>
+                <?php endif; ?>
+            </div>
+            
+            <div class="pc-features">
+                <div class="pc-feature">
+                    <?= icon('database', 15) ?>
+                    <span>حجم: <b><?= htmlspecialchars($p['Volume_constraint'] ?? '—') ?></b> GB</span>
+                </div>
+                <div class="pc-feature">
+                    <?= icon('clock', 15) ?>
+                    <span>زمان: <b><?= htmlspecialchars($p['Service_time'] ?? '—') ?></b> روز</span>
+                </div>
+                <div class="pc-feature">
+                    <?= icon('server', 15) ?>
+                    <span>پنل: <b><?= htmlspecialchars(trunc($p['Location'] ?? '—', 16)) ?></b></span>
+                </div>
+            </div>
+            
+            <div class="pc-foot">
+                <span class="pc-code">#<?= htmlspecialchars($p['code_product'] ?? '') ?></span>
+                <div class="pc-actions">
                   <button class="btn btn-ghost btn-sm btn-icon" title="ویرایش"
                     onclick="openEditModal(<?= htmlspecialchars(json_encode($p), ENT_QUOTES) ?>)">
-                    <?= icon('edit', 13) ?>
+                    <?= icon('edit', 14) ?>
                   </button>
                   <a href="product.php?delete=<?= (int) $p['id'] ?>&_csrf=<?= csrf_token() ?>"
                     class="btn btn-no btn-sm btn-icon" title="حذف"
                     data-confirm="آیا از حذف محصول «<?= htmlspecialchars($p['name_product'] ?? '') ?>» مطمئن هستید؟">
-                    <?= icon('trash', 13) ?>
+                    <?= icon('trash', 14) ?>
                   </a>
                 </div>
-              </td>
-            </tr>
-          <?php endforeach; ?>
-        </tbody>
-      </table>
+            </div>
+        </div>
+      <?php endforeach; ?>
     </div>
   <?php endif; ?>
 </div>
