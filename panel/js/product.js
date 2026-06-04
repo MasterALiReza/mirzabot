@@ -7,7 +7,11 @@ window.openEditModal = function (p) {
     document.getElementById('edit_cat').value = p.category || '';
     document.getElementById('edit_agent').value = p.agent || '';
     document.getElementById('edit_note').value = p.note || '';
-
+    document.getElementById('edit_data_limit_reset').value = p.data_limit_reset || 'no_reset';
+    document.getElementById('edit_one_buy_status').value = p.one_buy_status || '0';
+    document.getElementById('edit_inbounds').value = p.inbounds || '';
+    document.getElementById('edit_proxies').value = p.proxies || '';
+    document.getElementById('edit_hide_panel').value = p.hide_panel || '{}';
     var sel = document.getElementById('edit_panel');
     if (sel) {
         for (var i = 0; i < sel.options.length; i++) {

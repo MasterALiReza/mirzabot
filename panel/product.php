@@ -20,8 +20,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add')
   try {
     db_query(
       $pdo,
-      "INSERT INTO product (name_product,code_product,price_product,Volume_constraint,Service_time,Location,agent,data_limit_reset,note,category,hide_panel,one_buy_status) VALUES (?,?,?,?,?,?,?,'no_reset',?,?,'{}','0')",
-      [$name, $code, (int) ($_POST['price_product'] ?? 0), (int) ($_POST['volume_product'] ?? 0), (int) ($_POST['time_product'] ?? 0), $_POST['namepanel'] ?? '', $_POST['agent_product'] ?? '', $_POST['note_product'] ?? '', $_POST['cetegory_product'] ?? '']
+      "INSERT INTO product (name_product,code_product,price_product,Volume_constraint,Service_time,Location,agent,data_limit_reset,note,category,hide_panel,one_buy_status,inbounds,proxies) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+      [$name, $code, (int) ($_POST['price_product'] ?? 0), (int) ($_POST['volume_product'] ?? 0), (int) ($_POST['time_product'] ?? 0), $_POST['namepanel'] ?? '', $_POST['agent_product'] ?? '', $_POST['data_limit_reset'] ?? 'no_reset', $_POST['note_product'] ?? '', $_POST['cetegory_product'] ?? '', $_POST['hide_panel'] ?? '{}', $_POST['one_buy_status'] ?? '0', $_POST['inbounds'] ?? null, $_POST['proxies'] ?? null]
     );
     flash('success', $textbotlang['panel']['productAddedPrefix'] . $name . $textbotlang['panel']['productAddedSuffix']);
   } catch (Exception $e) {
@@ -39,8 +39,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'edit'
     try {
       db_query(
         $pdo,
-        "UPDATE product SET name_product=?,price_product=?,Volume_constraint=?,Service_time=?,Location=?,agent=?,note=?,category=? WHERE id=?",
-        [$name, (int) ($_POST['price_product'] ?? 0), (int) ($_POST['volume_product'] ?? 0), (int) ($_POST['time_product'] ?? 0), $_POST['namepanel'] ?? '', $_POST['agent_product'] ?? '', $_POST['note_product'] ?? '', $_POST['cetegory_product'] ?? '', $pid]
+        "UPDATE product SET name_product=?,price_product=?,Volume_constraint=?,Service_time=?,Location=?,agent=?,note=?,category=?,data_limit_reset=?,one_buy_status=?,inbounds=?,proxies=?,hide_panel=? WHERE id=?",
+        [$name, (int) ($_POST['price_product'] ?? 0), (int) ($_POST['volume_product'] ?? 0), (int) ($_POST['time_product'] ?? 0), $_POST['namepanel'] ?? '', $_POST['agent_product'] ?? '', $_POST['note_product'] ?? '', $_POST['cetegory_product'] ?? '', $_POST['data_limit_reset'] ?? 'no_reset', $_POST['one_buy_status'] ?? '0', $_POST['inbounds'] ?? null, $_POST['proxies'] ?? null, $_POST['hide_panel'] ?? '{}', $pid]
       );
       flash('success', $textbotlang['panel']['productEdited']);
     } catch (Exception $e) {
@@ -266,6 +266,35 @@ $panelsCount = count(array_unique(array_filter(array_column($products, 'Location
             <label>توضیحات محصول</label>
             <input type="text" name="note_product" class="input" placeholder="توضیحات (اختیاری)">
           </div>
+          <div class="field">
+            <label>وضعیت ریست حجم</label>
+            <select name="data_limit_reset" class="select">
+              <option value="no_reset">بدون ریست</option>
+              <option value="day">روزانه</option>
+              <option value="week">هفتگی</option>
+              <option value="month">ماهانه</option>
+              <option value="year">سالانه</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>محدودیت خرید</label>
+            <select name="one_buy_status" class="select">
+              <option value="0">آزاد (چندبار خرید)</option>
+              <option value="1">فقط یکبار خرید</option>
+            </select>
+          </div>
+          <div class="field full">
+            <label>اینباندهای اختصاصی (JSON)</label>
+            <input type="text" name="inbounds" class="input" placeholder='مثال: {"vless":["inbound1"]}'>
+          </div>
+          <div class="field full">
+            <label>پراکسی‌های اختصاصی (JSON)</label>
+            <input type="text" name="proxies" class="input" placeholder='مثال: {"vless":{}}'>
+          </div>
+          <div class="field full">
+            <label>مخفی از پنل‌ها (JSON)</label>
+            <input type="text" name="hide_panel" class="input" placeholder='مثال: ["panel1", "panel2"]' value='{}'>
+          </div>
         </div>
       </div>
       <div class="modal-foot">
@@ -329,6 +358,35 @@ $panelsCount = count(array_unique(array_filter(array_column($products, 'Location
           <div class="field full">
             <label>توضیحات محصول</label>
             <input type="text" name="note_product" id="edit_note" class="input">
+          </div>
+          <div class="field">
+            <label>وضعیت ریست حجم</label>
+            <select name="data_limit_reset" id="edit_data_limit_reset" class="select">
+              <option value="no_reset">بدون ریست</option>
+              <option value="day">روزانه</option>
+              <option value="week">هفتگی</option>
+              <option value="month">ماهانه</option>
+              <option value="year">سالانه</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>محدودیت خرید</label>
+            <select name="one_buy_status" id="edit_one_buy_status" class="select">
+              <option value="0">آزاد (چندبار خرید)</option>
+              <option value="1">فقط یکبار خرید</option>
+            </select>
+          </div>
+          <div class="field full">
+            <label>اینباندهای اختصاصی (JSON)</label>
+            <input type="text" name="inbounds" id="edit_inbounds" class="input" placeholder='مثال: {"vless":["inbound1"]}'>
+          </div>
+          <div class="field full">
+            <label>پراکسی‌های اختصاصی (JSON)</label>
+            <input type="text" name="proxies" id="edit_proxies" class="input" placeholder='مثال: {"vless":{}}'>
+          </div>
+          <div class="field full">
+            <label>مخفی از پنل‌ها (JSON)</label>
+            <input type="text" name="hide_panel" id="edit_hide_panel" class="input" placeholder='مثال: ["panel1", "panel2"]'>
           </div>
         </div>
       </div>
