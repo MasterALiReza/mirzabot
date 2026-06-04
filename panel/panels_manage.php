@@ -4,6 +4,18 @@ require_once __DIR__ . '/inc/icons.php';
 require_once __DIR__ . '/../panels.php'; // For ManagePanel
 require_auth();
 
+// Ensure sanaei_group column exists safely
+try {
+    // Check if column exists first to prevent error in MySQL/SQLite
+    $colCheck = $pdo->query("SELECT sanaei_group FROM marzban_panel LIMIT 1");
+} catch (Exception $e) {
+    try {
+        $pdo->exec("ALTER TABLE marzban_panel ADD COLUMN sanaei_group VARCHAR(255) DEFAULT ''");
+    } catch (Exception $ex) {
+        // Ignore if error occurs
+    }
+}
+
 // TEST CONNECTION AJAX
 if (isset($_GET['action']) && $_GET['action'] === 'test_connection' && isset($_GET['id'])) {
     header('Content-Type: application/json');
@@ -51,6 +63,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $password_panel = trim($_POST['password_panel'] ?? '');
     $type = trim($_POST['type'] ?? 'marzban');
     $status = trim($_POST['status'] ?? 'active');
+    $inboundid = trim($_POST['inboundid'] ?? '1');
+    $sanaei_group = trim($_POST['sanaei_group'] ?? '');
 
     if ($action === 'add') {
         try {
@@ -61,8 +75,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $code_panel = '7e' . ($max_num + 1);
 
             db_query($pdo, "INSERT INTO marzban_panel 
-                (name_panel, url_panel, username_panel, password_panel, type, status, code_panel, MethodUsername, inboundstatus, inbound_deactive, agent, inboundid, conecton, Methodextend, namecustom, limit_panel, TestAccount, sublink, config, version_panel, on_hold_test, subvip, changeloc, status_extend, priceChangeloc) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+                (name_panel, url_panel, username_panel, password_panel, type, status, code_panel, MethodUsername, inboundstatus, inbound_deactive, agent, inboundid, conecton, Methodextend, namecustom, limit_panel, TestAccount, sublink, config, version_panel, on_hold_test, subvip, changeloc, status_extend, priceChangeloc, sanaei_group) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
                 [
                     $name_panel, $url_panel, $username_panel, $password_panel, $type, $status, $code_panel,
                     '1', // MethodUsername default
@@ -82,7 +96,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     'offsubvip', // subvip
                     'offchangeloc', // changeloc
                     'on_extend', // status_extend
-                    '0' // priceChangeloc
+                    '0', // priceChangeloc
+                    $sanaei_group // sanaei_group
                 ]
             );
             flash('success', 'پنل جدید با موفقیت اضافه شد.');
@@ -94,8 +109,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     } elseif ($action === 'edit' && isset($_POST['id'])) {
         $id = (int)$_POST['id'];
         try {
-            db_query($pdo, "UPDATE marzban_panel SET name_panel = ?, url_panel = ?, username_panel = ?, password_panel = ?, type = ?, status = ? WHERE id = ?",
-                [$name_panel, $url_panel, $username_panel, $password_panel, $type, $status, $id]
+            db_query($pdo, "UPDATE marzban_panel SET name_panel = ?, url_panel = ?, username_panel = ?, password_panel = ?, type = ?, status = ?, inboundid = ?, sanaei_group = ? WHERE id = ?",
+                [$name_panel, $url_panel, $username_panel, $password_panel, $type, $status, $inboundid, $sanaei_group, $id]
             );
             flash('success', 'پنل با موفقیت ویرایش شد.');
         } catch (Exception $e) {
@@ -181,7 +196,9 @@ include __DIR__ . '/inc/layout_head.php';
                             'username_panel' => $p['username_panel'],
                             'password_panel' => $p['password_panel'],
                             'type' => $type,
-                            'status' => $p['status']
+                            'status' => $p['status'],
+                            'inboundid' => $p['inboundid'] ?? '1',
+                            'sanaei_group' => $p['sanaei_group'] ?? ''
                         ]);
                         ?>
                         <tr>
@@ -273,6 +290,27 @@ include __DIR__ . '/inc/layout_head.php';
                 <input type="password" name="password_panel" id="panelPassword" class="input" placeholder="••••••••" style="direction:ltr;text-align:left;">
             </div>
 
+            <div class="field-group inboundid-group" style="display:none;">
+                <label>شناسه اینباند (Inbound ID)</label>
+                <div id="sanaeiInboundsFetcher" style="display:none; margin-bottom:10px; padding:10px; border:1px solid var(--border); border-radius:8px; background:var(--bg-sec);">
+                    <div style="display:flex; gap:10px; margin-bottom:10px; align-items:center;">
+                        <button type="button" class="btn btn-secondary" onclick="fetchSanaeiInbounds()" style="font-size:12px; padding:6px 12px; border:1px solid var(--border); border-radius:6px; background:var(--bg); cursor:pointer;">دریافت لیست اینباندها</button>
+                        <span id="inboundsLoader" style="display:none; font-size:12px; color:var(--ts);">در حال دریافت...</span>
+                    </div>
+                    <div id="inboundsList" style="display:flex; flex-direction:column; gap:8px; max-height:150px; overflow-y:auto;">
+                        <small style="color:var(--ts);font-size:11px;">برای نمایش اینباندها روی دکمه بالا کلیک کنید.</small>
+                    </div>
+                </div>
+                <input type="text" name="inboundid" id="panelInboundId" class="input" placeholder="مثلا: 1,2,3" style="direction:ltr;text-align:left;" oninput="updateInboundCheckboxes()">
+                <small style="color:var(--ts);font-size:12px;">برای پنل ثنایی و ایکس‌یوآی می‌توانید چندین شناسه را با کاما وارد کنید یا از لیست انتخاب کنید.</small>
+            </div>
+            
+            <div class="field-group sanaei-group" style="display:none;">
+                <label>گروه بندی (Sanaei Group)</label>
+                <input type="text" name="sanaei_group" id="panelSanaeiGroup" class="input" placeholder="مثلا: VIP" style="direction:ltr;text-align:left;">
+                <small style="color:var(--ts);font-size:12px;">گروه پیش‌فرض برای کاربرانی که در این پنل ساخته می‌شوند.</small>
+            </div>
+
             <div class="field-group">
                 <label>وضعیت اتصال</label>
                 <select name="status" id="panelStatus" class="input">
@@ -342,6 +380,8 @@ function openPanelModal(action, btn = null) {
         document.getElementById('panelPassword').value = '';
         document.getElementById('panelType').value = 'marzban';
         document.getElementById('panelStatus').value = 'active';
+        document.getElementById('panelInboundId').value = '1';
+        document.getElementById('panelSanaeiGroup').value = '';
     } else if (action === 'edit' && data) {
         title.innerText = 'ویرایش پنل: ' + data.name_panel;
         actionInput.value = 'edit';
@@ -352,10 +392,36 @@ function openPanelModal(action, btn = null) {
         document.getElementById('panelPassword').value = data.password_panel;
         document.getElementById('panelType').value = data.type;
         document.getElementById('panelStatus').value = data.status;
+        document.getElementById('panelInboundId').value = data.inboundid || '1';
+        document.getElementById('panelSanaeiGroup').value = data.sanaei_group || '';
     }
     
+    togglePanelFields();
     modalVeil.classList.add('open');
 }
+
+function togglePanelFields() {
+    const panelType = document.getElementById('panelType').value;
+    const inboundGroup = document.querySelector('.inboundid-group');
+    const sanaeiGroup = document.querySelector('.sanaei-group');
+    const sanaeiFetcher = document.getElementById('sanaeiInboundsFetcher');
+
+    if (['MHSanaei-3.2', 'x-ui_single', 'alireza_single', 's_ui', 'marzneshin'].includes(panelType)) {
+        inboundGroup.style.display = 'block';
+    } else {
+        inboundGroup.style.display = 'none';
+    }
+
+    if (panelType === 'MHSanaei-3.2') {
+        sanaeiGroup.style.display = 'block';
+        if (sanaeiFetcher) sanaeiFetcher.style.display = 'block';
+    } else {
+        sanaeiGroup.style.display = 'none';
+        if (sanaeiFetcher) sanaeiFetcher.style.display = 'none';
+    }
+}
+
+document.getElementById('panelType').addEventListener('change', togglePanelFields);
 
 function closePanelModal() {
     document.getElementById('panelModalVeil').classList.remove('open');
@@ -413,6 +479,91 @@ function closeTestConnModal() {
     testModalVeil.classList.remove('open');
 }
 </script>
+<script>
+    function updateInboundCheckboxes() {
+        const val = document.getElementById('panelInboundId').value;
+        const ids = val.split(',').map(x => x.trim()).filter(x => x !== '');
+        document.querySelectorAll('.inbound-checkbox').forEach(cb => {
+            cb.checked = ids.includes(cb.value);
+        });
+    }
+
+    function toggleInboundSelection(cb) {
+        const val = document.getElementById('panelInboundId').value;
+        let ids = val.split(',').map(x => x.trim()).filter(x => x !== '');
+        
+        if (cb.checked) {
+            if (!ids.includes(cb.value)) ids.push(cb.value);
+        } else {
+            ids = ids.filter(id => id !== cb.value);
+        }
+        
+        document.getElementById('panelInboundId').value = ids.join(',');
+    }
+
+    function fetchSanaeiInbounds() {
+        const url = document.getElementById('panelUrl').value;
+        const user = document.getElementById('panelUsername').value;
+        const pass = document.getElementById('panelPassword').value;
+        
+        if (!url || !user || !pass) {
+            alert('لطفاً ابتدا فیلدهای آدرس، نام کاربری و رمزعبور پنل را پر کنید.');
+            return;
+        }
+
+        const loader = document.getElementById('inboundsLoader');
+        const list = document.getElementById('inboundsList');
+        
+        loader.style.display = 'inline';
+        list.innerHTML = '<small style="color:var(--ts)">در حال دریافت اطلاعات از پنل...</small>';
+
+        const formData = new FormData();
+        formData.append('url_panel', url);
+        formData.append('username_panel', user);
+        formData.append('password_panel', pass);
+
+        fetch('ajax/sanaei_inbounds.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            loader.style.display = 'none';
+            if (data.success && data.inbounds) {
+                if (data.inbounds.length === 0) {
+                    list.innerHTML = '<small style="color:var(--ts)">هیچ اینباندی یافت نشد.</small>';
+                    return;
+                }
+                
+                const currentIds = document.getElementById('panelInboundId').value.split(',').map(x => x.trim());
+                list.innerHTML = '';
+                
+                data.inbounds.forEach(inb => {
+                    const isChecked = currentIds.includes(String(inb.id));
+                    const label = document.createElement('label');
+                    label.style.display = 'flex';
+                    label.style.alignItems = 'center';
+                    label.style.gap = '8px';
+                    label.style.cursor = 'pointer';
+                    label.style.fontSize = '13px';
+                    label.style.color = 'var(--text)';
+                    
+                    label.innerHTML = `
+                        <input type="checkbox" class="inbound-checkbox" value="${inb.id}" ${isChecked ? 'checked' : ''} onchange="toggleInboundSelection(this)">
+                        <span>ID: <b>${inb.id}</b> - ${inb.remark} <span style="color:var(--ts); font-size:11px;">(${inb.protocol} - ${inb.port})</span></span>
+                    `;
+                    list.appendChild(label);
+                });
+            } else {
+                list.innerHTML = `<small style="color:var(--red)">خطا: ${data.msg || 'نامشخص'}</small>`;
+            }
+        })
+        .catch(err => {
+            loader.style.display = 'none';
+            list.innerHTML = '<small style="color:var(--red)">خطا در ارتباط با سرور.</small>';
+            console.error(err);
+        });
+    }
+</script>
 
 <?php include __DIR__ . '/inc/layout_foot.php'; ?>
-

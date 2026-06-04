@@ -503,6 +503,9 @@ function mhsanaei_update_client_payload($panel, $email, $client, $patch = array(
 
 function addClient_MHSanaei($namepanel, $usernameac, $Expire, $Total, $subid, $inboundid, $name_product, $note = "", $tgId = "", $group = "") {
     $panel = select("marzban_panel", "*", "name_panel", $namepanel, "select");
+    if (empty($group) && !empty($panel['sanaei_group'])) {
+        $group = $panel['sanaei_group'];
+    }
     $timeservice = mhsanaei_expiry_ms($panel, $Expire, $name_product);
     $limitIp = isset($panel['limit_panel']) && is_numeric($panel['limit_panel']) ? intval($panel['limit_panel']) : 0;
     $inbounds_array = mhsanaei_resolve_inbound_ids($panel, $inboundid);

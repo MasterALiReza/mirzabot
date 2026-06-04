@@ -56,10 +56,11 @@
 
 .dash-card-footer {
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: space-between;
     flex-direction: row-reverse;
     margin-top: auto;
+    z-index: 2;
 }
 
 .dash-card-pill {
@@ -67,8 +68,25 @@
     font-weight: 500;
 }
 
+/* Center the value inside the card */
+.dash-card-footer > *:last-child {
+    position: absolute;
+    top: 55%;
+    left: 0;
+    right: 0;
+    transform: translateY(-50%);
+    display: flex;
+    justify-content: center;
+    align-items: baseline;
+    gap: 6px;
+    width: 100%;
+    text-align: center;
+    pointer-events: none;
+    z-index: 1;
+}
+
 .dash-card-value {
-    font-size: 1.3rem;
+    font-size: 1.8rem;
     font-weight: 700;
     color: var(--ct);
     line-height: 1;
@@ -89,8 +107,8 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 42px;
-    height: 42px;
+    width: 44px;
+    height: 44px;
     border-radius: 12px;
 }
 .bg-purple { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; }
@@ -343,12 +361,12 @@
 
     .dash-card-footer {
         flex-direction: row-reverse;
-        align-items: center;
+        align-items: flex-end;
         gap: 6px;
     }
 
     .dash-card-value {
-        font-size: 1.15rem;
+        font-size: 1.4rem;
         align-self: auto;
     }
     
