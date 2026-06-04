@@ -11,8 +11,8 @@ require_once __DIR__ . '/../jdf.php';
 $ManagePanel = new ManagePanel();
 $setting = select("setting", "*");
 $paymentreports = select("topicid","idreport","report","paymentreport","select")['idreport'];
-$statuscardautoconfirm = select("PaySetting", "ValuePay", "NamePay", "statuscardautoconfirm", "select")['ValuePay'];
-if ($statuscardautoconfirm !== 'onautoconfirm') {
+$autoconfirmcart = select("PaySetting", "ValuePay", "NamePay", "autoconfirmcart", "select")['ValuePay'];
+if ($autoconfirmcart !== 'onauto') {
     exit;
 }
 
