@@ -445,3 +445,156 @@ body::after {
     opacity: 1;
 }
 
+
+/* ========================================================================
+   NATIVE SELECT / DROPDOWN COLOR FIX
+   Browser native <select> dropdown popup inherits color-scheme from the
+   element itself. We must set it explicitly so the OS renders it dark/light.
+   ======================================================================== */
+
+/* Dark themes: force dark color-scheme on select + option */
+:root select.select,
+:root select.arvan-select,
+[data-theme=navy] select,
+[data-theme=purple] select,
+[data-theme=emerald] select,
+[data-theme=sunset] select,
+[data-theme=slate] select {
+    color-scheme: dark;
+    background-color: var(--sf2);
+    color: var(--text);
+}
+
+/* Light themes: force light color-scheme */
+[data-theme=light] select,
+[data-theme=linen] select,
+[data-theme=mint] select,
+[data-theme=lavender] select {
+    color-scheme: light;
+    background-color: var(--sf2);
+    color: var(--text);
+}
+
+/* Option elements — set explicit bg/color so they render consistently */
+[data-theme=navy] option,
+[data-theme=purple] option,
+[data-theme=emerald] option,
+[data-theme=sunset] option,
+[data-theme=slate] option {
+    background: var(--sf);
+    color: var(--text);
+}
+
+[data-theme=light] option,
+[data-theme=linen] option,
+[data-theme=mint] option,
+[data-theme=lavender] option {
+    background: var(--sf);
+    color: var(--text);
+}
+
+/* ========================================================================
+   MODAL BACKDROP — Reduce extreme darkness, add subtle depth
+   ======================================================================== */
+.modal-veil {
+    background: rgba(0, 0, 0, 0.55) !important;
+    backdrop-filter: blur(8px) !important;
+}
+
+.confirm-veil {
+    background: rgba(0, 0, 0, 0.50) !important;
+    backdrop-filter: blur(6px) !important;
+}
+
+/* Modals — slightly lighter surface for better readability */
+.modal {
+    background: var(--sf) !important;
+}
+
+/* Light themes: modal should be crisp white */
+[data-theme=light] .modal,
+[data-theme=linen] .modal,
+[data-theme=mint] .modal,
+[data-theme=lavender] .modal {
+    background: #fff !important;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.18) !important;
+}
+
+/* Dark themes: modal slightly lighter than sidebar */
+[data-theme=navy] .modal {
+    background: #1E2E4A !important;
+}
+[data-theme=purple] .modal {
+    background: #251548 !important;
+}
+[data-theme=emerald] .modal {
+    background: #152F2A !important;
+}
+[data-theme=sunset] .modal {
+    background: #2C1816 !important;
+}
+[data-theme=slate] .modal {
+    background: #1C1C1C !important;
+}
+
+/* ========================================================================
+   GENERAL COLOR BALANCE — Prevent overly dark containers
+   ======================================================================== */
+
+/* Card backgrounds feel less "black hole" — add a touch of transparency */
+[data-theme=navy] .card {
+    background: rgba(30, 42, 64, 0.95) !important;
+}
+[data-theme=navy] .card-head {
+    background: rgba(22, 32, 53, 0.6);
+}
+
+/* Input + select rendered consistently in dark themes */
+[data-theme=navy] .input,
+[data-theme=navy] .select,
+[data-theme=navy] .textarea,
+[data-theme=navy] .search-box {
+    background: rgba(15, 25, 42, 0.7) !important;
+    border-color: #2D4060 !important;
+}
+
+/* Topbar: glassmorphism instead of solid fill */
+.topbar {
+    background: rgba(var(--glass-base-rgb, 15, 23, 42), 0.88) !important;
+    backdrop-filter: blur(14px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(14px) saturate(160%) !important;
+}
+
+[data-theme=light] .topbar,
+[data-theme=linen] .topbar,
+[data-theme=mint] .topbar,
+[data-theme=lavender] .topbar {
+    background: rgba(255, 255, 255, 0.88) !important;
+}
+
+/* Sidebar: same glassmorphism treatment */
+.sidebar {
+    background: rgba(var(--glass-base-rgb, 15, 23, 42), 0.97) !important;
+    backdrop-filter: blur(20px) !important;
+}
+
+[data-theme=light] .sidebar,
+[data-theme=linen] .sidebar,
+[data-theme=mint] .sidebar,
+[data-theme=lavender] .sidebar {
+    background: rgba(255, 255, 255, 0.97) !important;
+}
+
+/* ========================================================================
+   GLASS-BASE-RGB: ensure all dark themes have this var set
+   ======================================================================== */
+:root, [data-theme=navy]    { --glass-base-rgb: 12, 21, 37;  }
+[data-theme=purple]         { --glass-base-rgb: 24, 13, 46;  }
+[data-theme=emerald]        { --glass-base-rgb: 10, 31, 28;  }
+[data-theme=sunset]         { --glass-base-rgb: 26, 13, 13;  }
+[data-theme=slate]          { --glass-base-rgb: 8, 8, 8;     }
+[data-theme=light]          { --glass-base-rgb: 255, 255, 255; }
+[data-theme=linen]          { --glass-base-rgb: 250, 247, 242; }
+[data-theme=mint]           { --glass-base-rgb: 240, 253, 244; }
+[data-theme=lavender]       { --glass-base-rgb: 250, 245, 255; }
+
