@@ -118,57 +118,57 @@ include __DIR__ . '/inc/layout_head.php';
 <script src="js/chart.min.js"></script>
 
 <!-- Top Statistics Cards -->
-<div class="stats fade-up" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 24px;">
+<div class="stats dash-stats fade-up">
     
     <!-- Stat 1: Total Users -->
-    <div class="dash-card" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 140px;">
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+    <div class="dash-card">
+        <div class="dash-card-header">
             <div class="icon-glow bg-blue">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
             </div>
-            <div style="font-size: 1.25rem; color: var(--cf); font-weight: 700;"><?= $textbotlang['panel']['dashTotalUsers'] ?></div>
+            <div class="dash-card-title"><?= $textbotlang['panel']['dashTotalUsers'] ?></div>
         </div>
-        <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto;">
-            <div style="font-size: 0.85rem; font-weight: 500;">
+        <div class="dash-card-footer">
+            <div class="dash-card-pill">
                 <?php if ($newToday > 0): ?>
-                    <span class="status-pill success" style="padding: 4px 10px;">
+                    <span class="status-pill success">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px;"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
                         <?= $newToday ?> <?= $textbotlang['panel']['dashTodaySpan'] ?>
                     </span>
                 <?php else: ?>
-                    <span class="status-pill neutral" style="padding: 4px 10px;"><?= $textbotlang['panel']['dashNoChange'] ?></span>
+                    <span class="status-pill neutral"><?= $textbotlang['panel']['dashNoChange'] ?></span>
                 <?php endif; ?>
             </div>
-            <div style="font-size: 1rem; font-weight: 500; color: var(--ct); line-height: 1;">
+            <div class="dash-card-value">
                 <?= number_format($totalUsers) ?>
             </div>
         </div>
     </div>
     
     <!-- Stat 2: Total Revenue -->
-    <div class="dash-card" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 140px;">
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+    <div class="dash-card">
+        <div class="dash-card-header">
             <div class="icon-glow bg-emerald">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
             </div>
-            <div style="font-size: 1.25rem; color: var(--cf); font-weight: 700;"><?= $textbotlang['panel']['dashTotalRevenue'] ?></div>
+            <div class="dash-card-title"><?= $textbotlang['panel']['dashTotalRevenue'] ?></div>
         </div>
-        <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto;">
-            <div style="font-size: 0.85rem; font-weight: 500;">
+        <div class="dash-card-footer">
+            <div class="dash-card-pill">
                 <?php if ($todayRevenue > 0): ?>
-                    <span class="status-pill success" style="padding: 4px 10px;">
+                    <span class="status-pill success">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px;"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
                         <?= $todayRevenue >= 1_000_000 ? number_format($todayRevenue / 1_000_000, 1) . ' میلیون' : number_format($todayRevenue) ?> <?= $textbotlang['panel']['dashUnitToman'] ?>
                     </span>
                 <?php else: ?>
-                    <span class="status-pill neutral" style="padding: 4px 10px;">0 <?= $textbotlang['panel']['dashUnitToman'] ?> امروز</span>
+                    <span class="status-pill neutral">0 <?= $textbotlang['panel']['dashUnitToman'] ?> امروز</span>
                 <?php endif; ?>
             </div>
-            <div style="display: flex; align-items: baseline; gap: 6px;">
-                <span style="font-size: 1rem; font-weight: 500; color: var(--ct); line-height: 1; direction: ltr;">
+            <div class="dash-card-value-flex">
+                <span class="dash-card-value">
                     <?= $totalRevenue >= 1_000_000 ? number_format($totalRevenue / 1_000_000, 1) : number_format($totalRevenue) ?>
                 </span>
-                <span style="font-size: 0.85rem; font-weight: 500; color: var(--cf);">
+                <span class="dash-card-unit">
                     <?= $totalRevenue >= 1_000_000 ? 'میلیون تومان' : 'تومان' ?>
                 </span>
             </div>
@@ -176,47 +176,47 @@ include __DIR__ . '/inc/layout_head.php';
     </div>
     
     <!-- Stat 3: Active Services -->
-    <div class="dash-card" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 140px;">
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+    <div class="dash-card">
+        <div class="dash-card-header">
             <div class="icon-glow bg-purple">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
             </div>
-            <div style="font-size: 1.25rem; color: var(--cf); font-weight: 700;"><?= $textbotlang['panel']['dashActiveService'] ?></div>
+            <div class="dash-card-title"><?= $textbotlang['panel']['dashActiveService'] ?></div>
         </div>
-        <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto;">
-            <div style="font-size: 0.85rem; font-weight: 500;">
-                <span class="status-pill" style="background: rgba(99, 102, 241, 0.1); color: #6366f1; padding: 4px 10px;">
+        <div class="dash-card-footer">
+            <div class="dash-card-pill">
+                <span class="status-pill panel-pill">
                     <?= $activePanels ?> پنل متصل
                 </span>
             </div>
-            <div style="font-size: 1rem; font-weight: 500; color: var(--ct); line-height: 1;">
+            <div class="dash-card-value">
                 <?= number_format($activeNow) ?>
             </div>
         </div>
     </div>
 
     <!-- Stat 4: Today's Transactions -->
-    <div class="dash-card" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 140px;">
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+    <div class="dash-card">
+        <div class="dash-card-header">
             <div class="icon-glow bg-orange">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
             </div>
-            <div style="font-size: 1.25rem; color: var(--cf); font-weight: 700;">تراکنش امروز</div>
+            <div class="dash-card-title">تراکنش امروز</div>
         </div>
-        <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: auto;">
-            <div style="font-size: 0.85rem; font-weight: 500;">
+        <div class="dash-card-footer">
+            <div class="dash-card-pill">
                 <?php if ($pendingPay > 0): ?>
-                    <span class="status-pill danger" style="padding: 4px 10px;">
+                    <span class="status-pill danger">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px;"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
                         <?= $pendingPay ?> <?= $textbotlang['panel']['dashPendingPayment'] ?>
                     </span>
                 <?php else: ?>
-                    <span class="status-pill success" style="padding: 4px 10px;">
+                    <span class="status-pill success">
                         <?= $textbotlang['panel']['dashStatusRegistered'] ?>
                     </span>
                 <?php endif; ?>
             </div>
-            <div style="font-size: 1rem; font-weight: 500; color: var(--ct); line-height: 1;">
+            <div class="dash-card-value">
                 <?= number_format($txToday) ?>
             </div>
         </div>
@@ -638,20 +638,75 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <style>
+.dash-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
 .dash-card {
     position: relative;
     overflow: hidden;
-    background: var(--bg); /* Assume there's a card background variable, or just use var(--bg) */
+    background: var(--bg);
     border: 1px solid var(--bd);
     border-radius: 16px;
     padding: 24px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.03);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 140px;
 }
 .dash-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 30px rgba(0,0,0,0.06);
 }
+
+.dash-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.dash-card-title {
+    font-size: 1.25rem;
+    color: var(--cf);
+    font-weight: 700;
+}
+
+.dash-card-footer {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-top: auto;
+}
+
+.dash-card-pill {
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.dash-card-value {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--ct);
+    line-height: 1;
+}
+
+.dash-card-value-flex {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
+.dash-card-unit {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--cf);
+}
+
 .icon-glow {
     display: inline-flex;
     align-items: center;
@@ -682,6 +737,7 @@ document.addEventListener('DOMContentLoaded', function() {
 .status-pill.warning { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
 .status-pill.danger { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
 .status-pill.neutral { background: rgba(100, 116, 139, 0.1); color: #64748b; }
+.panel-pill { background: rgba(99, 102, 241, 0.1); color: #6366f1; }
 
 /* Table enhancements */
 .tbl-sm th {
@@ -699,6 +755,68 @@ document.addEventListener('DOMContentLoaded', function() {
 @media (max-width: 1024px) {
     .dash-grid-2 {
         grid-template-columns: 1fr !important;
+    }
+}
+
+/* Mobile optimizations for stats cards */
+@media (max-width: 640px) {
+    .dash-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+    
+    .dash-card {
+        padding: 14px 12px;
+        min-height: 100px;
+        border-radius: 12px;
+    }
+
+    .dash-card-header {
+        margin-bottom: 12px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .icon-glow {
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+    }
+    
+    .icon-glow svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .dash-card-title {
+        font-size: 0.95rem;
+    }
+
+    .dash-card-footer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .dash-card-value {
+        font-size: 1.1rem;
+        align-self: flex-end;
+    }
+    
+    .dash-card-value-flex {
+        align-self: flex-end;
+    }
+
+    .status-pill {
+        padding: 3px 8px;
+        font-size: 0.65rem;
+    }
+    
+    .status-pill svg {
+        width: 10px;
+        height: 10px;
     }
 }
 </style>
