@@ -43,8 +43,81 @@ var _lb = (function () {
 
 window.addEventListener('load', function () { _lb.done(); });
 
+function getSkeletonHTML(path) {
+    var isDashboard = path.includes('index.php') || path === '' || path === '/' || (!path.includes('.php') && !path.includes('?'));
+    var isList = path.includes('users.php') || path.includes('invoice.php') || path.includes('service.php') || path.includes('product.php') || path.includes('payment.php') || path.includes('panels_manage.php');
+    var isSettings = path.includes('bot_settings.php') || path.includes('settings.php') || path.includes('keyboard.php');
+
+    var html = '<div class="skeleton-container">';
+    
+    // Header
+    html += '<div class="skeleton-header">' +
+            '<div class="skeleton-title skeleton-pulse"></div>' +
+            '<div class="skeleton-subtitle skeleton-pulse" style="margin-top:8px;"></div>' +
+            '</div>';
+
+    if (isDashboard) {
+        // Stats grid
+        html += '<div class="skeleton-grid" style="margin-top: 10px;">' +
+                '<div class="skeleton-card skeleton-pulse"></div>' +
+                '<div class="skeleton-card skeleton-pulse"></div>' +
+                '<div class="skeleton-card skeleton-pulse"></div>' +
+                '</div>';
+        // Big charts
+        html += '<div class="skeleton-row-box skeleton-pulse" style="height: 300px; margin-top: 20px;"></div>';
+    } else if (isList) {
+        // Search bar
+        html += '<div class="skeleton-line skeleton-pulse" style="width: 200px; height: 38px; border-radius: 8px; margin: 10px 0 20px 0;"></div>';
+        // Table skeleton
+        html += '<div class="skeleton-row-box" style="gap: 20px;">' +
+                '<div class="skeleton-line skeleton-pulse w-full" style="height: 25px;"></div>' +
+                '<div class="skeleton-line skeleton-pulse w-full"></div>' +
+                '<div class="skeleton-line skeleton-pulse w-2-3"></div>' +
+                '<div class="skeleton-line skeleton-pulse w-full"></div>' +
+                '<div class="skeleton-line skeleton-pulse w-1-2"></div>' +
+                '<div class="skeleton-line skeleton-pulse w-full"></div>' +
+                '</div>';
+    } else if (isSettings) {
+        // Settings layout
+        html += '<div class="arvan-tab-card" style="border: none; box-shadow: none; background: transparent; margin-top: 15px;">' +
+                '<div class="arvan-sidebar" style="background: transparent; border: none; min-height: auto; width: 200px; margin-left: 20px;">' +
+                '<div class="skeleton-sub-tabs" style="display: flex; flex-direction: column; gap: 10px;">' +
+                '<div class="skeleton-line skeleton-pulse" style="width: 150px; height: 35px; border-radius: 8px;"></div>' +
+                '<div class="skeleton-line skeleton-pulse" style="width: 130px; height: 35px; border-radius: 8px;"></div>' +
+                '<div class="skeleton-line skeleton-pulse" style="width: 140px; height: 35px; border-radius: 8px;"></div>' +
+                '</div>' +
+                '</div>' +
+                '<div class="arvan-content-area" style="padding: 0; flex: 1;">' +
+                '<div class="skeleton-grid">' +
+                '<div class="skeleton-card skeleton-pulse" style="height: 80px;"></div>' +
+                '<div class="skeleton-card skeleton-pulse" style="height: 80px;"></div>' +
+                '<div class="skeleton-card skeleton-pulse" style="height: 80px;"></div>' +
+                '<div class="skeleton-card skeleton-pulse" style="height: 80px;"></div>' +
+                '</div>' +
+                '</div>' +
+                '</div>';
+    } else {
+        // General fallback
+        html += '<div class="skeleton-row-box skeleton-pulse" style="height: 250px; margin-top: 15px;"></div>';
+    }
+
+    html += '</div>';
+    return html;
+}
+
 document.body.addEventListener('htmx:beforeRequest', function (e) {
     _lb.start();
+    
+    var elt = e.detail.elt;
+    var isGet = e.detail.requestConfig.verb === 'get';
+    if (isGet && elt && (elt.tagName === 'A' || elt.classList.contains('nav-item') || elt.classList.contains('bnav-item') || elt.closest('.sidebar-nav') || elt.closest('.bottom-nav'))) {
+        var content = document.querySelector('main.content');
+        if (content) {
+            var targetPath = e.detail.requestConfig.path || '';
+            content.innerHTML = getSkeletonHTML(targetPath);
+            window.scrollTo({ top: 0, behavior: 'instant' });
+        }
+    }
 });
 
 document.body.addEventListener('htmx:beforeSwap', function (evt) {

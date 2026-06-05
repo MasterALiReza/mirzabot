@@ -674,3 +674,115 @@ body::after {
     color: #fff !important;
 }
 
+/* Skeleton Loader Styles */
+.skeleton-container {
+    animation: fadeUp 0.3s ease-out;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    width: 100%;
+}
+.skeleton-header {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+.skeleton-title {
+    width: 180px;
+    height: 32px;
+    background: var(--sf3);
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+}
+.skeleton-subtitle {
+    width: 320px;
+    height: 18px;
+    background: var(--sf3);
+    border-radius: 6px;
+    position: relative;
+    overflow: hidden;
+}
+.skeleton-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+.skeleton-card {
+    background: var(--sf);
+    border: 1px solid var(--bd);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    height: 160px;
+    position: relative;
+    overflow: hidden;
+}
+.skeleton-row-box {
+    background: var(--sf);
+    border: 1px solid var(--bd);
+    border-radius: 12px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    position: relative;
+    overflow: hidden;
+}
+.skeleton-line {
+    height: 14px;
+    background: var(--sf3);
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+}
+.skeleton-line.w-full { width: 100%; }
+.skeleton-line.w-2-3 { width: 66%; }
+.skeleton-line.w-1-2 { width: 50%; }
+.skeleton-line.w-1-3 { width: 33%; }
+.skeleton-line.w-1-4 { width: 25%; }
+
+/* Shimmer Animation */
+.skeleton-pulse {
+    position: relative;
+    overflow: hidden;
+}
+.skeleton-pulse::after {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    transform: translateX(-100%);
+    background-image: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.08) 20%,
+        rgba(255, 255, 255, 0.15) 60%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    animation: shimmer 1.5s infinite;
+    content: '';
+}
+[data-theme=light] .skeleton-pulse::after,
+[data-theme=linen] .skeleton-pulse::after,
+[data-theme=mint] .skeleton-pulse::after,
+[data-theme=lavender] .skeleton-pulse::after {
+    background-image: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(0, 0, 0, 0.03) 20%,
+        rgba(0, 0, 0, 0.06) 60%,
+        rgba(255, 255, 255, 0) 100%
+    );
+}
+
+@keyframes shimmer {
+    100% {
+        transform: translateX(100%);
+    }
+}
+

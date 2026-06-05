@@ -1271,7 +1271,28 @@ try {
     file_put_contents('error_log', $e->getMessage());
 }
 
+//----------------------- [ Broadcast History ] --------------------- //
+try {
+    $result = $connect->query("SHOW TABLES LIKE 'broadcast_history'");
+    $table_exists = ($result->num_rows > 0);
 
+    if (!$table_exists) {
+        $result = $connect->query("CREATE TABLE broadcast_history (
+        id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        admin_id varchar(200) NOT NULL,
+        message_type varchar(50) NOT NULL,
+        content TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+        target_audience varchar(100) NOT NULL,
+        status varchar(50) NOT NULL,
+        created_at varchar(50) NOT NULL
+        )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci");
+        if (!$result) {
+            echo "table broadcast_history " . mysqli_error($connect);
+        }
+    }
+} catch (Exception $e) {
+    file_put_contents('error_log', $e->getMessage());
+}
 
 $balancemain = json_decode(select("PaySetting", "ValuePay", "NamePay", "maxbalance", "select")['ValuePay'], true);
 if (!isset($balancemain['f'])) {
