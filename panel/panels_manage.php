@@ -572,7 +572,7 @@ include __DIR__ . '/inc/layout_head.php';
                     foreach($priceFields as $pf): ?>
                         <div style="border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:15px">
                             <label style="display:block;margin-bottom:8px;font-weight:600;font-size:13px;color:var(--text)"><?= $pf['label'] ?></label>
-                            <div style="display:flex;gap:10px;">
+                            <div class="price-inputs-row">
                                 <div style="flex:1">
                                     <small style="color:var(--ts)">عادی (f)</small>
                                     <input type="text" name="<?= $pf['id'] ?>_f" id="<?= $pf['id'] ?>_f" class="input" style="direction:ltr;text-align:center">
