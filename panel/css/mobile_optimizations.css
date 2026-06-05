@@ -655,13 +655,8 @@
 
     /* 2. Hide labels for cells where it is redundant */
     .tbl-wrap td.no-label::before,
-    .tbl-wrap td[data-label="نام"]::before,
-    .tbl-wrap td[data-label="نام پنل"]::before,
-    .tbl-wrap td[data-label="شناسه تراکنش"]::before,
-    .tbl-wrap td[data-label="محصول"]::before,
     .tbl-wrap td[data-label="یوزرنیم"]::before,
     .tbl-wrap td[data-label="آدرس"]::before,
-    .tbl-wrap td[data-label="آدرس پنل"]::before,
     .tbl-wrap td[data-label="عملیات"]::before,
     .tbl-wrap td[data-label="Actions"]::before,
     .tbl-wrap td[data-label="#"]::before {
@@ -691,13 +686,14 @@
     /* 4. Specific layout ordering and sizing for TRANSACTION cards (payment.php) */
     .tbl-wrap td[data-label="شناسه تراکنش"] {
         order: 1 !important;
-        flex: 1 1 65% !important;
-        width: 65% !important;
-        font-size: 0.95rem !important;
-        font-weight: 700 !important;
-        justify-content: flex-start !important;
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        font-size: 1.05rem !important;
+        font-weight: 800 !important;
+        color: var(--fg) !important;
+        justify-content: space-between !important;
         background: transparent !important;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+        border-bottom: 1px dashed var(--bd) !important;
         padding-bottom: 12px !important;
         margin-bottom: 8px !important;
     }
@@ -792,8 +788,20 @@
     }
 
     /* 7. Specific layout ordering and sizing for SERVER MANAGEMENT cards (panels_manage.php) */
-    .tbl-wrap td[data-label="نام"],
     .tbl-wrap td[data-label="نام پنل"] {
+        order: 1 !important;
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        font-size: 1.05rem !important;
+        font-weight: 800 !important;
+        color: var(--fg) !important;
+        justify-content: space-between !important;
+        border-bottom: 1px dashed var(--bd) !important;
+        padding-bottom: 12px !important;
+        margin-bottom: 8px !important;
+    }
+    
+    .tbl-wrap td[data-label="نام"] {
         order: 1 !important;
         flex: 1 1 65% !important;
         width: 65% !important;
@@ -803,6 +811,9 @@
         border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
         padding-bottom: 12px !important;
         margin-bottom: 8px !important;
+    }
+    .tbl-wrap td[data-label="نام"]::before {
+        display: none !important;
     }
 
     .tbl-wrap td[data-label="نوع پنل"],

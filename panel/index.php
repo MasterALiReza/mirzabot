@@ -327,7 +327,7 @@ include __DIR__ . '/inc/layout_head.php';
                                                         <?= $textbotlang['panel']['dashColUser'] ?>
                                                     <?php endif; ?>
                                                 </span>
-                                                <span class="profile-id" style="font-size: 0.75rem; color: var(--mute);"><?= htmlspecialchars($inv['id_user']) ?></span>
+                                                <span class="profile-id"><?= htmlspecialchars($inv['id_user']) ?></span>
                                             </div>
                                         </div>
                                     </div>
@@ -403,7 +403,7 @@ include __DIR__ . '/inc/layout_head.php';
                                                         <?= $textbotlang['panel']['dashColName'] ?>
                                                     <?php endif; ?>
                                                 </span>
-                                                <span class="profile-id" style="font-size: 0.75rem; color: var(--mute);"><?= htmlspecialchars($u['id']) ?></span>
+                                                <span class="profile-id"><?= htmlspecialchars($u['id']) ?></span>
                                             </div>
                                         </div>
                                     </div>
