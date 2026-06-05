@@ -128,14 +128,26 @@
 
 @media (max-width: 480px) {
     .product-grid {
-        grid-template-columns: 1fr;
-        gap: 12px;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
     }
     .product-card {
-        padding: 16px 14px;
+        padding: 12px 10px;
+        gap: 8px;
+    }
+    .pc-title {
+        font-size: 0.85rem !important;
+    }
+    .pc-price {
+        font-size: 0.95rem !important;
+    }
+    .pc-feature {
+        font-size: 0.7rem !important;
     }
     .pc-actions .btn {
-        min-height: 44px; /* Touch target */
+        min-height: 40px; /* Touch target */
+        font-size: 0.75rem;
+        padding: 6px;
     }
 }
 
