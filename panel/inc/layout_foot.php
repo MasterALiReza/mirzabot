@@ -14,7 +14,6 @@
 </div>
 
 <script src="js/htmx.min.js"></script>
-<script src="js/chart.min.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

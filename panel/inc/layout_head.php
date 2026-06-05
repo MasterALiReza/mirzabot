@@ -68,9 +68,9 @@ $initials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
           }
         }
       }
-      return s;
     };
   </script>
+  <script src="js/chart.min.js"></script>
 </head>
 
 <body hx-boost="true">
