@@ -317,17 +317,19 @@ include __DIR__ . '/inc/layout_head.php';
                                             <div class="avatar-icon">
                                                 <?= icon('user', 16) ?>
                                             </div>
-                                            <span class="profile-name">
-                                                <?php if (!empty($inv['name'])): ?>
-                                                    <?= htmlspecialchars(trunc($inv['name'], 18)) ?>
-                                                <?php elseif (!empty($inv['username'])): ?>
-                                                    @<?= htmlspecialchars(trunc($inv['username'], 18)) ?>
-                                                <?php else: ?>
-                                                    <?= $textbotlang['panel']['dashColUser'] ?>
-                                                <?php endif; ?>
-                                            </span>
+                                            <div class="user-details-stacked">
+                                                <span class="profile-name">
+                                                    <?php if (!empty($inv['name'])): ?>
+                                                        <?= htmlspecialchars(trunc($inv['name'], 18)) ?>
+                                                    <?php elseif (!empty($inv['username'])): ?>
+                                                        @<?= htmlspecialchars(trunc($inv['username'], 18)) ?>
+                                                    <?php else: ?>
+                                                        <?= $textbotlang['panel']['dashColUser'] ?>
+                                                    <?php endif; ?>
+                                                </span>
+                                                <span class="profile-id" style="font-size: 0.75rem; color: var(--mute);"><?= htmlspecialchars($inv['id_user']) ?></span>
+                                            </div>
                                         </div>
-                                        <span class="profile-id cm"><?= htmlspecialchars(eng_num($inv['id_user'])) ?></span>
                                     </div>
                                 </td>
                                 <td data-label="<?= $textbotlang['panel']['dashColProduct'] ?>" class="cs">
@@ -391,17 +393,19 @@ include __DIR__ . '/inc/layout_head.php';
                                             <div class="avatar-icon">
                                                 <?= icon('user', 16) ?>
                                             </div>
-                                            <span class="profile-name">
-                                                <?php if ($name): ?>
-                                                    <?= htmlspecialchars(trunc($name, 14)) ?>
-                                                <?php elseif ($uname): ?>
-                                                    @<?= htmlspecialchars(trunc($uname, 12)) ?>
-                                                <?php else: ?>
-                                                    <?= $textbotlang['panel']['dashColName'] ?>
-                                                <?php endif; ?>
-                                            </span>
+                                            <div class="user-details-stacked">
+                                                <span class="profile-name">
+                                                    <?php if ($name): ?>
+                                                        <?= htmlspecialchars(trunc($name, 14)) ?>
+                                                    <?php elseif ($uname): ?>
+                                                        @<?= htmlspecialchars(trunc($uname, 12)) ?>
+                                                    <?php else: ?>
+                                                        <?= $textbotlang['panel']['dashColName'] ?>
+                                                    <?php endif; ?>
+                                                </span>
+                                                <span class="profile-id" style="font-size: 0.75rem; color: var(--mute);"><?= htmlspecialchars($u['id']) ?></span>
+                                            </div>
                                         </div>
-                                        <span class="profile-id cm"><?= htmlspecialchars(eng_num($u['id'])) ?></span>
                                     </div>
                                 </td>
                                 <td data-label="<?= $textbotlang['panel']['dashColBalance'] ?>" class="cn" style="white-space:nowrap; font-weight:500;">

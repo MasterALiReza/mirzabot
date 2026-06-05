@@ -871,6 +871,33 @@
     }
 
     /* 7. Dashboard Mobile Card Layout Improvements */
+    .tbl-wrap.dash-orders td[data-label="محصول"] {
+        flex: 1 1 65% !important;
+        width: 65% !important;
+        order: 1 !important;
+        font-size: 0.95rem !important;
+        font-weight: 700 !important;
+        justify-content: flex-start !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+        padding-bottom: 12px !important;
+        margin-bottom: 8px !important;
+    }
+    .tbl-wrap.dash-orders td[data-label="محصول"]::before {
+        display: none !important;
+    }
+    .tbl-wrap.dash-orders td[data-label="وضعیت"] {
+        order: -1 !important;
+        position: absolute !important;
+        top: 12px;
+        left: 12px;
+        width: auto !important;
+        border-bottom: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    .tbl-wrap.dash-orders td[data-label="وضعیت"]::before {
+        display: none !important;
+    }
     .tbl-wrap.dash-orders td[data-label="کاربر"] {
         flex: 1 1 100% !important;
         width: 100% !important;
@@ -918,13 +945,15 @@
         border-bottom: none !important;
     }
     
-    /* In dashboard users card, user profile subtitle should stack vertically to look premium */
-    .tbl-wrap.dash-users .user-profile-cell {
+    /* In dashboard users and orders cards, user profile subtitle should stack vertically to look premium */
+    .tbl-wrap.dash-users .user-profile-cell,
+    .tbl-wrap.dash-orders .user-profile-cell {
         flex-direction: column !important;
         align-items: flex-start !important;
         gap: 4px !important;
     }
-    .tbl-wrap.dash-users .user-profile-cell .profile-id {
+    .tbl-wrap.dash-users .user-profile-cell .profile-id,
+    .tbl-wrap.dash-orders .user-profile-cell .profile-id {
         font-size: 0.75rem !important;
         color: var(--mute) !important;
         margin-top: 2px !important;
