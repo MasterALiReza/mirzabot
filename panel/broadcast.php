@@ -386,7 +386,7 @@ $histories = $history_stmt->fetchAll(PDO::FETCH_ASSOC);
                     <td><?= $history['status'] == 'completed' ? 'پایان یافته' : 'در جریان' ?></td>
                     <td dir="ltr" style="text-align:center;"><?= jdate('Y/m/d H:i', $history['created_at']) ?></td>
                     <td>
-                        <button type="button" class="btn btn-sm" onclick="reuseBroadcast(<?= htmlspecialchars(json_encode($history)) ?>)" style="padding: 4px 10px; font-size: 0.8rem; background: var(--sf3); border: 1px solid var(--bd);">استفاده مجدد</button>
+                        <button type="button" class="btn btn-sm reuse-btn" data-history="<?= htmlspecialchars(json_encode($history), ENT_QUOTES, 'UTF-8') ?>" onclick="reuseBroadcast(this)" style="padding: 4px 10px; font-size: 0.8rem; background: var(--sf3); border: 1px solid var(--bd);">استفاده مجدد</button>
                     </td>
                 </tr>
                 <?php endforeach; ?>
@@ -430,7 +430,8 @@ function toggleFields() {
     }
 }
 
-function reuseBroadcast(data) {
+function reuseBroadcast(btn) {
+    var data = JSON.parse(btn.getAttribute('data-history'));
     if (data.message_type === 'text') {
         document.getElementById('messageType').value = 'sendmessage';
         document.getElementById('messageText').value = data.content;

@@ -114,7 +114,7 @@ $keyboardaddbalance = json_encode([
             ],
         ]
     ]);
-for ($i = 0; $i < 20; $i++) {
+for ($i = 0; $i < 150; $i++) {
     if (empty($userid)) {
         break;
     }
@@ -197,6 +197,8 @@ for ($i = 0; $i < 20; $i++) {
             }
         }
     }
+    
+    usleep(35000);
 }
 
 file_put_contents('users.json',json_encode($userid,true));
