@@ -78,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 flash('error', "کاربر مقصد در ربات یافت نشد.");
             }
         } else {
-            flash('error', "آیدی وارد شده معتبر نیست.");
+            flash('error', "شناسه کاربر وارد شده معتبر نیست.");
         }
     } elseif ($action === 'set_buy_cap') {
         $cap = (int) ($_POST['cap'] ?? 0);
@@ -186,9 +186,15 @@ include __DIR__ . '/inc/layout_head.php';
             <div class="profile-head">
                 <div class="profile-avatar"><?= htmlspecialchars($initials) ?></div>
                 <div class="profile-name"><?= htmlspecialchars($fullName ?: $textbotlang['panel']['userNoName']) ?></div>
-                <?php if ($username): ?>
-                    <div class="profile-handle">@<?= htmlspecialchars($username) ?></div>
-                <?php endif; ?>
+                <div style="display:flex; align-items:center; justify-content:center; gap:8px; margin-top:4px;">
+                    <?php if ($username): ?>
+                        <div class="profile-handle" style="margin:0; direction:ltr;">@<?= htmlspecialchars($username) ?></div>
+                    <?php endif; ?>
+                    <div class="profile-id-box" style="display:flex; align-items:center; gap:6px; font-size: 0.75rem; color: var(--mute); background:var(--sf2); border: 1px solid var(--bd); padding:4px 8px; border-radius:8px;">
+                        <?= icon('hash', 14) ?>
+                        <span class="cn" style="font-family:monospace; font-size:0.8rem;"><?= htmlspecialchars($user['id']) ?></span>
+                    </div>
+                </div>
                 <div style="margin-top:10px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap">
                     <span class="tag <?= $isBlocked ? 'tag-no' : 'tag-ok' ?>">
                         <?= $isBlocked ? $textbotlang['panel']['userStatusBlocked'] : $textbotlang['panel']['userStatusActive'] ?>
@@ -199,77 +205,73 @@ include __DIR__ . '/inc/layout_head.php';
                 </div>
             </div>
 
-            <div class="kv-list">
-                <div class="kv">
-                    <span class="kv-key">آیدی تلگرام</span>
-                    <span class="kv-val cm" style="direction: ltr;"><?= htmlspecialchars($user['id']) ?></span>
+            <div class="user-kv-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px; padding:16px; background:transparent;">
+                <div class="kv" style="justify-content: flex-start; gap:8px; background:var(--sf2); padding:10px 12px; border-radius:8px; border:1px solid var(--bd);">
+                    <span class="kv-key" style="color:var(--mute);"><?= icon('message-circle', 14) ?> آیدی تلگرام:</span>
+                    <span class="kv-val cm" style="direction: ltr; font-weight:600;"><?= htmlspecialchars($user['id']) ?></span>
                 </div>
                 <?php if ($fullName): ?>
-                    <div class="kv">
-                        <span class="kv-key">نام و نام خانوادگی</span>
-                        <span class="kv-val"><?= htmlspecialchars($fullName) ?></span>
+                    <div class="kv" style="justify-content: flex-start; gap:8px; background:var(--sf2); padding:10px 12px; border-radius:8px; border:1px solid var(--bd);">
+                        <span class="kv-key" style="color:var(--mute);"><?= icon('user', 14) ?> نام و نام خانوادگی:</span>
+                        <span class="kv-val" style="font-weight:600;"><?= htmlspecialchars($fullName) ?></span>
                     </div>
                 <?php endif; ?>
                 <?php if (!empty($user['number']) && $user['number'] !== 'none'): ?>
-                    <div class="kv">
-                        <span class="kv-key">شماره موبایل</span>
-                        <span class="kv-val cm" style="direction: ltr;"><?= htmlspecialchars($user['number']) ?></span>
+                    <div class="kv" style="justify-content: flex-start; gap:8px; background:var(--sf2); padding:10px 12px; border-radius:8px; border:1px solid var(--bd);">
+                        <span class="kv-key" style="color:var(--mute);"><?= icon('phone', 14) ?> شماره موبایل:</span>
+                        <span class="kv-val cm" style="direction: ltr; font-weight:600;"><?= htmlspecialchars($user['number']) ?></span>
                     </div>
                 <?php endif; ?>
-                <div class="kv">
-                    <span class="kv-key">موجودی</span>
-                    <span class="kv-val" style="color:var(--ac)"><?= number_format($balance) ?> تومان</span>
+                <div class="kv" style="justify-content: flex-start; gap:8px; background:var(--sf2); padding:10px 12px; border-radius:8px; border:1px solid var(--bd);">
+                    <span class="kv-key" style="color:var(--mute);"><?= icon('credit-card', 14) ?> موجودی:</span>
+                    <span class="kv-val cn" style="color:var(--ac); font-weight:600; font-size:1.05rem;"><?= number_format($balance) ?> <span class="cf" style="font-size:0.8rem">تومان</span></span>
                 </div>
-                <div class="kv">
-                    <span class="kv-key">گروه کاربری</span>
-                    <span class="kv-val">
-                        <span class="tag <?= user_role_tag($agent) ?>"><?= user_role_label($agent) ?></span>
-                        <span class="cm cf"
-                            style="margin-right:6px;font-size:.72rem">(<?= htmlspecialchars($agent) ?>)</span>
+                <div class="kv" style="justify-content: flex-start; gap:8px; background:var(--sf2); padding:10px 12px; border-radius:8px; border:1px solid var(--bd);">
+                    <span class="kv-key" style="color:var(--mute);"><?= icon('users', 14) ?> گروه کاربری:</span>
+                    <span class="kv-val" style="display:flex;align-items:center;gap:6px">
+                        <span class="tag <?= user_role_tag($agent) ?>" style="margin:0; padding:2px 6px;"><?= user_role_label($agent) ?></span>
                     </span>
                 </div>
-                <div class="kv">
-                    <span class="kv-key">تاریخ عضویت</span>
-                    <span class="kv-val"><?= safe_date($user['register'] ?? null) ?></span>
+                <div class="kv" style="justify-content: flex-start; gap:8px; background:var(--sf2); padding:10px 12px; border-radius:8px; border:1px solid var(--bd);">
+                    <span class="kv-key" style="color:var(--mute);"><?= icon('calendar', 14) ?> تاریخ عضویت:</span>
+                    <span class="kv-val cn" style="font-weight:600;"><?= safe_date($user['register'] ?? null, 'Y/m/d H:i') ?></span>
                 </div>
                 <?php if (!empty($user['affiliates']) && $user['affiliates'] !== '0'): ?>
-                    <div class="kv">
-                        <span class="kv-key">معرف</span>
-                        <span class="kv-val cm" style="color:var(--ac); direction: ltr;"><?= htmlspecialchars($user['affiliates']) ?></span>
+                    <div class="kv" style="justify-content: flex-start; gap:8px; background:var(--sf2); padding:10px 12px; border-radius:8px; border:1px solid var(--bd);">
+                        <span class="kv-key" style="color:var(--mute);"><?= icon('user-plus', 14) ?> معرف:</span>
+                        <span class="kv-val cm" style="color:var(--ac); direction: ltr; font-weight:600;"><?= htmlspecialchars($user['affiliates']) ?></span>
                     </div>
                 <?php endif; ?>
                 <?php if ((int) ($user['affiliatescount'] ?? 0) > 0): ?>
-                    <div class="kv">
-                        <span class="kv-key">زیرمجموعه‌ها</span>
-                        <span class="kv-val"><?= number_format((int) $user['affiliatescount']) ?> نفر</span>
+                    <div class="kv" style="justify-content: flex-start; gap:8px; background:var(--sf2); padding:10px 12px; border-radius:8px; border:1px solid var(--bd);">
+                        <span class="kv-key" style="color:var(--mute);"><?= icon('users', 14) ?> زیرمجموعه‌ها:</span>
+                        <span class="kv-val cn" style="font-weight:600;"><?= number_format((int) $user['affiliatescount']) ?> <span class="cf" style="font-size:0.8rem">نفر</span></span>
                     </div>
                 <?php endif; ?>
                 <?php if ((int) ($user['score'] ?? 0) > 0): ?>
-                    <div class="kv">
-                        <span class="kv-key">امتیاز کاربر</span>
-                        <span class="kv-val" style="color:var(--warn)">⭐ <?= number_format((int) $user['score']) ?></span>
+                    <div class="kv" style="justify-content: flex-start; gap:8px; background:var(--sf2); padding:10px 12px; border-radius:8px; border:1px solid var(--bd);">
+                        <span class="kv-key" style="color:var(--mute);"><?= icon('star', 14) ?> امتیاز کاربر:</span>
+                        <span class="kv-val cn" style="color:var(--warn); font-weight:600; font-size:1.05rem;"><?= number_format((int) $user['score']) ?></span>
                     </div>
                 <?php endif; ?>
                 <?php if (!empty($user['expire'])): ?>
-                    <div class="kv">
-                        <span class="kv-key"><?= $textbotlang['panel']['userColVolume'] ?></span>
-                        <span class="kv-val"
-                            style="<?= is_numeric($user['expire']) && (int) $user['expire'] < time() ? 'color:var(--no)' : '' ?>">
-                            <?= safe_date($user['expire']) ?>
+                    <div class="kv" style="justify-content: flex-start; gap:8px; background:var(--sf2); padding:10px 12px; border-radius:8px; border:1px solid var(--bd);">
+                        <span class="kv-key" style="color:var(--mute);"><?= icon('hard-drive', 14) ?> <?= $textbotlang['panel']['userColVolume'] ?>:</span>
+                        <span class="kv-val cn" style="font-weight:600; <?= is_numeric($user['expire']) && (int) $user['expire'] < time() ? 'color:var(--no)' : '' ?>">
+                            <?= safe_date($user['expire'], 'Y/m/d H:i') ?>
                         </span>
                     </div>
                 <?php endif; ?>
                 <?php if (!empty($user['codeInvitation'])): ?>
-                    <div class="kv">
-                        <span class="kv-key"><?= $textbotlang['panel']['userColTime'] ?></span>
-                        <span class="kv-val cm"
-                            style="color:var(--ac)"><?= htmlspecialchars($user['codeInvitation']) ?></span>
+                    <div class="kv" style="justify-content: flex-start; gap:8px; background:var(--sf2); padding:10px 12px; border-radius:8px; border:1px solid var(--bd);">
+                        <span class="kv-key" style="color:var(--mute);"><?= icon('hash', 14) ?> کد عضویت:</span>
+                        <span class="kv-val cm" style="color:var(--ac); font-weight:600;"><?= htmlspecialchars($user['codeInvitation']) ?></span>
                     </div>
                 <?php endif; ?>
                 <?php if ((int) ($user['message_count'] ?? 0) > 0): ?>
-                    <div class="kv">
-                        <span class="kv-key"><?= $textbotlang['panel']['userColPanel'] ?></span>
-                        <span class="kv-val cn"><?= number_format((int) $user['message_count']) ?></span>
+                    <div class="kv" style="justify-content: flex-start; gap:8px; background:var(--sf2); padding:10px 12px; border-radius:8px; border:1px solid var(--bd);">
+                        <span class="kv-key" style="color:var(--mute);"><?= icon('message-square', 14) ?> پیام‌ها:</span>
+                        <span class="kv-val cn" style="font-weight:600;"><?= number_format((int) $user['message_count']) ?></span>
                     </div>
                 <?php endif; ?>
             </div>
@@ -284,71 +286,101 @@ include __DIR__ . '/inc/layout_head.php';
                     <span style="color:var(--ac)"><?= icon('zap', 16) ?></span> عملیات کاربر
                 </div>
             </div>
-            <div style="padding:16px;display:flex;flex-wrap:wrap;gap:10px">
-                <button class="btn btn-primary" onclick="openModal('addModal')">
-                    <?= icon('plus', 14) ?> افزایش موجودی
-                </button>
-                <button class="btn" style="background:var(--warn);color:#000;border:none" onclick="openModal('deductModal')">
-                    <?= icon('minus', 14) ?> کسر موجودی
-                </button>
-                <a href="user_action.php?action=zerobalance&id=<?= $id ?>&_csrf=<?= csrf_token() ?>&back=user.php" class="btn btn-ghost" data-confirm="آیا از صفر کردن موجودی کاربر مطمئن هستید؟">
-                    <?= icon('slash', 14) ?> صفر موجودی
-                </a>
-                <button class="btn btn-ghost" onclick="openModal('roleModal')">
-                    <?= icon('users', 14) ?> تغییر گروه
-                </button>
-                <button class="btn btn-ghost" onclick="openModal('discountModal')">
-                    <?= icon('percent', 14) ?> درصد تخفیف
-                </button>
-                <button class="btn btn-ghost" onclick="openModal('msgModal')">
-                    <?= icon('message-square', 14) ?> ارسال پیام
-                </button>
-                <button class="btn btn-ghost" onclick="openModal('limitTestModal')">
-                    <?= icon('sliders', 14) ?> اکانت تست
-                </button>
-                <button class="btn btn-ghost" onclick="openModal('transferModal')">
-                    <?= icon('refresh-cw', 14) ?> انتقال حساب
-                </button>
+            <div style="padding: 16px; display: flex; flex-direction: column; gap: 20px;">
+                <!-- Financial Actions -->
+                <div>
+                    <div style="font-size:0.85rem;color:var(--mute);margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+                        <?= icon('wallet', 14) ?> <span>امور مالی</span>
+                        <div style="flex:1;height:1px;background:var(--bd);margin-right:10px;"></div>
+                    </div>
+                    <div class="user-actions-grid" style="padding:0;">
+                        <button class="btn btn-primary" onclick="openModal('addModal')">
+                            <?= icon('plus', 14) ?> افزایش موجودی
+                        </button>
+                        <button class="btn" style="background:var(--warn);color:#000;border:none" onclick="openModal('deductModal')">
+                            <?= icon('minus', 14) ?> کسر موجودی
+                        </button>
+                        <a href="user_action.php?action=zerobalance&id=<?= $id ?>&_csrf=<?= csrf_token() ?>&back=user.php" class="btn btn-ghost" data-confirm="آیا از صفر کردن موجودی کاربر مطمئن هستید؟">
+                            <?= icon('slash', 14) ?> صفر موجودی
+                        </a>
+                        <button class="btn btn-ghost" onclick="openModal('discountModal')">
+                            <?= icon('percent', 14) ?> درصد تخفیف
+                        </button>
+                    </div>
+                </div>
 
-                <?php if ($isBlocked): ?>
-                    <a href="user_action.php?action=unblock&id=<?= $id ?>&_csrf=<?= csrf_token() ?>&back=user.php"
-                        class="btn btn-ok" data-confirm="آیا از رفع مسدودیت مطمئن هستید؟">
-                        <?= icon('check', 14) ?> رفع مسدودی
-                    </a>
-                <?php else: ?>
-                    <a href="user_action.php?action=block&id=<?= $id ?>&_csrf=<?= csrf_token() ?>&back=user.php"
-                        class="btn btn-no" data-confirm="آیا از مسدود کردن مطمئن هستید؟">
-                        <?= icon('block', 14) ?> مسدود کردن
-                    </a>
-                <?php endif; ?>
+                <!-- Access Actions -->
+                <div>
+                    <div style="font-size:0.85rem;color:var(--mute);margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+                        <?= icon('shield', 14) ?> <span>دسترسی و محدودیت‌ها</span>
+                        <div style="flex:1;height:1px;background:var(--bd);margin-right:10px;"></div>
+                    </div>
+                    <div class="user-actions-grid" style="padding:0;">
+                        <?php if ($isBlocked): ?>
+                            <a href="user_action.php?action=unblock&id=<?= $id ?>&_csrf=<?= csrf_token() ?>&back=user.php"
+                                class="btn btn-ok" data-confirm="آیا از رفع مسدودیت مطمئن هستید؟">
+                                <?= icon('check', 14) ?> رفع مسدودی
+                            </a>
+                        <?php else: ?>
+                            <a href="user_action.php?action=block&id=<?= $id ?>&_csrf=<?= csrf_token() ?>&back=user.php"
+                                class="btn btn-no" data-confirm="آیا از مسدود کردن مطمئن هستید؟">
+                                <?= icon('block', 14) ?> مسدود کردن
+                            </a>
+                        <?php endif; ?>
 
-                <?php $isVerify = (int)($user['verify'] ?? 0) === 1; ?>
-                <a href="user_action.php?action=toggle_verify&id=<?= $id ?>&_csrf=<?= csrf_token() ?>&back=user.php"
-                    class="btn <?= $isVerify ? 'btn-no' : 'btn-ok' ?>" data-confirm="آیا مطمئن هستید؟">
-                    <?= icon($isVerify ? 'x-circle' : 'check-circle', 14) ?> <?= $isVerify ? 'لغو احراز هویت' : 'تایید احراز هویت' ?>
-                </a>
+                        <?php $isVerify = (int)($user['verify'] ?? 0) === 1; ?>
+                        <a href="user_action.php?action=toggle_verify&id=<?= $id ?>&_csrf=<?= csrf_token() ?>&back=user.php"
+                            class="btn <?= $isVerify ? 'btn-no' : 'btn-ok' ?>" data-confirm="آیا مطمئن هستید؟">
+                            <?= icon($isVerify ? 'x-circle' : 'check-circle', 14) ?> <?= $isVerify ? 'لغو احراز هویت' : 'تایید احراز هویت' ?>
+                        </a>
 
-                <?php $isCard = (int)($user['cardpayment'] ?? 0) === 1; ?>
-                <a href="user_action.php?action=toggle_card&id=<?= $id ?>&_csrf=<?= csrf_token() ?>&back=user.php"
-                    class="btn <?= $isCard ? 'btn-no' : 'btn-ok' ?>" data-confirm="آیا مطمئن هستید؟">
-                    <?= icon('credit-card', 14) ?> <?= $isCard ? 'غیرفعال کارت' : 'فعالسازی کارت' ?>
-                </a>
+                        <?php $isCard = (int)($user['cardpayment'] ?? 0) === 1; ?>
+                        <a href="user_action.php?action=toggle_card&id=<?= $id ?>&_csrf=<?= csrf_token() ?>&back=user.php"
+                            class="btn <?= $isCard ? 'btn-no' : 'btn-ok' ?>" data-confirm="آیا مطمئن هستید؟">
+                            <?= icon('credit-card', 14) ?> <?= $isCard ? 'غیرفعال کارت' : 'فعالسازی کارت' ?>
+                        </a>
 
-                <a href="user_action.php?action=verify_channel&id=<?= $id ?>&_csrf=<?= csrf_token() ?>&back=user.php"
-                    class="btn btn-ghost" data-confirm="آیا تایید عضویت کانال اعمال شود؟">
-                    <?= icon('bell', 14) ?> تایید کانال
-                </a>
+                        <button class="btn btn-ghost" onclick="openModal('limitTestModal')">
+                            <?= icon('sliders', 14) ?> اکانت تست
+                        </button>
 
-                <?php $isCron = (int)($user['status_cron'] ?? 0) === 1; ?>
-                <a href="user_action.php?action=toggle_cron&id=<?= $id ?>&_csrf=<?= csrf_token() ?>&back=user.php"
-                    class="btn <?= $isCron ? 'btn-no' : 'btn-ok' ?>" data-confirm="آیا مطمئن هستید؟">
-                    <?= icon('clock', 14) ?> <?= $isCron ? 'غیرفعال پیام' : 'فعال پیام کرون' ?>
-                </a>
-                
-                <a href="user_action.php?action=removeaffiliates&id=<?= $id ?>&_csrf=<?= csrf_token() ?>&back=user.php"
-                    class="btn btn-ghost" data-confirm="حذف تمام زیرمجموعه های کاربر؟">
-                    <?= icon('user-minus', 14) ?> حذف زیرمجموعه‌ها
-                </a>
+                        <a href="user_action.php?action=verify_channel&id=<?= $id ?>&_csrf=<?= csrf_token() ?>&back=user.php"
+                            class="btn btn-ghost" data-confirm="آیا تایید عضویت کانال اعمال شود؟">
+                            <?= icon('bell', 14) ?> تایید کانال
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Management Actions -->
+                <div>
+                    <div style="font-size:0.85rem;color:var(--mute);margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+                        <?= icon('settings', 14) ?> <span>ارتباط و مدیریت</span>
+                        <div style="flex:1;height:1px;background:var(--bd);margin-right:10px;"></div>
+                    </div>
+                    <div class="user-actions-grid" style="padding:0;">
+                        <button class="btn btn-ghost" onclick="openModal('msgModal')">
+                            <?= icon('message-square', 14) ?> ارسال پیام
+                        </button>
+                        
+                        <?php $isCron = (int)($user['status_cron'] ?? 0) === 1; ?>
+                        <a href="user_action.php?action=toggle_cron&id=<?= $id ?>&_csrf=<?= csrf_token() ?>&back=user.php"
+                            class="btn <?= $isCron ? 'btn-no' : 'btn-ok' ?>" data-confirm="آیا مطمئن هستید؟">
+                            <?= icon('clock', 14) ?> <?= $isCron ? 'غیرفعال پیام' : 'فعال پیام کرون' ?>
+                        </a>
+
+                        <button class="btn btn-ghost" onclick="openModal('roleModal')">
+                            <?= icon('users', 14) ?> تغییر گروه
+                        </button>
+                        <button class="btn btn-ghost" onclick="openModal('transferModal')">
+                            <?= icon('refresh-cw', 14) ?> انتقال حساب
+                        </button>
+                        
+                        <a href="user_action.php?action=removeaffiliates&id=<?= $id ?>&_csrf=<?= csrf_token() ?>&back=user.php"
+                            class="btn btn-ghost" data-confirm="حذف تمام زیرمجموعه های کاربر؟">
+                            <?= icon('user-minus', 14) ?> حذف زیرمجموعه‌ها
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -359,31 +391,59 @@ include __DIR__ . '/inc/layout_head.php';
                     <span style="color:var(--warn)"><?= icon('briefcase', 16) ?></span> عملیات نمایندگی
                 </div>
             </div>
-            <div style="padding:16px;display:flex;flex-wrap:wrap;gap:10px">
-                <button class="btn btn-ghost" onclick="openModal('agentBuyCapModal')">
-                    <?= icon('briefcase', 14) ?> سقف خرید نماینده
-                </button>
-                <button class="btn btn-ghost" onclick="openModal('agentVolPriceModal')">
-                    <?= icon('database', 14) ?> قیمت پایه حجم
-                </button>
-                <button class="btn btn-ghost" onclick="openModal('agentTimePriceModal')">
-                    <?= icon('clock', 14) ?> قیمت پایه زمان
-                </button>
-                <button class="btn btn-ghost" onclick="openModal('agentHidePanelModal')">
-                    <?= icon('eye-off', 14) ?> مخفی کردن پنل
-                </button>
-                <button class="btn btn-ghost" onclick="openModal('agentExpireModal')">
-                    <?= icon('calendar', 14) ?> تاریخ انقضا
-                </button>
-                <button class="btn btn-ghost" onclick="openModal('agentLocLimitModal')">
-                    <?= icon('map-pin', 14) ?> سقف لوکیشن
-                </button>
+            <div style="padding: 16px; display: flex; flex-direction: column; gap: 20px;">
+                <!-- Pricing & Sales -->
+                <div>
+                    <div style="font-size:0.85rem;color:var(--mute);margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+                        <?= icon('tag', 14) ?> <span>فروش و قیمت‌گذاری</span>
+                        <div style="flex:1;height:1px;background:var(--bd);margin-right:10px;"></div>
+                    </div>
+                    <div class="user-actions-grid" style="padding:0;">
+                        <button class="btn btn-ghost" onclick="openModal('agentVolPriceModal')">
+                            <?= icon('database', 14) ?> قیمت پایه حجم
+                        </button>
+                        <button class="btn btn-ghost" onclick="openModal('agentTimePriceModal')">
+                            <?= icon('clock', 14) ?> قیمت پایه زمان
+                        </button>
+                        <button class="btn btn-ghost" onclick="openModal('agentBuyCapModal')">
+                            <?= icon('briefcase', 14) ?> سقف خرید نماینده
+                        </button>
+                    </div>
+                </div>
 
-                <?php $isBotSell = (int)($user['status_bot_sell'] ?? 0) === 1; ?>
-                <a href="user_action.php?action=toggle_bot&id=<?= $id ?>&_csrf=<?= csrf_token() ?>&back=user.php"
-                    class="btn <?= $isBotSell ? 'btn-no' : 'btn-ok' ?>" data-confirm="آیا مطمئن هستید؟">
-                    <?= icon('cpu', 14) ?> <?= $isBotSell ? 'حذف ربات فروش' : 'ساخت ربات فروش' ?>
-                </a>
+                <!-- Limits & Access -->
+                <div>
+                    <div style="font-size:0.85rem;color:var(--mute);margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+                        <?= icon('shield', 14) ?> <span>محدودیت‌ها و دسترسی</span>
+                        <div style="flex:1;height:1px;background:var(--bd);margin-right:10px;"></div>
+                    </div>
+                    <div class="user-actions-grid" style="padding:0;">
+                        <button class="btn btn-ghost" onclick="openModal('agentExpireModal')">
+                            <?= icon('calendar', 14) ?> تاریخ انقضا
+                        </button>
+                        <button class="btn btn-ghost" onclick="openModal('agentLocLimitModal')">
+                            <?= icon('map-pin', 14) ?> سقف لوکیشن
+                        </button>
+                        <button class="btn btn-ghost" onclick="openModal('agentHidePanelModal')">
+                            <?= icon('eye-off', 14) ?> مخفی کردن پنل
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Automation -->
+                <div>
+                    <div style="font-size:0.85rem;color:var(--mute);margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+                        <?= icon('cpu', 14) ?> <span>اتوماسیون</span>
+                        <div style="flex:1;height:1px;background:var(--bd);margin-right:10px;"></div>
+                    </div>
+                    <div class="user-actions-grid" style="padding:0;">
+                        <?php $isBotSell = (int)($user['status_bot_sell'] ?? 0) === 1; ?>
+                        <a href="user_action.php?action=toggle_bot&id=<?= $id ?>&_csrf=<?= csrf_token() ?>&back=user.php"
+                            class="btn <?= $isBotSell ? 'btn-no' : 'btn-ok' ?>" data-confirm="آیا مطمئن هستید؟">
+                            <?= icon('cpu', 14) ?> <?= $isBotSell ? 'حذف ربات فروش' : 'ساخت ربات فروش' ?>
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
         <?php endif; ?>
@@ -414,21 +474,20 @@ include __DIR__ . '/inc/layout_head.php';
             </div>
 
             <div id="paneOrders">
-                <div class="tbl-wrap">
+                <div class="tbl-wrap dash-orders">
                     <table class="tbl-lg">
                         <thead>
                             <tr>
-                                <th><?= $textbotlang['panel']['userDetailTitle'] ?></th>
-                                <th><?= $textbotlang['panel']['userCloseBtn'] ?></th>
-                                <th><?= $textbotlang['panel']['userRoleNormalUser'] ?></th>
-                                <th><?= $textbotlang['panel']['userRoleAgent'] ?></th>
-                                <th><?= $textbotlang['panel']['userRoleAdvancedAgent'] ?></th>
+                                <th><?= $textbotlang['panel']['dashColProduct'] ?? 'محصول' ?></th>
+                                <th><?= $textbotlang['panel']['dashColAmount'] ?? 'مبلغ' ?></th>
+                                <th><?= $textbotlang['panel']['dashColVolume'] ?? 'حجم' ?></th>
+                                <th><?= $textbotlang['panel']['dashColStatus'] ?? 'وضعیت' ?></th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php if (empty($invoices)): ?>
                                 <tr>
-                                    <td colspan="5">
+                                    <td colspan="4">
                                         <div class="empty" style="padding:30px">
                                             <p><?= $textbotlang['panel']['userColId'] ?></p>
                                         </div>
@@ -447,18 +506,33 @@ include __DIR__ . '/inc/layout_head.php';
                                     [$tagClass, $label] = $statusMap[$inv['Status'] ?? ''] ?? ['tag-plain', $inv['Status'] ?? '—'];
                                     ?>
                                     <tr>
-                                        <td data-label="<?= $textbotlang['panel']['userDetailTitle'] ?>" class="cs"
-                                            style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+                                        <td data-label="<?= $textbotlang['panel']['dashColProduct'] ?? 'محصول' ?>" class="cs">
                                             <?= htmlspecialchars($inv['name_product'] ?? '—') ?>
                                         </td>
-                                        <td data-label="<?= $textbotlang['panel']['userCloseBtn'] ?>" class="cn cs" style="white-space:nowrap">
-                                            <?= number_format((int) ($inv['price_product'] ?? 0)) ?> <span class="cf"><?= $textbotlang['panel']['userColName'] ?></span>
+                                        <td data-label="<?= $textbotlang['panel']['dashColAmount'] ?? 'مبلغ' ?>" class="cn">
+                                            <div class="dash-unified-content" style="align-items: center;">
+                                                <span class="mobile-label">مبلغ و تاریخ سفارش:</span>
+                                                <div style="display:flex;align-items:center;gap:8px; flex-wrap:wrap;">
+                                                    <div style="display:flex; align-items:center; gap:4px;">
+                                                        <span style="color:var(--mute)"><?= icon('wallet', 14) ?></span>
+                                                        <span class="cn" style="font-weight:600; font-size:1rem; color:var(--ac);">
+                                                            <?= number_format((int) ($inv['price_product'] ?? 0)) ?> <span class="cf" style="font-size:0.75rem"><?= $textbotlang['panel']['dashTomanShort'] ?? 'ت' ?></span>
+                                                        </span>
+                                                    </div>
+                                                    <span style="color:var(--bd);">|</span>
+                                                    <div style="display:flex; align-items:center; gap:4px; font-size:0.85rem; color:var(--mute);">
+                                                        <span class="cf"><?= icon('calendar', 14) ?></span>
+                                                        <span class="cn" style="font-weight:500; color:var(--text);"><?= safe_date($inv['time_sell'] ?? null, 'Y/m/d') ?></span>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </td>
-                                        <td data-label="<?= $textbotlang['panel']['userRoleNormalUser'] ?>" class="cn cf"><?= htmlspecialchars($inv['Volume'] ?? '—') ?></td>
-                                        <td data-label="<?= $textbotlang['panel']['userRoleAgent'] ?>" class="cf" style="white-space:nowrap">
-                                            <?= safe_date($inv['time_sell'] ?? null, 'Y/m/d') ?>
+                                        <td data-label="<?= $textbotlang['panel']['dashColVolume'] ?? 'حجم' ?>" class="cn cf">
+                                            <?= htmlspecialchars($inv['Volume'] ?? '—') ?>
                                         </td>
-                                        <td data-label="<?= $textbotlang['panel']['userRoleAdvancedAgent'] ?>"><span class="tag <?= $tagClass ?>"><?= $label ?></span></td>
+                                        <td data-label="<?= $textbotlang['panel']['dashColStatus'] ?? 'وضعیت' ?>">
+                                            <span class="tag <?= $tagClass ?>"><?= $label ?></span>
+                                        </td>
                                     </tr>
                                 <?php endforeach; endif; ?>
                         </tbody>
@@ -467,20 +541,19 @@ include __DIR__ . '/inc/layout_head.php';
             </div>
 
             <div id="panePay" style="display:none">
-                <div class="tbl-wrap">
+                <div class="tbl-wrap dash-orders">
                     <table class="tbl-md">
                         <thead>
                             <tr>
-                                <th><?= $textbotlang['panel']['userColCreatedAt'] ?></th>
-                                <th><?= $textbotlang['panel']['userWalletLabel'] ?></th>
-                                <th><?= $textbotlang['panel']['userTotalPurchaseLabel'] ?></th>
-                                <th><?= $textbotlang['panel']['userTotalServicesLabel'] ?></th>
+                                <th>مبلغ پرداختی</th>
+                                <th>روش پرداخت</th>
+                                <th>وضعیت</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php if (empty($payments)): ?>
                                 <tr>
-                                    <td colspan="4">
+                                    <td colspan="3">
                                         <div class="empty" style="padding:30px">
                                             <p><?= $textbotlang['panel']['userAffiliateCountLabel'] ?></p>
                                         </div>
@@ -515,14 +588,30 @@ include __DIR__ . '/inc/layout_head.php';
                                     $method = $methodLabels[$p['Payment_Method'] ?? ''] ?? ($p['Payment_Method'] ?? '—');
                                     ?>
                                     <tr>
-                                        <td data-label="<?= $textbotlang['panel']['userColCreatedAt'] ?>" class="cn cs" style="white-space:nowrap">
-                                            <?= number_format((int) ($p['price'] ?? 0)) ?> <span class="cf"><?= $textbotlang['panel']['userReferrerLabel'] ?></span>
+                                        <td data-label="مبلغ پرداختی" class="cn">
+                                            <div class="dash-unified-content" style="align-items: center;">
+                                                <span class="mobile-label">مبلغ و تاریخ:</span>
+                                                <div style="display:flex;align-items:center;gap:8px; flex-wrap:wrap;">
+                                                    <div style="display:flex; align-items:center; gap:4px;">
+                                                        <span style="color:var(--mute)"><?= icon('wallet', 14) ?></span>
+                                                        <span class="cn" style="font-weight:600; font-size:1rem; color:var(--ac);">
+                                                            <?= number_format((int) ($p['price'] ?? 0)) ?> <span class="cf" style="font-size:0.75rem"><?= $textbotlang['panel']['dashTomanShort'] ?? 'ت' ?></span>
+                                                        </span>
+                                                    </div>
+                                                    <span style="color:var(--bd);">|</span>
+                                                    <div style="display:flex; align-items:center; gap:4px; font-size:0.85rem; color:var(--mute);">
+                                                        <span class="cf"><?= icon('calendar', 14) ?></span>
+                                                        <span class="cn" style="font-weight:500; color:var(--text);"><?= safe_date($p['time'] ?? null, 'Y/m/d H:i') ?></span>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </td>
-                                        <td data-label="<?= $textbotlang['panel']['userWalletLabel'] ?>" style="font-size:.82rem"><?= htmlspecialchars($method) ?></td>
-                                        <td data-label="<?= $textbotlang['panel']['userTotalPurchaseLabel'] ?>" class="cf" style="white-space:nowrap">
-                                            <?= safe_date($p['time'] ?? null, 'Y/m/d H:i') ?>
+                                        <td data-label="روش پرداخت" style="font-size:.82rem">
+                                            <?= htmlspecialchars($method) ?>
                                         </td>
-                                        <td data-label="<?= $textbotlang['panel']['userTotalServicesLabel'] ?>"><span class="tag <?= $tagClass ?>"><?= $label ?></span></td>
+                                        <td data-label="وضعیت">
+                                            <span class="tag <?= $tagClass ?>"><?= $label ?></span>
+                                        </td>
                                     </tr>
                                 <?php endforeach; endif; ?>
                         </tbody>
@@ -532,15 +621,14 @@ include __DIR__ . '/inc/layout_head.php';
 
             <?php if (count($referrals) > 0): ?>
                 <div id="paneRefs" style="display:none">
-                    <div class="tbl-wrap">
+                    <div class="tbl-wrap dash-orders">
                         <table class="tbl-md">
                             <thead>
                                 <tr>
-                                    <th><?= $textbotlang['panel']['userNoteLabel'] ?></th>
-                                    <th><?= $textbotlang['panel']['userEditNoteBtn'] ?></th>
-                                    <th><?= $textbotlang['panel']['userSendMessageBtn'] ?></th>
-                                    <th><?= $textbotlang['panel']['userSendMessageTitle'] ?></th>
-                                    <th><?= $textbotlang['panel']['userMessagePlaceholder'] ?></th>
+                                    <th>کاربر</th>
+                                    <th>موجودی</th>
+                                    <th>گروه</th>
+                                    <th>تاریخ</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -554,30 +642,46 @@ include __DIR__ . '/inc/layout_head.php';
                                     $refAgent = $ref['agent'] ?? 'f';
                                     ?>
                                     <tr>
-                                        <td data-label="<?= $textbotlang['panel']['userNoteLabel'] ?>">
-                                            <a href="user.php?id=<?= (int) $ref['id'] ?>" class="cm" style="color:var(--ac)">
-                                                <?= htmlspecialchars($ref['id']) ?>
-                                            </a>
+                                        <td data-label="کاربر">
+                                            <div class="dash-unified-content" style="align-items: center;">
+                                                <span class="mobile-label">نام و شناسه:</span>
+                                                <div style="display:flex;align-items:center;gap:8px;">
+                                                    <div class="profile-avatar" style="width:32px;height:32px;font-size:14px;"><?= mb_substr($refName ?: ($refUname ?: $ref['id']), 0, 1) ?></div>
+                                                    <div style="display:flex;flex-direction:column;gap:2px;">
+                                                        <a href="user.php?id=<?= (int) $ref['id'] ?>" class="cm" style="color:var(--text);font-weight:600;text-decoration:none;">
+                                                            <?php if ($refName): ?>
+                                                                <?= htmlspecialchars(trunc($refName, 16)) ?>
+                                                            <?php elseif ($refUname): ?>
+                                                                @<?= htmlspecialchars(trunc($refUname, 14)) ?>
+                                                            <?php else: ?>
+                                                                کاربر بی‌نام
+                                                            <?php endif; ?>
+                                                        </a>
+                                                        <div class="profile-id-box" style="font-size:0.75rem;padding:2px 6px;margin:0;">
+                                                            <span style="color:var(--ac);"><?= icon('hash', 10) ?></span>
+                                                            <?= htmlspecialchars($ref['id']) ?>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </td>
-                                        <td data-label="<?= $textbotlang['panel']['userEditNoteBtn'] ?>">
-                                            <?php if ($refName): ?>
-                                                <span class="cs"><?= htmlspecialchars(trunc($refName, 16)) ?></span>
-                                            <?php elseif ($refUname): ?>
-                                                <span class="cm"
-                                                    style="color:var(--ac)">@<?= htmlspecialchars(trunc($refUname, 14)) ?></span>
-                                            <?php else: ?>
-                                                <span class="cf">—</span>
-                                            <?php endif; ?>
+                                        <td data-label="موجودی" class="cn">
+                                            <div class="dash-unified-content"><span class="mobile-label">موجودی:</span>
+                                                <div style="display:flex; align-items:center; gap:4px;">
+                                                    <span class="cn" style="font-weight:600; font-size:1rem; color:var(--text);">
+                                                        <?= number_format((int) ($ref['Balance'] ?? 0)) ?> <span class="cf" style="font-size:0.75rem;color:var(--mute)"><?= $textbotlang['panel']['dashTomanShort'] ?? 'ت' ?></span>
+                                                    </span>
+                                                </div>
+                                            </div>
                                         </td>
-                                        <td data-label="<?= $textbotlang['panel']['userSendMessageBtn'] ?>" class="cn" style="white-space:nowrap">
-                                            <?= number_format((int) ($ref['Balance'] ?? 0)) ?> <span class="cf"><?= $textbotlang['panel']['userSendBtn'] ?></span>
-                                        </td>
-                                        <td data-label="<?= $textbotlang['panel']['userSendMessageTitle'] ?>">
-                                            <span class="tag <?= user_role_tag($refAgent) ?>">
+                                        <td data-label="گروه">
+                                            <div class="dash-unified-content"><span class="mobile-label">گروه:</span><span class="tag <?= user_role_tag($refAgent) ?>">
                                                 <?= user_role_label($refAgent) ?>
-                                            </span>
+                                            </span></div>
                                         </td>
-                                        <td data-label="<?= $textbotlang['panel']['userMessagePlaceholder'] ?>" class="cf"><?= safe_date($ref['register'] ?? null, 'm/d') ?></td>
+                                        <td data-label="تاریخ" class="cf">
+                                            <div class="dash-unified-content"><span class="mobile-label">تاریخ:</span><span style="color:var(--mute);"><?= safe_date($ref['register'] ?? null, 'm/d') ?></span></div>
+                                        </td>
                                     </tr>
                                 <?php endforeach; ?>
                             </tbody>
@@ -750,7 +854,7 @@ include __DIR__ . '/inc/layout_head.php';
                 <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
                 <input type="hidden" name="action" value="transfer_account">
                 <div class="field">
-                    <label>آیدی عددی کاربر مقصد</label>
+                    <label>شناسه کاربر مقصد</label>
                     <input type="number" name="target_id" class="input" placeholder="ID کاربر هدف..." required>
                     <span class="field-hint" style="color:var(--warn)">توجه: موجودی و سرویس‌ها منتقل خواهند شد.</span>
                 </div>

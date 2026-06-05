@@ -114,6 +114,39 @@ $keyboardaddbalance = json_encode([
             ],
         ]
     ]);
+$custom_keyboard = null;
+if (isset($info['btnmessage']) && $info['btnmessage'] !== "none") {
+    if ($info['btnmessage'] == "buy") {
+        $custom_keyboard = $keyboardbuy;
+    } elseif ($info['btnmessage'] == "start") {
+        $custom_keyboard = $keyboardstart;
+    } elseif ($info['btnmessage'] == "usertestbtn") {
+        $custom_keyboard = $keyboardusertest;
+    } elseif ($info['btnmessage'] == "helpbtn") {
+        $custom_keyboard = $keyboardhelpbtn;
+    } elseif ($info['btnmessage'] == "affiliatesbtn") {
+        $custom_keyboard = $keyboardaffiliates;
+    } elseif ($info['btnmessage'] == "addbalance") {
+        $custom_keyboard = $keyboardaddbalance;
+    } elseif ($info['btnmessage'] == "custom_url") {
+        $custom_keyboard = json_encode([
+            'inline_keyboard' => [
+                [
+                    ['text' => $info['custom_btn_text_url'], 'url' => $info['custom_btn_link']],
+                ],
+            ]
+        ]);
+    } elseif ($info['btnmessage'] == "custom_product") {
+        $custom_keyboard = json_encode([
+            'inline_keyboard' => [
+                [
+                    ['text' => $info['custom_btn_text_prod'], 'callback_data' => $info['custom_btn_callback']],
+                ],
+            ]
+        ]);
+    }
+}
+
 for ($i = 0; $i < 150; $i++) {
     if (empty($userid)) {
         break;
@@ -128,23 +161,9 @@ for ($i = 0; $i < 150; $i++) {
     if ($info['type'] == "unpinmessage") {
         unpinmessage($iduser->id);
     } elseif ($info['type'] == "sendmessage" or $info['type'] == "xdaynotmessage") {
-        if ($info['btnmessage'] == "none") {
-            $meesage = sendmessage($iduser->id, $info['message'], null, 'HTML');
-        } elseif ($info['btnmessage'] == "buy") {
-            $meesage = sendmessage($iduser->id, $info['message'], $keyboardbuy, 'HTML');
-        } elseif ($info['btnmessage'] == "start") {
-            $meesage = sendmessage($iduser->id, $info['message'], $keyboardstart, 'HTML');
-        } elseif ($info['btnmessage'] == "usertestbtn") {
-            $meesage = sendmessage($iduser->id, $info['message'], $keyboardusertest, 'HTML');
-        } elseif ($info['btnmessage'] == "helpbtn") {
-            $meesage = sendmessage($iduser->id, $info['message'], $keyboardhelpbtn, 'HTML');
-        } elseif ($info['btnmessage'] == "affiliatesbtn") {
-            $meesage = sendmessage($iduser->id, $info['message'], $keyboardaffiliates, 'HTML');
-        } elseif ($info['btnmessage'] == "addbalance") {
-            $meesage = sendmessage($iduser->id, $info['message'], $keyboardaddbalance, 'HTML');
-        }
+        $meesage = sendmessage($iduser->id, $info['message'], $custom_keyboard, 'HTML');
 
-        if ($meesage['ok'] == false and $meesage['description'] == "Forbidden: bot was blocked by the user") {
+        if (isset($meesage['ok']) && $meesage['ok'] == false and $meesage['description'] == "Forbidden: bot was blocked by the user") {
             $invoicecount = select("invoice", "*", "id_user", $iduser->id, "count");
             $userinfo = select("user", "Balance", "id", $iduser->id, "select");
             if ($invoicecount == 0 and $userinfo['Balance'] == 0) {
@@ -154,12 +173,12 @@ for ($i = 0; $i < 150; $i++) {
             }
         }
 
-        if ($meesage['ok'] and ($info['pingmessage'] == "yes" or $isAdminOrOwner)) {
+        if (isset($meesage['ok']) && $meesage['ok'] and ($info['pingmessage'] == "yes" or $isAdminOrOwner)) {
             pinmessage($iduser->id, $meesage['result']['message_id']);
         }
     } elseif ($info['type'] == "forwardmessage") {
         $meesage = forwardMessage($info['id_admin'], $info['message'], $iduser->id);
-        if ($meesage['ok'] and ($info['pingmessage'] == "yes" or $isAdminOrOwner)) {
+        if (isset($meesage['ok']) && $meesage['ok'] and ($info['pingmessage'] == "yes" or $isAdminOrOwner)) {
             pinmessage($iduser->id, $meesage['result']['message_id']);
         }
     } elseif ($info['type'] == "forwardlink") {
@@ -176,11 +195,15 @@ for ($i = 0; $i < 150; $i++) {
         }
         
         if ($from_chat_id && $message_id) {
-            $meesage = telegram('copyMessage', [
+            $copy_params = [
                 'chat_id' => $iduser->id,
                 'from_chat_id' => $from_chat_id,
                 'message_id' => $message_id
-            ]);
+            ];
+            if ($custom_keyboard) {
+                $copy_params['reply_markup'] = $custom_keyboard;
+            }
+            $meesage = telegram('copyMessage', $copy_params);
             
             if (isset($meesage['ok']) && $meesage['ok'] == false && strpos($meesage['description'], 'Forbidden: bot was blocked by the user') !== false) {
                 $invoicecount = select("invoice", "*", "id_user", $iduser->id, "count");

@@ -297,10 +297,9 @@ include __DIR__ . '/inc/layout_head.php';
         <table class="tbl-xl">
             <thead>
                 <tr>
-                    <th><?= $textbotlang['panel']['dashColUser'] ?? 'کاربر' ?></th>
-                    <th><?= $textbotlang['panel']['usersColContactInfo'] ?? 'اطلاعات تماس' ?></th>
-                    <th><?= $textbotlang['panel']['usersColFinancial'] ?? 'مالی و امتیاز' ?></th>
-                    <th><?= $textbotlang['panel']['usersColStatusActions'] ?? 'وضعیت و عملیات' ?></th>
+                    <th style="min-width: 250px;"><?= $textbotlang['panel']['dashColUser'] ?? 'کاربر' ?></th>
+                    <th style="min-width: 320px;">جزئیات و مالی</th>
+                    <th style="text-align:center; min-width: 180px;"><?= $textbotlang['panel']['usersColStatusActions'] ?? 'عملیات' ?></th>
                 </tr>
             </thead>
             <tbody>
@@ -328,95 +327,100 @@ include __DIR__ . '/inc/layout_head.php';
                         $uname = $u['username'] ?? '';
                         if ($uname === 'none') $uname = '';
                         ?>
-                        <tr style="border-bottom: 1px solid var(--bd);">
-                            <td data-label="<?= $textbotlang['panel']['dashColUser'] ?? 'کاربر' ?>" class="no-label">
-                                <div class="user-profile-cell" style="display:flex; justify-content:space-between; align-items:center; width:100%; flex-wrap:wrap; gap:8px;">
-                                    <div class="user-avatar-info" style="display:flex; align-items:center; gap:8px;">
-                                        <div class="avatar-icon" style="background: rgba(var(--ac-rgb), 0.1); color: var(--ac); padding: 6px; border-radius: 50%; display:flex; align-items:center; justify-content:center;">
-                                            <?= icon('user', 18) ?>
+                        <tr style="border-bottom: 1px solid var(--bd); position:relative;">
+                            <td data-label="<?= $textbotlang['panel']['dashColUser'] ?? 'کاربر' ?>" class="no-label" style="vertical-align: top;">
+                                <?php if ($isBlocked): ?>
+                                    <span class="status-pill danger" style="position:absolute; top:12px; left:12px; font-size:0.7rem; padding:2px 8px;">مسدود</span>
+                                <?php else: ?>
+                                    <span class="status-pill <?= $agent === 'n2' ? 'warning' : ($agent === 'n' ? 'info' : 'success') ?>" style="position:absolute; top:12px; left:12px; font-size:0.7rem; padding:2px 8px;"><?= user_role_label($agent) ?></span>
+                                <?php endif; ?>
+
+                                <div style="display:flex; flex-direction:column; gap:14px; padding-top:4px;">
+                                    <div style="display:flex; align-items:center; gap:12px;">
+                                        <div class="avatar-icon" style="background: rgba(var(--ac-rgb), 0.1); color: var(--ac); width: 44px; height: 44px; border-radius: 50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                            <?= icon('user', 24) ?>
                                         </div>
-                                        <span class="profile-name" style="font-weight:600; font-size:0.95rem;">
-                                            <?php if ($name): ?>
-                                                <?= htmlspecialchars(trunc($name, 18)) ?>
-                                            <?php elseif ($uname): ?>
-                                                <span style="direction:ltr; display:inline-block;">@<?= htmlspecialchars(trunc($uname, 18)) ?></span>
-                                            <?php else: ?>
-                                                <?= $textbotlang['panel']['dashColUser'] ?? 'کاربر' ?>
+                                        <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-start;">
+                                            <span class="profile-name" style="font-weight:700; font-size:1rem; color:var(--text);">
+                                                <?php if ($name): ?>
+                                                    <?= htmlspecialchars(trunc($name, 20)) ?>
+                                                <?php elseif ($uname): ?>
+                                                    <span style="direction:ltr; display:inline-block;">@<?= htmlspecialchars(trunc($uname, 20)) ?></span>
+                                                <?php else: ?>
+                                                    کاربر بدون نام
+                                                <?php endif; ?>
+                                            </span>
+                                            <?php if ($uname && $name): ?>
+                                                <span class="cm" style="color:var(--ac); font-size:0.85rem; direction:ltr; display:inline-block; text-align:right; font-weight:600;">@<?= htmlspecialchars($uname) ?></span>
                                             <?php endif; ?>
-                                        </span>
+                                        </div>
                                     </div>
-                                    <div class="profile-id-box" style="display:flex; align-items:center; gap:6px; font-size: 0.8rem; color: var(--mute); background:rgba(var(--glass-base-rgb),0.5); padding:4px 8px; border-radius:8px;">
-                                        <?= icon('id-card', 14) ?>
-                                        <span class="cf">آیدی :</span>
-                                        <span class="cn" style="font-family:monospace; font-size:0.85rem;"><?= htmlspecialchars($u['id']) ?></span>
-                                        <?php if ($uname && $name): ?>
-                                            <span class="cm" style="color:var(--ac); margin-right:6px; direction:ltr; display:inline-block;">@<?= htmlspecialchars($uname) ?></span>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
-                            </td>
-                            <td data-label="<?= $textbotlang['panel']['usersColContactInfo'] ?? 'اطلاعات تماس' ?>">
-                                <div class="dash-unified-content">
-                                    <span class="mobile-label"><?= $textbotlang['panel']['usersColContactInfo'] ?? 'اطلاعات تماس' ?>:</span>
-                                    <div style="display:flex; flex-direction:column; gap:8px;">
+
+                                    <div style="display:flex; align-items:center; gap:12px;">
+                                        <div style="width: 44px; display:flex; justify-content:center; flex-shrink:0;">
+                                            <div onclick="navigator.clipboard.writeText('<?= htmlspecialchars($u['id']) ?>'); this.style.color='var(--ac)'; setTimeout(()=>this.style.color='var(--mute)', 1000);" style="background: var(--sf2); color: var(--mute); width: 31px; height: 31px; border-radius: 50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:1px solid var(--bd); transition: 0.2s;" title="کپی شناسه">
+                                                <?= icon('copy', 14) ?>
+                                            </div>
+                                        </div>
                                         <div style="display:flex; align-items:center; gap:6px; font-size:0.85rem;">
-                                            <span style="color:var(--mute)"><?= icon('phone', 14) ?></span>
-                                            <span class="cm cf"><?= (!empty($u['number']) && $u['number'] !== 'none') ? htmlspecialchars($u['number']) : '—' ?></span>
-                                        </div>
-                                        <div style="display:flex; align-items:center; gap:6px; font-size:0.8rem;">
-                                            <span style="color:var(--mute)"><?= icon('calendar', 14) ?></span>
-                                            <span class="cf"><?= safe_date($u['register'] ?? null) ?></span>
+                                            <span style="color:var(--mute); font-weight:600;">شناسه کاربر :</span>
+                                            <span class="cn" style="font-family:monospace; font-weight:600; font-size:0.95rem; color:var(--text);"><?= htmlspecialchars($u['id']) ?></span>
                                         </div>
                                     </div>
                                 </div>
                             </td>
-                            <td data-label="<?= $textbotlang['panel']['usersColFinancial'] ?? 'مالی و امتیاز' ?>">
-                                <div class="dash-unified-content">
-                                    <span class="mobile-label"><?= $textbotlang['panel']['usersColFinancial'] ?? 'مالی و امتیاز' ?>:</span>
-                                    <div style="display:flex; flex-direction:column; gap:8px;">
-                                        <div style="display:flex; align-items:center; gap:6px;">
-                                            <span style="color:var(--mute)"><?= icon('wallet', 14) ?></span>
-                                            <span class="cn" style="font-weight:600; font-size:1rem; color:var(--ac);">
-                                                <?= number_format((int) ($u['Balance'] ?? 0)) ?> <span class="cf" style="font-size:0.75rem"><?= $textbotlang['panel']['dashTomanShort'] ?? 'ت' ?></span>
+
+                            <td data-label="جزئیات و مالی" class="no-label" style="vertical-align: top; padding-top:20px;">
+                                <div style="display:flex; flex-direction:column; gap:18px; width:100%;">
+                                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                                        <div style="display:flex; align-items:center; gap:6px; font-size:0.85rem;">
+                                            <span style="color:var(--mute); font-weight:600;">اطلاعات تماس :</span>
+                                            <span class="cm cf" style="color:var(--text); font-weight:600;"><?= (!empty($u['number']) && $u['number'] !== 'none') ? htmlspecialchars($u['number']) : '—' ?></span>
+                                        </div>
+                                        <div style="display:flex; align-items:center; gap:6px; font-size:0.85rem;">
+                                            <span style="color:var(--mute); font-weight:600;">تاریخ عضویت :</span>
+                                            <span class="cf" style="color:var(--text); font-weight:600;"><?= safe_date($u['register'] ?? null) ?></span>
+                                        </div>
+                                    </div>
+
+                                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                                        <div style="display:flex; align-items:center; gap:6px; font-size:0.85rem;">
+                                            <span style="color:var(--mute); font-weight:600;">کیف پول کاربر :</span>
+                                            <span class="cn" style="font-weight:700; font-size:1rem; color:var(--ac);">
+                                                <?= number_format((int) ($u['Balance'] ?? 0)) ?> <span class="cf" style="font-size:0.75rem">ت</span>
                                             </span>
                                         </div>
                                         <div style="display:flex; align-items:center; gap:6px; font-size:0.85rem;">
-                                            <span style="color:var(--warn)"><?= icon('star', 14) ?></span>
-                                            <span class="cn"><?= (int) ($u['score'] ?? 0) > 0 ? number_format((int) ($u['score'] ?? 0)) : '<span class="cf">—</span>' ?></span>
+                                            <span style="color:var(--mute); font-weight:600;">امتیاز کاربر :</span>
+                                            <div style="display:flex; align-items:center; gap:4px; font-weight:700; color:var(--warn); font-size:1rem;">
+                                                <span class="cn"><?= (int) ($u['score'] ?? 0) ?></span>
+                                                <?= icon('star', 16) ?>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </td>
-                            <td data-label="<?= $textbotlang['panel']['usersColStatusActions'] ?? 'وضعیت و عملیات' ?>">
-                                <div class="dash-unified-content">
-                                    <span class="mobile-label"><?= $textbotlang['panel']['usersColStatusActions'] ?? 'وضعیت و عملیات' ?>:</span>
-                                    <div style="display:flex; align-items:center; justify-content:flex-end; gap:8px; flex-wrap:wrap;">
-                                        <div style="display:flex; gap:6px; align-items:center;">
-                                            <?php if ($isBlocked): ?>
-                                                <span class="status-pill danger">مسدود</span>
-                                            <?php else: ?>
-                                                <span class="status-pill <?= $agent === 'n2' ? 'warning' : ($agent === 'n' ? 'info' : 'success') ?>"><?= user_role_label($agent) ?></span>
-                                            <?php endif; ?>
-                                        </div>
-                                        <div style="display:flex; gap:4px">
-                                            <a href="user.php?id=<?= (int) $u['id'] ?>" class="btn btn-ghost btn-sm btn-icon"
-                                                title="<?= $textbotlang['panel']['usersViewBtn'] ?>">
-                                                <?= icon('eye', 14) ?>
+
+                            <td data-label="عملیات" class="no-label" style="vertical-align: bottom; padding-bottom:16px;">
+                                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; width:100%; height:100%; margin-top:10px;">
+                                    <span style="color:var(--mute); font-size:0.85rem; font-weight:600; display: block; text-align: center; width: 100%;">عملیات :</span>
+                                    <div style="display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap;">
+                                        <a href="user.php?id=<?= (int) $u['id'] ?>" class="btn btn-ghost btn-sm" style="padding:6px 16px; font-weight:600;" title="<?= $textbotlang['panel']['usersViewBtn'] ?>">
+                                            <?= icon('eye', 16) ?> ویرایش
+                                        </a>
+                                        <?php if ($isBlocked): ?>
+                                            <a href="user_action.php?action=unblock&id=<?= (int) $u['id'] ?>&_csrf=<?= csrf_token() ?>&back=users.php"
+                                                class="btn btn-ok btn-sm" style="padding:6px 16px; font-weight:600;" title="<?= $textbotlang['panel']['usersUnblockBtn'] ?>"
+                                                data-confirm="<?= sprintf($textbotlang['panel']['usersConfirmUnblockUser'], $name, $u['id']) ?>">
+                                                <?= icon('check', 16) ?> آزادسازی
                                             </a>
-                                            <?php if ($isBlocked): ?>
-                                                <a href="user_action.php?action=unblock&id=<?= (int) $u['id'] ?>&_csrf=<?= csrf_token() ?>&back=users.php"
-                                                    class="btn btn-ok btn-sm btn-icon" title="<?= $textbotlang['panel']['usersUnblockBtn'] ?>"
-                                                    data-confirm="<?= sprintf($textbotlang['panel']['usersConfirmUnblockUser'], $name, $u['id']) ?>">
-                                                    <?= icon('check', 13) ?>
-                                                </a>
-                                            <?php else: ?>
-                                                <a href="user_action.php?action=block&id=<?= (int) $u['id'] ?>&_csrf=<?= csrf_token() ?>&back=users.php"
-                                                    class="btn btn-no btn-sm btn-icon" title="<?= $textbotlang['panel']['usersBlockBtn'] ?>"
-                                                    data-confirm="<?= sprintf($textbotlang['panel']['usersConfirmBlockUser'], $name, $u['id']) ?>">
-                                                    <?= icon('block', 13) ?>
-                                                </a>
-                                            <?php endif; ?>
-                                        </div>
+                                        <?php else: ?>
+                                            <a href="user_action.php?action=block&id=<?= (int) $u['id'] ?>&_csrf=<?= csrf_token() ?>&back=users.php"
+                                                class="btn btn-no btn-sm" style="padding:6px 16px; font-weight:600;" title="<?= $textbotlang['panel']['usersBlockBtn'] ?>"
+                                                data-confirm="<?= sprintf($textbotlang['panel']['usersConfirmBlockUser'], $name, $u['id']) ?>">
+                                                <?= icon('block', 16) ?> مسدود کردن
+                                            </a>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                             </td>

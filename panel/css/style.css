@@ -1090,3 +1090,47 @@ body::after {
 }
 . m o b i l e - l a b e l   {   d i s p l a y :   n o n e ;   } 
 .mobile-label { display: none; }
+
+/* User Details KV Grid */
+.user-kv-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 14px;
+}
+.user-kv-grid .kv {
+    flex-direction: column;
+    align-items: flex-start;
+    border-bottom: none;
+    padding: 10px;
+    background: var(--sf2);
+    border-radius: 8px;
+    gap: 6px;
+}
+.user-kv-grid .kv:hover {
+    background: var(--sf3);
+}
+.user-kv-grid .kv-key {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+.user-kv-grid .kv-val {
+    align-self: flex-end;
+    font-size: 0.85rem;
+}
+
+/* User Actions Grid */
+.user-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+    padding: 16px;
+}
+.user-actions-grid .btn {
+    width: 100%;
+    justify-content: center;
+}
+

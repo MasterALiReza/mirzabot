@@ -10,6 +10,13 @@ $history_stmt = $pdo->prepare("SELECT * FROM broadcast_history ORDER BY id DESC 
 $history_stmt->execute();
 $histories = $history_stmt->fetchAll(PDO::FETCH_ASSOC);
 
+// Fetch Categories and Products for inline buttons
+$categories_stmt = $pdo->query("SELECT * FROM category");
+$categories = $categories_stmt ? $categories_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
+
+$products_stmt = $pdo->query("SELECT * FROM product");
+$products = $products_stmt ? $products_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
+
 ?>
 
 <style>
@@ -277,16 +284,47 @@ $histories = $history_stmt->fetchAll(PDO::FETCH_ASSOC);
                 </div>
                 
                 <div class="field">
-                    <label class="label">دکمه شیشه‌ای (فقط پیام متنی)</label>
-                    <select class="input select" name="btnmessage" id="btnmessage">
+                    <label class="label">دکمه شیشه‌ای (اختیاری)</label>
+                    <select class="input select" name="btnmessage" id="btnmessage" onchange="toggleBtnFields()">
                         <option value="none">بدون دکمه</option>
-                        <option value="buy">دکمه خرید سرویس (فروشگاه)</option>
-                        <option value="start">دکمه شروع مجدد ربات</option>
-                        <option value="usertestbtn">دکمه دریافت حساب تست</option>
-                        <option value="helpbtn">دکمه راهنما و پشتیبانی</option>
-                        <option value="affiliatesbtn">دکمه سیستم همکاری در فروش</option>
-                        <option value="addbalance">دکمه افزایش موجودی کیف پول</option>
+                        <option value="custom_url">لینک شخصی (آدرس اینترنتی)</option>
+                        <option value="custom_product">لینک به دسته / محصول در ربات</option>
+                        <optgroup label="دکمه‌های آماده ربات">
+                            <option value="buy">دکمه خرید سرویس (فروشگاه)</option>
+                            <option value="start">دکمه شروع مجدد ربات</option>
+                            <option value="usertestbtn">دکمه دریافت حساب تست</option>
+                            <option value="helpbtn">دکمه راهنما و پشتیبانی</option>
+                            <option value="affiliatesbtn">دکمه سیستم همکاری در فروش</option>
+                            <option value="addbalance">دکمه افزایش موجودی کیف پول</option>
+                        </optgroup>
                     </select>
+                </div>
+
+                <div class="field" id="customUrlFields" style="display: none;">
+                    <label class="label">متن و آدرس دکمه شخصی</label>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="text" class="input" name="custom_btn_text_url" id="customBtnTextUrl" placeholder="متن (مثال: کانال ما)" style="flex: 1;">
+                        <input type="url" class="input" name="custom_btn_link" id="customBtnLink" placeholder="لینک (مثال: https://t.me/)" dir="ltr" style="flex: 2;">
+                    </div>
+                </div>
+
+                <div class="field" id="customProductFields" style="display: none;">
+                    <label class="label">متن دکمه و انتخاب محصول/دسته</label>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="text" class="input" name="custom_btn_text_prod" id="customBtnTextProd" placeholder="متن (مثال: تخفیف ویژه 1 ماهه)" style="flex: 1;">
+                        <select class="input select" name="custom_btn_callback" id="customBtnCallback" style="flex: 2;">
+                            <optgroup label="دسته‌بندی‌ها">
+                                <?php foreach($categories as $cat): ?>
+                                    <option value="categorynames_<?= htmlspecialchars($cat['id']) ?>"><?= htmlspecialchars($cat['remark'] ?? 'بدون نام') ?></option>
+                                <?php endforeach; ?>
+                            </optgroup>
+                            <optgroup label="محصولات">
+                                <?php foreach($products as $prod): ?>
+                                    <option value="prodcutservices_<?= htmlspecialchars($prod['id']) ?>"><?= htmlspecialchars($prod['name_product'] ?? 'بدون نام') ?> (<?= htmlspecialchars($prod['Location'] ?? '') ?>)</option>
+                                <?php endforeach; ?>
+                            </optgroup>
+                        </select>
+                    </div>
                 </div>
             </div>
         </div>
@@ -414,8 +452,8 @@ function toggleFields() {
         btn.style.opacity = '0.5';
         msg.style.display = 'none';
     } else if (type === 'forwardlink') {
-        btn.disabled = true;
-        btn.style.opacity = '0.5';
+        btn.disabled = false; // copyMessage supports inline keyboards!
+        btn.style.opacity = '1';
         msg.style.display = 'block';
         msg.style.opacity = '1';
         textGroup.style.display = 'none';

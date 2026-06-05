@@ -93,28 +93,59 @@ foreach ($all_ids as $id) {
     $formatted_users[] = ['id' => $id];
 }
 
+$custom_btn_text_url = trim($_POST['custom_btn_text_url'] ?? '');
+$custom_btn_link = trim($_POST['custom_btn_link'] ?? '');
+$custom_btn_text_prod = trim($_POST['custom_btn_text_prod'] ?? '');
+$custom_btn_callback = trim($_POST['custom_btn_callback'] ?? '');
+
 $info = [
     'id_admin' => $id_admin,
     'id_message' => 0, // Panel doesn't have a specific telegram message to edit for progress
     'type' => $type,
     'message' => $message,
     'pingmessage' => $pingmessage,
-    'btnmessage' => $btnmessage
+    'btnmessage' => $btnmessage,
+    'custom_btn_text_url' => $custom_btn_text_url,
+    'custom_btn_link' => $custom_btn_link,
+    'custom_btn_text_prod' => $custom_btn_text_prod,
+    'custom_btn_callback' => $custom_btn_callback
 ];
 
 file_put_contents('../../cronbot/users.json', json_encode($formatted_users));
 file_put_contents('../../cronbot/info', json_encode($info));
 
+// Ensure columns exist for new button types
+try {
+    $pdo->exec("ALTER TABLE broadcast_history ADD COLUMN pin_message TINYINT(1) DEFAULT 0");
+    $pdo->exec("ALTER TABLE broadcast_history ADD COLUMN button_type VARCHAR(50) DEFAULT NULL");
+    $pdo->exec("ALTER TABLE broadcast_history ADD COLUMN button_text VARCHAR(100) DEFAULT NULL");
+    $pdo->exec("ALTER TABLE broadcast_history ADD COLUMN button_data VARCHAR(255) DEFAULT NULL");
+} catch (Exception $e) {}
+
 // Log into broadcast_history
 $msg_type_db = ($type === 'forwardlink') ? 'forwardlink' : (($type === 'sendmessage') ? 'text' : 'unpin');
 if ($msg_type_db !== 'unpin') {
-    $hist_stmt = $pdo->prepare("INSERT INTO broadcast_history (admin_id, message_type, content, target_audience, status, created_at) VALUES (?, ?, ?, ?, 'pending', ?)");
+    $btn_txt = null;
+    $btn_dat = null;
+    if ($btnmessage === 'custom_url') {
+        $btn_txt = $custom_btn_text_url;
+        $btn_dat = $custom_btn_link;
+    } elseif ($btnmessage === 'custom_product') {
+        $btn_txt = $custom_btn_text_prod;
+        $btn_dat = $custom_btn_callback;
+    }
+    
+    $hist_stmt = $pdo->prepare("INSERT INTO broadcast_history (admin_id, message_type, content, target_audience, status, created_at, pin_message, button_type, button_text, button_data) VALUES (?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?)");
     $hist_stmt->execute([
         $id_admin,
         $msg_type_db,
         $message,
         $target_users,
-        time()
+        time(),
+        $pingmessage === 'yes' ? 1 : 0,
+        $btnmessage,
+        $btn_txt,
+        $btn_dat
     ]);
 }
 
