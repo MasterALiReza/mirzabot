@@ -335,8 +335,8 @@ include __DIR__ . '/inc/layout_head.php';
                                     <span class="status-pill <?= $agent === 'n2' ? 'warning' : ($agent === 'n' ? 'info' : 'success') ?>" style="position:absolute; top:12px; left:12px; font-size:0.7rem; padding:2px 8px;"><?= user_role_label($agent) ?></span>
                                 <?php endif; ?>
 
-                                <div style="display:flex; flex-direction:column; gap:14px; padding-top:4px;">
-                                    <div style="display:flex; align-items:center; gap:12px;">
+                                <div style="display:flex; flex-direction:column; gap:14px; padding-top:4px; align-items:flex-start; justify-content:flex-start; width:100%;">
+                                    <div style="display:flex; align-items:center; gap:12px; align-self:flex-start; text-align:right;">
                                         <div class="avatar-icon" style="background: rgba(var(--ac-rgb), 0.1); color: var(--ac); width: 44px; height: 44px; border-radius: 50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
                                             <?= icon('user', 24) ?>
                                         </div>
@@ -356,7 +356,7 @@ include __DIR__ . '/inc/layout_head.php';
                                         </div>
                                     </div>
 
-                                    <div style="display:flex; align-items:center; gap:12px;">
+                                    <div style="display:flex; align-items:center; gap:12px; align-self:flex-start; text-align:right;">
                                         <div style="width: 44px; display:flex; justify-content:center; flex-shrink:0;">
                                             <div onclick="navigator.clipboard.writeText('<?= htmlspecialchars($u['id']) ?>'); this.style.color='var(--ac)'; setTimeout(()=>this.style.color='var(--mute)', 1000);" style="background: var(--sf2); color: var(--mute); width: 31px; height: 31px; border-radius: 50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:1px solid var(--bd); transition: 0.2s;" title="کپی شناسه">
                                                 <?= icon('copy', 14) ?>
@@ -370,9 +370,9 @@ include __DIR__ . '/inc/layout_head.php';
                                 </div>
                             </td>
 
-                            <td data-label="جزئیات و مالی" class="no-label" style="vertical-align: top; padding-top:20px;">
+                            <td data-label="جزئیات و مالی" class="no-label" style="vertical-align: top; padding-top:20px; text-align:right;">
                                 <div style="display:flex; flex-direction:column; gap:18px; width:100%;">
-                                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                                    <div style="display:flex; justify-content:flex-start; align-items:center; flex-wrap:wrap; gap:16px;">
                                         <div style="display:flex; align-items:center; gap:6px; font-size:0.85rem;">
                                             <span style="color:var(--mute); font-weight:600;">اطلاعات تماس :</span>
                                             <span class="cm cf" style="color:var(--text); font-weight:600;"><?= (!empty($u['number']) && $u['number'] !== 'none') ? htmlspecialchars($u['number']) : '—' ?></span>
@@ -383,7 +383,7 @@ include __DIR__ . '/inc/layout_head.php';
                                         </div>
                                     </div>
 
-                                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                                    <div style="display:flex; justify-content:flex-start; align-items:center; flex-wrap:wrap; gap:16px;">
                                         <div style="display:flex; align-items:center; gap:6px; font-size:0.85rem;">
                                             <span style="color:var(--mute); font-weight:600;">کیف پول کاربر :</span>
                                             <span class="cn" style="font-weight:700; font-size:1rem; color:var(--ac);">
