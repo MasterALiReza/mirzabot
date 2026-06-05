@@ -598,3 +598,79 @@ body::after {
 [data-theme=mint]           { --glass-base-rgb: 240, 253, 244; }
 [data-theme=lavender]       { --glass-base-rgb: 250, 245, 255; }
 
+/* ========================================================================
+   BOT_SETTINGS & PANELS_MANAGE — Global .arvan-* fixes
+   These classes are used in bot_settings.php and panels_manage.php
+   The inline styles defined there use var(--fg) (undefined) and var(--bg)
+   (too dark). This global override ensures correct theming.
+   ======================================================================== */
+
+/* arvan-select: same color-scheme fix as native .select */
+[data-theme=navy] .arvan-select,
+[data-theme=purple] .arvan-select,
+[data-theme=emerald] .arvan-select,
+[data-theme=sunset] .arvan-select,
+[data-theme=slate] .arvan-select {
+    color-scheme: dark;
+    background-color: var(--sf2) !important;
+    color: var(--text) !important;
+}
+
+[data-theme=light] .arvan-select,
+[data-theme=linen] .arvan-select,
+[data-theme=mint] .arvan-select,
+[data-theme=lavender] .arvan-select {
+    color-scheme: light;
+    background-color: var(--sf2) !important;
+    color: var(--text) !important;
+}
+
+/* arvan-input: consistent with panel .input */
+.arvan-input {
+    background: var(--sf2) !important;
+    color: var(--text) !important;
+    border-color: var(--bd) !important;
+    font-family: var(--font) !important;
+}
+.arvan-input::placeholder {
+    color: var(--dim) !important;
+}
+
+/* toggle-field: ensure not too dark */
+.toggle-field {
+    background: var(--sf) !important;
+}
+.toggle-field:hover {
+    background: var(--sf2) !important;
+}
+
+/* toggle-label: fix undefined --fg */
+.toggle-label {
+    color: var(--text) !important;
+}
+
+/* Sub-tab active in light themes */
+[data-theme=light] .arvan-sub-tab-btn.active,
+[data-theme=linen] .arvan-sub-tab-btn.active,
+[data-theme=mint] .arvan-sub-tab-btn.active,
+[data-theme=lavender] .arvan-sub-tab-btn.active {
+    color: var(--ac) !important;
+}
+
+/* arvan-main-tab-btn active: ensure text is white in dark themes */
+[data-theme=navy] .arvan-main-tab-btn.active,
+[data-theme=purple] .arvan-main-tab-btn.active,
+[data-theme=emerald] .arvan-main-tab-btn.active,
+[data-theme=sunset] .arvan-main-tab-btn.active,
+[data-theme=slate] .arvan-main-tab-btn.active {
+    color: #fff !important;
+}
+
+/* arvan-main-tab-btn active in light themes */
+[data-theme=light] .arvan-main-tab-btn.active,
+[data-theme=linen] .arvan-main-tab-btn.active,
+[data-theme=mint] .arvan-main-tab-btn.active,
+[data-theme=lavender] .arvan-main-tab-btn.active {
+    color: #fff !important;
+}
+

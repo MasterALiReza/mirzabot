@@ -495,7 +495,7 @@ include __DIR__ . '/inc/layout_head.php';
     background: transparent;
     border: none;
     border-bottom: 2px solid transparent;
-    color: var(--fg);
+    color: var(--text2);
     cursor: pointer;
     transition: all 0.2s;
     font-size: 0.9rem;
@@ -526,17 +526,18 @@ include __DIR__ . '/inc/layout_head.php';
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    padding: 16px 20px;
-    background: var(--bg);
-    border-radius: 14px;
+    padding: 14px 18px;
+    background: var(--sf);
+    border-radius: 12px;
     border: 1px solid var(--bd);
     gap: 12px;
     text-align: right;
     transition: all 0.2s ease;
 }
 .toggle-field:hover {
-    border-color: var(--bds);
+    border-color: var(--ac);
     background: var(--sf2);
+    box-shadow: 0 0 0 2px var(--acs);
 }
 .toggle-texts {
     display: flex;
@@ -547,74 +548,94 @@ include __DIR__ . '/inc/layout_head.php';
 .toggle-label {
     font-size: 0.85rem;
     font-weight: 600;
-    color: var(--fg);
+    color: var(--text);
     margin: 0;
     line-height: 1.4;
     cursor: pointer;
 }
 .toggle-state {
-    font-size: 0.75rem;
-    color: var(--mute);
+    font-size: 0.72rem;
+    color: var(--ac);
+    font-weight: 500;
 }
 
 .arvan-select {
     width: 100%;
-    padding: 12px;
+    padding: 10px 12px;
     padding-left: 35px;
     border-radius: 8px;
-    border: 1px solid var(--bd);
-    background: var(--bg);
-    color: var(--fg);
-    font-size: 0.95rem;
+    border: 1.5px solid var(--bd);
+    background: var(--sf2);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 0.85rem;
     appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    color-scheme: inherit;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
     background-repeat: no-repeat;
-    background-position: left 12px center;
-    background-size: 16px;
+    background-position: left 10px center;
+    background-size: 15px;
     transition: all 0.2s ease;
+    outline: 0;
+}
+.arvan-select:hover {
+    border-color: var(--bds);
 }
 .arvan-select:focus {
-    outline: none;
     border-color: var(--ac);
-    box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.1);
+    box-shadow: 0 0 0 3px var(--acs);
 }
 .arvan-input {
     width: 100%;
-    padding: 12px;
+    padding: 10px 12px;
     border-radius: 8px;
-    border: 1px solid var(--bd);
-    background: var(--bg);
-    color: var(--fg);
-    font-size: 0.95rem;
+    border: 1.5px solid var(--bd);
+    background: var(--sf2);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 0.85rem;
     transition: all 0.2s ease;
+    outline: 0;
+}
+.arvan-input::placeholder {
+    color: var(--dim);
+}
+.arvan-input:hover {
+    border-color: var(--bds);
 }
 .arvan-input:focus {
-    outline: none;
     border-color: var(--ac);
-    box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.1);
+    box-shadow: 0 0 0 3px var(--acs);
+}
+@media (max-width: 768px) {
+    .arvan-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+    .field:not(.toggle-field) {
+        grid-column: 1 / -1;
+    }
 }
 @media (max-width: 480px) {
     .arvan-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
     }
     .field:not(.toggle-field) {
         grid-column: 1 / -1;
     }
     .toggle-field {
-        flex-direction: column;
-        justify-content: center;
-        padding: 14px 8px;
-        gap: 10px;
-        text-align: center;
-    }
-    .toggle-texts {
-        align-items: center;
+        flex-direction: row;
+        padding: 12px 14px;
+        gap: 8px;
     }
     .toggle-label {
-        font-size: 0.78rem;
+        font-size: 0.8rem;
+    }
+    .toggle-state {
+        font-size: 0.68rem;
     }
 }
 @media (max-width: 600px) {
@@ -789,8 +810,8 @@ input:checked + .arvan-slider:before {
                                                 </label>
                                             </div>
                                         <?php elseif($f['type'] === 'text' || $f['type'] === 'number'): ?>
-                                            <div class="field" style="display: flex; flex-direction: column;">
-                                                <label style="font-weight: 600; margin-bottom: 8px; color: var(--fg); font-size: 0.9rem;"><?= $f['label'] ?></label>
+                                            <div class="field" style="display: flex; flex-direction: column; gap: 6px;">
+                                                <label class="field" style="font-weight: 600; color: var(--text2); font-size: 0.78rem;"><?= htmlspecialchars($f['label']) ?></label>
                                                 <input type="<?= $f['type'] ?>" name="<?= $f['name'] ?>" class="arvan-input" value="<?= htmlspecialchars($f['val'] ?? '') ?>" placeholder="<?= htmlspecialchars($f['placeholder'] ?? '') ?>">
                                             </div>
                                         <?php endif; ?>
