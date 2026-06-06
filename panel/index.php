@@ -313,29 +313,30 @@ include __DIR__ . '/inc/layout_head.php';
                             ?>
                             <tr style="border-bottom: 1px solid var(--bd);">
                                 <td data-label="<?= $textbotlang['panel']['dashColUser'] ?>" class="no-label" style="text-align:right;">
-                                    <div class="user-profile-cell" style="display:flex; flex-direction:row; justify-content:space-between; align-items:center; width:100%; gap:8px; background:var(--sf2); padding:12px; border-radius:8px; border:1px solid var(--bd);">
-                                        <div style="display:flex; flex-direction:row; align-items:center; gap:10px;">
-                                            <div class="avatar-icon" style="color: var(--ac); padding: 4px; border-radius: 50%; display:flex; align-items:center; justify-content:center;">
-                                                <?= icon('user', 18) ?>
-                                            </div>
-                                            <div style="display:flex; flex-direction:column; gap:2px; align-items:flex-start; text-align:right;">
-                                                <span class="profile-name" style="font-weight:700; font-size:0.95rem; color:var(--text);">
-                                                    <?php if (!empty($inv['name'])): ?>
-                                                        <?= htmlspecialchars(trunc($inv['name'], 18)) ?>
-                                                    <?php elseif (!empty($inv['username'])): ?>
-                                                        <span class="cm">@<?= htmlspecialchars(trunc($inv['username'], 18)) ?></span>
-                                                    <?php else: ?>
-                                                        <?= $textbotlang['panel']['dashColUser'] ?>
-                                                    <?php endif; ?>
-                                                </span>
-                                                <?php if (!empty($inv['username']) && !empty($inv['name'])): ?>
-                                                    <span class="cm" style="color:var(--ac); font-size:0.8rem; direction:ltr; display:inline-block;">@<?= htmlspecialchars($inv['username']) ?></span>
-                                                <?php endif; ?>
-                                            </div>
+                                    <div class="user-profile-cell" style="display:flex; justify-content:flex-start; align-items:center; width:100%; gap:12px;">
+                                        <div class="avatar-icon" style="background: rgba(var(--ac-rgb), 0.1); color: var(--ac); padding: 8px; border-radius: 50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                            <?= icon('user', 18) ?>
                                         </div>
-                                        <div class="profile-id-box" style="display:flex; align-items:center; gap:6px; font-size: 0.75rem; color: var(--mute); background:var(--bg); border: 1px solid var(--bd); padding:4px 12px; border-radius:99px;">
-                                            <?= icon('hash', 14) ?>
-                                            <span class="cn" style="font-size:0.85rem;"><?= htmlspecialchars($inv['id_user']) ?></span>
+                                        <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-start;">
+                                            <span class="profile-name" style="font-weight:700; font-size:0.95rem; color:var(--text);">
+                                                <?php if (!empty($inv['name'])): ?>
+                                                    <?= htmlspecialchars(trunc($inv['name'], 18)) ?>
+                                                <?php elseif (!empty($inv['username'])): ?>
+                                                    <span class="cm" dir="ltr" style="display:inline-block;">@<?= htmlspecialchars(trunc($inv['username'], 18)) ?></span>
+                                                <?php else: ?>
+                                                    <span style="opacity:0.8;"><?= $textbotlang['panel']['dashColUser'] ?></span>
+                                                <?php endif; ?>
+                                            </span>
+                                            <div style="display:flex; align-items:center; gap:6px; font-size:0.8rem;">
+                                                <?php if (!empty($inv['username']) && !empty($inv['name'])): ?>
+                                                    <span class="cm" style="color:var(--ac); direction:ltr; display:inline-block; font-weight:600;">@<?= htmlspecialchars($inv['username']) ?></span>
+                                                    <span style="color:var(--bd);">|</span>
+                                                <?php endif; ?>
+                                                <div class="profile-id-box" style="display:flex; align-items:center; gap:4px; color: var(--mute);">
+                                                    <?= icon('hash', 12) ?>
+                                                    <span class="cn" style="font-size:0.85rem; font-weight:600;"><?= htmlspecialchars($inv['id_user']) ?></span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </td>
@@ -405,36 +406,37 @@ include __DIR__ . '/inc/layout_head.php';
                             else $roleClass .= 'neutral';
                             ?>
                             <tr style="border-bottom: 1px solid var(--bd);">
-                                <td data-label="<?= $textbotlang['panel']['dashColName'] ?>" class="no-label">
-                                    <div class="user-profile-cell" style="display:flex; justify-content:space-between; align-items:center; width:100%; flex-wrap:wrap; gap:8px;">
-                                        <div class="user-avatar-info" style="display:flex; align-items:center; gap:10px;">
-                                            <div class="avatar-icon" style="background: rgba(var(--ac-rgb), 0.1); color: var(--ac); padding: 8px; border-radius: 50%; display:flex; align-items:center; justify-content:center;">
-                                                <?= icon('user', 18) ?>
-                                            </div>
-                                            <div style="display:flex; flex-direction:column; gap:2px; align-items:flex-start;">
-                                                <span class="profile-name" style="font-weight:700; font-size:0.9rem; color:var(--text);">
-                                                    <?php if ($name): ?>
-                                                        <?= htmlspecialchars(trunc($name, 14)) ?>
-                                                    <?php elseif ($uname): ?>
-                                                        @<?= htmlspecialchars(trunc($uname, 12)) ?>
-                                                    <?php else: ?>
-                                                        <?= $textbotlang['panel']['dashColName'] ?>
-                                                    <?php endif; ?>
-                                                </span>
-                                                <?php if ($uname && $name): ?>
-                                                    <span class="cm" style="color:var(--ac); font-size:0.75rem; direction:ltr; display:inline-block; text-align:right;">@<?= htmlspecialchars($uname) ?></span>
-                                                <?php endif; ?>
-                                            </div>
+                                <td data-label="<?= $textbotlang['panel']['dashColName'] ?>" class="no-label" style="text-align:right;">
+                                    <div class="user-profile-cell" style="display:flex; justify-content:flex-start; align-items:center; width:100%; gap:12px;">
+                                        <div class="avatar-icon" style="background: rgba(var(--ac-rgb), 0.1); color: var(--ac); padding: 8px; border-radius: 50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                            <?= icon('user', 18) ?>
                                         </div>
-                                        <div class="profile-id-box" style="display:flex; align-items:center; gap:6px; font-size: 0.75rem; color: var(--mute); background:var(--sf2); border: 1px solid var(--bd); padding:4px 8px; border-radius:8px;">
-                                            <?= icon('hash', 14) ?>
-                                            <span class="cn" style="font-size:0.8rem;"><?= htmlspecialchars($u['id']) ?></span>
+                                        <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-start;">
+                                            <span class="profile-name" style="font-weight:700; font-size:0.95rem; color:var(--text);">
+                                                <?php if ($name): ?>
+                                                    <?= htmlspecialchars(trunc($name, 14)) ?>
+                                                <?php elseif ($uname): ?>
+                                                    <span dir="ltr" style="display:inline-block;">@<?= htmlspecialchars(trunc($uname, 12)) ?></span>
+                                                <?php else: ?>
+                                                    <span style="opacity:0.8;"><?= $textbotlang['panel']['dashColName'] ?></span>
+                                                <?php endif; ?>
+                                            </span>
+                                            <div style="display:flex; align-items:center; gap:6px; font-size:0.8rem;">
+                                                <?php if ($uname && $name): ?>
+                                                    <span class="cm" style="color:var(--ac); direction:ltr; display:inline-block; font-weight:600;">@<?= htmlspecialchars(trunc($uname, 12)) ?></span>
+                                                    <span style="color:var(--bd);">|</span>
+                                                <?php endif; ?>
+                                                <div class="profile-id-box" style="display:flex; align-items:center; gap:4px; color: var(--mute);">
+                                                    <?= icon('hash', 12) ?>
+                                                    <span class="cn" style="font-size:0.85rem; font-weight:600;"><?= htmlspecialchars($u['id']) ?></span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </td>
                                 <td data-label="<?= $textbotlang['panel']['dashColBalance'] ?>" class="cn">
                                     <div class="dash-unified-content" style="align-items: center;">
-                                        <span class="mobile-label">موجودی و تاریخ عضویت:</span>
+                                        <span class="mobile-label" style="display:none;">موجودی و تاریخ عضویت:</span>
                                         <div style="display:flex;align-items:center;gap:8px; flex-wrap:wrap;">
                                             <div style="display:flex; align-items:center; gap:4px;">
                                                 <span style="color:var(--mute)"><?= icon('wallet', 14) ?></span>
