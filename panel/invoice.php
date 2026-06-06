@@ -172,8 +172,7 @@ include __DIR__ . '/inc/layout_head.php';
         <tr>
           <th style="text-align:right;"><?= $textbotlang['panel']['dashColUser'] ?? 'کاربر' ?></th>
           <th style="text-align:right;"><?= $textbotlang['panel']['dashColProduct'] ?? 'محصول' ?></th>
-          <th style="text-align:right;"><?= $textbotlang['panel']['dashColAmount'] ?? 'مبلغ' ?></th>
-          <th style="text-align:right;">تاریخ ثبت</th>
+          <th style="text-align:right;">مبلغ و تاریخ</th>
           <th style="text-align:right;"><?= $textbotlang['panel']['dashColStatus'] ?? 'وضعیت' ?></th>
         </tr>
       </thead>
@@ -211,47 +210,52 @@ include __DIR__ . '/inc/layout_head.php';
             ?>
             <tr style="border-bottom: 1px solid var(--bd);">
                 <td data-label="<?= $textbotlang['panel']['dashColUser'] ?? 'کاربر' ?>" class="no-label" style="text-align:right;">
-                    <div class="user-profile-cell" style="display:flex; flex-direction:row; justify-content:space-between; align-items:center; width:100%; gap:8px; background:var(--sf2); padding:12px; border-radius:8px; border:1px solid var(--bd);">
-                        <div style="display:flex; flex-direction:row; align-items:center; gap:10px;">
-                            <div class="avatar-icon" style="color: var(--ac); padding: 4px; border-radius: 50%; display:flex; align-items:center; justify-content:center;">
-                                <?= icon('user', 18) ?>
-                            </div>
-                            <div style="display:flex; flex-direction:column; gap:2px; align-items:flex-start; text-align:right;">
-                                <span class="profile-name" style="font-weight:700; font-size:0.95rem; color:var(--text);">
-                                    <?php if (!empty($inv['name'])): ?>
-                                        <?= htmlspecialchars(trunc($inv['name'], 18)) ?>
-                                    <?php elseif (!empty($inv['username'])): ?>
-                                        <span class="cm">@<?= htmlspecialchars(trunc($inv['username'], 18)) ?></span>
-                                    <?php else: ?>
-                                        <?= $textbotlang['panel']['dashColUser'] ?? 'کاربر' ?>
-                                    <?php endif; ?>
-                                </span>
-                                <?php if (!empty($inv['username']) && !empty($inv['name'])): ?>
-                                    <span class="cm" style="color:var(--ac); font-size:0.8rem; direction:ltr; display:inline-block;">@<?= htmlspecialchars($inv['username']) ?></span>
-                                <?php endif; ?>
-                            </div>
+                    <div class="user-profile-cell" style="display:flex; justify-content:flex-start; align-items:center; width:100%; gap:12px;">
+                        <div class="avatar-icon" style="background: rgba(var(--ac-rgb), 0.1); color: var(--ac); padding: 8px; border-radius: 50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                            <?= icon('user', 18) ?>
                         </div>
-                        <div class="profile-id-box" style="display:flex; align-items:center; gap:6px; font-size: 0.75rem; color: var(--mute); background:var(--bg); border: 1px solid var(--bd); padding:4px 12px; border-radius:99px;">
-                            <?= icon('hash', 14) ?>
-                            <span class="cn" style="font-size:0.85rem;"><?= htmlspecialchars($inv['id_user']) ?></span>
+                        <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-start; text-align:right;">
+                            <span class="profile-name" style="font-weight:700; font-size:0.95rem; color:var(--text);">
+                                <?php if (!empty($inv['name'])): ?>
+                                    <?= htmlspecialchars(trunc($inv['name'], 18)) ?>
+                                <?php elseif (!empty($inv['username'])): ?>
+                                    <span dir="ltr" style="display:inline-block;">@<?= htmlspecialchars(trunc($inv['username'], 18)) ?></span>
+                                <?php else: ?>
+                                    <span style="opacity:0.8;">کاربر بی‌نام</span>
+                                <?php endif; ?>
+                            </span>
+                            <div style="display:flex; align-items:center; gap:6px; font-size:0.8rem;">
+                                <?php if (!empty($inv['username']) && !empty($inv['name'])): ?>
+                                    <span class="cm" style="color:var(--ac); direction:ltr; display:inline-block; font-weight:600;">@<?= htmlspecialchars(trunc($inv['username'], 18)) ?></span>
+                                    <span style="color:var(--bd);">|</span>
+                                <?php endif; ?>
+                                <div class="profile-id-box" style="display:flex; align-items:center; gap:4px; color: var(--mute);">
+                                    <?= icon('hash', 12) ?>
+                                    <span class="cn" style="font-size:0.85rem; font-weight:600;"><?= htmlspecialchars($inv['id_user']) ?></span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </td>
                 <td data-label="<?= $textbotlang['panel']['dashColProduct'] ?? 'محصول' ?>" class="cs" style="text-align:right;">
                     <span style="font-weight:700; color:var(--text);"><?= htmlspecialchars($inv['name_product'] ?? '—') ?></span>
                 </td>
-                <td data-label="<?= $textbotlang['panel']['dashColAmount'] ?? 'مبلغ' ?>" class="cn" style="text-align:right;">
-                    <div style="display:flex; align-items:center; gap:6px;">
-                        <span style="color:var(--mute)"><?= icon('wallet', 14) ?></span>
-                        <span class="cn" style="font-weight:600; font-size:1rem; color:var(--ac);">
-                            <?= number_format((int) ($inv['price_product'] ?? 0)) ?> <span class="cf" style="font-size:0.75rem"><?= $textbotlang['panel']['dashTomanShort'] ?? 'ت' ?></span>
-                        </span>
-                    </div>
-                </td>
-                <td data-label="تاریخ ثبت" style="text-align:right;">
-                    <div style="display:flex; align-items:center; gap:6px; font-size:0.85rem; color:var(--mute);">
-                        <span class="cf"><?= icon('calendar', 14) ?></span>
-                        <span class="cn" style="font-weight:500; color:var(--text);"><?= safe_date($inv['time_sell'] ?? null, 'Y/m/d H:i') ?></span>
+                <td data-label="مبلغ و تاریخ" class="cn" style="text-align:right;">
+                    <div class="dash-unified-content" style="align-items: center;">
+                        <span class="mobile-label" style="display:none;">مبلغ و تاریخ:</span>
+                        <div style="display:flex;align-items:center;gap:8px; flex-wrap:wrap;">
+                            <div style="display:flex; align-items:center; gap:4px;">
+                                <span style="color:var(--mute)"><?= icon('wallet', 14) ?></span>
+                                <span class="cn" style="font-weight:600; font-size:1rem; color:var(--ac);">
+                                    <?= number_format((int) ($inv['price_product'] ?? 0)) ?> <span class="cf" style="font-size:0.75rem"><?= $textbotlang['panel']['dashTomanShort'] ?? 'ت' ?></span>
+                                </span>
+                            </div>
+                            <span style="color:var(--bd);">|</span>
+                            <div style="display:flex; align-items:center; gap:4px; font-size:0.85rem; color:var(--mute);">
+                                <span class="cf"><?= icon('calendar', 14) ?></span>
+                                <span class="cn" style="font-weight:500; color:var(--text);"><?= safe_date($inv['time_sell'] ?? null, 'Y/m/d H:i') ?></span>
+                            </div>
+                        </div>
                     </div>
                 </td>
                 <td data-label="<?= $textbotlang['panel']['dashColStatus'] ?? 'وضعیت' ?>" style="text-align:right;">
