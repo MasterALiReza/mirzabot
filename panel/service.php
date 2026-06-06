@@ -233,23 +233,23 @@ include __DIR__ . '/inc/layout_head.php';
                 </div>
               </td>
               <td data-label="سرویس">
-                  <div class="desktop-vertical-stack mobile-flex-row">
+                  <div class="desktop-vertical-stack mobile-flex-row" style="text-align:right; align-items:flex-start;">
                       <div style="display:flex; align-items:center; gap:6px; color:var(--text); font-size: 0.85rem; font-weight:600;">
                           <?= icon('package', 14) ?> <?= htmlspecialchars($typeLabel) ?>
                       </div>
-                      <span class="cn" style="font-size:0.8rem; color:var(--mute); margin-top:4px; display:inline-block; max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="<?= htmlspecialchars($valStr) ?>">
+                      <span class="cn" style="font-size:0.8rem; color:var(--mute); margin-top:4px; display:inline-block; max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="<?= htmlspecialchars($valStr) ?>" dir="ltr">
                           <?= htmlspecialchars(trunc($valStr, 40)) ?>
                       </span>
                   </div>
               </td>
               <td data-label="مبلغ">
-                  <div class="cn" style="font-weight:700; color:var(--text); font-size:0.95rem;">
-                      <?= number_format((int) ($s['price'] ?? 0)) ?> <span class="cf" style="font-size:0.75rem; color:var(--mute); font-weight:normal;"><?= $textbotlang['panel']['dashUnitToman'] ?? 'تومان' ?></span>
+                  <div style="font-weight:700; color:var(--text); font-size:0.95rem; text-align:right;">
+                      <span class="cn" dir="ltr"><?= number_format((int) ($s['price'] ?? 0)) ?></span> <span class="cf" style="font-size:0.75rem; color:var(--mute); font-weight:normal;"><?= $textbotlang['panel']['dashUnitToman'] ?? 'تومان' ?></span>
                   </div>
               </td>
               <td data-label="تاریخ ثبت">
-                  <div class="cf" style="color:var(--mute); font-size:0.85rem; display:flex; align-items:center; gap:4px;">
-                      <?= icon('calendar', 14) ?> <?= safe_date($s['time'] ?? null, 'Y/m/d') ?>
+                  <div style="color:var(--mute); font-size:0.85rem; display:flex; align-items:center; justify-content:flex-start; gap:4px;">
+                      <?= icon('calendar', 14) ?> <span class="cf" dir="ltr"><?= safe_date($s['time'] ?? null, 'Y/m/d') ?></span>
                   </div>
               </td>
               <td data-label="وضعیت" style="text-align:center;">
