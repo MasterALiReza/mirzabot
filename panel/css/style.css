@@ -225,6 +225,13 @@ body::after, body::before {
     padding: 10px 18px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.04);
 }
+.btn.btn-icon {
+    padding: 0 !important;
+}
+.btn.btn-sm:not(.btn-icon) {
+    padding: 6px 10px;
+}
+
 
 .btn-primary {
     box-shadow: 0 4px 12px var(--acg) !important;
