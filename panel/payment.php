@@ -232,18 +232,18 @@ include __DIR__ . '/inc/layout_head.php';
     </form>
   </div>
 
-  <div class="tbl-wrap">
+  <div class="tbl-wrap admin-payments-table">
     <table class="tbl-lg">
       <thead>
         <tr>
-          <th>#</th>
-          <th>کاربر</th>
+          <th class="desktop-text-center">#</th>
+          <th class="desktop-text-center">کاربر</th>
           <th>شناسه تراکنش</th>
-          <th>مبلغ</th>
-          <th>روش پرداخت</th>
-          <th>تاریخ</th>
-          <th>وضعیت</th>
-          <th style="text-align:left">عملیات</th>
+          <th class="desktop-text-center">مبلغ</th>
+          <th class="desktop-text-center">روش پرداخت</th>
+          <th class="desktop-text-center">تاریخ</th>
+          <th class="desktop-text-center">وضعیت</th>
+          <th class="desktop-text-center">عملیات</th>
         </tr>
       </thead>
       <tbody>
@@ -265,18 +265,58 @@ include __DIR__ . '/inc/layout_head.php';
             $method = $methodMap[$methodRaw] ?? ($methodRaw ?: '—');
             ?>
             <tr>
-              <td data-label="#" style="color:var(--text-dim)"><?= $i++ ?></td>
-              <td data-label="کاربر"><span class="cell-mono"><?= htmlspecialchars(eng_num($p['id_user'] ?? '—')) ?></span></td>
+              <td data-label="#" style="color:var(--text-dim)" class="desktop-text-center"><?= $i++ ?></td>
+              
+              <td data-label="کاربر" class="desktop-text-center">
+                  <div style="display:flex; align-items:center; gap:8px;">
+                      <span style="color:var(--mute); display:flex; align-items:center;"><?= icon('user', 16) ?></span>
+                      <span class="cell-mono"><?= htmlspecialchars(eng_num($p['id_user'] ?? '—')) ?></span>
+                  </div>
+              </td>
+              
               <td data-label="شناسه تراکنش">
-                <span class="cell-mono" style="color:var(--ac)"><?= htmlspecialchars(eng_num(trunc((string) ($p['id_order'] ?? '—'), 18))) ?></span>
+                  <div style="display:flex; align-items:center; gap:8px;">
+                      <span style="color:var(--mute); display:flex; align-items:center;"><?= icon('hash', 16) ?></span>
+                      <span class="cell-mono" style="color:var(--ac); font-weight:600;"><?= htmlspecialchars(eng_num(trunc((string) ($p['id_order'] ?? '—'), 18))) ?></span>
+                  </div>
               </td>
-              <td data-label="مبلغ" class="cell-strong cell-num"><?= number_format((int) ($p['price'] ?? 0)) ?> <span style="color:var(--text-dim);font-weight:400;font-size:.72rem">تومان</span></td>
-              <td data-label="روش پرداخت" style="font-size:.8rem"><?= htmlspecialchars($method) ?></td>
-              <td data-label="تاریخ" style="font-size:.78rem;color:var(--text-dim);white-space:nowrap">
-                <?= safe_date($p['time'] ?? null, 'Y/m/d H:i') ?>
+              
+              <td data-label="مبلغ" class="desktop-text-center">
+                  <div class="dash-unified-content mobile-flex-between" style="align-items: center; gap: 8px;">
+                      <div style="display:flex; align-items:center; gap:6px;">
+                          <span class="icon-span" style="color:var(--mute)"><?= icon('wallet', 14) ?></span>
+                          <span class="mobile-label" style="display:none; color:var(--mute); font-weight:normal;">مبلغ:</span>
+                      </div>
+                      <span class="cell-strong cell-num" style="font-weight:600; font-size:1rem; color:var(--ac);">
+                          <?= number_format((int) ($p['price'] ?? 0)) ?> <span style="font-size:0.75rem; color:var(--text-dim); font-weight:normal;">تومان</span>
+                      </span>
+                  </div>
               </td>
-              <td data-label="وضعیت"><span class="tag <?= $cls ?>"><?= $lbl ?></span></td>
-              <td data-label="عملیات">
+              
+              <td data-label="روش پرداخت" class="desktop-text-center">
+                  <div style="display:flex; align-items:center; gap:8px;">
+                      <span style="color:var(--mute); display:flex; align-items:center;"><?= icon('credit-card', 16) ?></span>
+                      <span style="font-size:.85rem; font-weight:600; color:var(--text);"><?= htmlspecialchars($method) ?></span>
+                  </div>
+              </td>
+              
+              <td data-label="تاریخ" class="desktop-text-center">
+                  <div class="dash-unified-content mobile-flex-between" style="align-items: center; gap: 8px;">
+                      <div style="display:flex; align-items:center; gap:6px;">
+                          <span class="icon-span" style="color:var(--mute)"><?= icon('calendar', 14) ?></span>
+                          <span class="mobile-label" style="display:none; color:var(--mute); font-weight:normal;">تاریخ:</span>
+                      </div>
+                      <span class="cn" style="font-weight:500; color:var(--text); display:inline-flex; align-items:center; gap:12px;">
+                          <span><?= safe_date($p['time'] ?? null, 'Y/m/d') ?></span>
+                          <span style="opacity:0.2; font-size:0.85em;">|</span>
+                          <span style="opacity:0.8; font-size:0.95em;"><?= safe_date($p['time'] ?? null, 'H:i') ?></span>
+                      </span>
+                  </div>
+              </td>
+              
+              <td data-label="وضعیت" class="desktop-text-center"><span class="tag <?= $cls ?>"><?= $lbl ?></span></td>
+              
+              <td data-label="عملیات" class="desktop-text-center">
                 <div style="display:flex; gap:4px; align-items: center; justify-content: center;">
                     <?php if ($st === 'waiting'): ?>
                       <a href="payment.php?action=confirm&id=<?= urlencode($p['id_order']) ?>&_csrf=<?= csrf_token() ?>" class="btn-icon" style="color:var(--success)" title="تایید" onclick="return confirm('آیا از تایید این تراکنش مطمئن هستید؟')">
