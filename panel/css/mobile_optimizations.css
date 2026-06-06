@@ -1263,6 +1263,13 @@
         align-items: center !important;
         gap: 6px !important;
     }
+    .mobile-flex-between {
+        width: 100% !important;
+        justify-content: space-between !important;
+    }
+    .mobile-label {
+        display: inline-block !important;
+    }
 }
 
 /* Premium Mobile Dashboard Layout for Orders and Users */
@@ -1326,25 +1333,29 @@
         justify-content: flex-start !important;
     }
     
-    /* Orders - Amount and Date: 50% width, side by side */
+    /* Orders - Amount and Date: 100% width, stacked */
     .tbl-wrap.dash-orders td:nth-child(3), .tbl-wrap.dash-orders td:nth-child(4) {
-        flex: 1 1 calc(50% - 6px) !important;
-        width: calc(50% - 6px) !important;
-        max-width: calc(50% - 6px) !important;
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        max-width: 100% !important;
         background: rgba(var(--glass-base-rgb), 0.3) !important;
         border: 1px solid var(--bd) !important;
-        padding: 8px 10px !important;
-        border-radius: 10px !important;
-        justify-content: center !important;
+        padding: 12px 14px !important;
+        border-radius: 12px !important;
+        justify-content: flex-start !important;
         align-items: center !important;
         text-align: center !important;
+        margin-bottom: 8px !important;
+    }
+    
+    .tbl-wrap.dash-orders td:nth-child(4) {
+        margin-bottom: 0 !important;
     }
     
     .tbl-wrap.dash-orders td:nth-child(3) .desktop-vertical-stack,
     .tbl-wrap.dash-orders td:nth-child(4) .desktop-vertical-stack {
-        justify-content: center !important;
+        justify-content: space-between !important;
         width: 100% !important;
-        height: 100% !important; /* Ensure they stretch equally to align vertically */
     }
 
     /* Orders - Status Pill */
@@ -1379,6 +1390,17 @@
         justify-content: flex-start !important;
         text-align: right !important;
         margin-bottom: 12px !important;
+    }
+    
+    .tbl-wrap.dash-users td:nth-child(2) .dash-unified-content {
+        background: rgba(var(--glass-base-rgb), 0.3) !important;
+        border: 1px solid var(--bd) !important;
+        padding: 12px 14px !important;
+        border-radius: 12px !important;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
     }
 
     /* Users - Group Pill: Absolute */
