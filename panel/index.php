@@ -363,7 +363,11 @@ include __DIR__ . '/inc/layout_head.php';
                                 <td data-label="تاریخ ثبت" class="desktop-text-center" style="text-align:right;">
                                     <div class="desktop-vertical-stack">
                                         <span class="icon-span" style="color:var(--mute)"><?= icon('calendar', 14) ?></span>
-                                        <span class="cn" style="font-weight:500; color:var(--text);"><?= safe_date($inv['time_sell'] ?? null, 'Y/m/d H:i') ?></span>
+                                        <span class="cn" style="font-weight:500; color:var(--text); display:inline-flex; align-items:center; gap:6px;">
+                                            <span><?= safe_date($inv['time_sell'] ?? null, 'Y/m/d') ?></span>
+                                            <span style="opacity:0.3; font-size:0.85em;">|</span>
+                                            <span><?= safe_date($inv['time_sell'] ?? null, 'H:i') ?></span>
+                                        </span>
                                     </div>
                                 </td>
                                 <td data-label="<?= $textbotlang['panel']['dashColStatus'] ?>" class="desktop-text-center" style="text-align:right;">
@@ -461,7 +465,11 @@ include __DIR__ . '/inc/layout_head.php';
                                             <span style="color:var(--bd);">|</span>
                                             <div class="desktop-vertical-stack" style="font-size:0.85rem; color:var(--mute);">
                                                 <span class="cf"><?= icon('clock', 14) ?></span>
-                                                <span class="cn" style="font-weight:500; color:var(--text);"><?= safe_date($u['register'] ?? null, 'Y/m/d H:i') ?></span>
+                                                <span class="cn" style="font-weight:500; color:var(--text); display:inline-flex; align-items:center; gap:6px;">
+                                                    <span><?= safe_date($u['register'] ?? null, 'Y/m/d') ?></span>
+                                                    <span style="opacity:0.3; font-size:0.85em;">|</span>
+                                                    <span><?= safe_date($u['register'] ?? null, 'H:i') ?></span>
+                                                </span>
                                             </div>
                                         </div>
                                     </div>

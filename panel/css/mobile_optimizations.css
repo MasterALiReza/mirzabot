@@ -1326,7 +1326,6 @@
         flex-wrap: wrap !important;
         padding: 16px 14px !important;
         gap: 12px !important;
-        align-items: flex-start !important;
         position: relative !important;
     }
     
@@ -1387,6 +1386,7 @@
         padding: 8px 10px !important;
         border-radius: 10px !important;
         justify-content: center !important;
+        align-items: center !important;
         text-align: center !important;
     }
     
