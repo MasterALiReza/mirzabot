@@ -374,22 +374,22 @@ include __DIR__ . '/inc/layout_head.php';
                             <td data-label="جزئیات و مالی" class="no-label" style="vertical-align: top; padding-top:20px; padding-bottom: 8px;">
                                 <div class="users-details-grid">
                                     
-                                    <div style="background: rgba(128,128,128,0.04); border: 1px solid var(--bd); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; justify-content: center;">
-                                        <div style="display:flex; align-items:center; gap:6px; color:var(--mute); font-size: 0.8rem; font-weight:600;">
+                                    <div style="background: rgba(128,128,128,0.04); border: 1px solid var(--bd); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; align-items: center; justify-content: center; text-align: center;">
+                                        <div style="display:flex; align-items:center; justify-content:center; gap:6px; color:var(--mute); font-size: 0.8rem; font-weight:600;">
                                             <?= icon('phone', 14) ?> اطلاعات تماس
                                         </div>
                                         <span class="cm cf" style="color:var(--text); font-size: 0.95rem; font-weight:700;"><?= (!empty($u['number']) && $u['number'] !== 'none') ? htmlspecialchars($u['number']) : '—' ?></span>
                                     </div>
 
-                                    <div style="background: rgba(128,128,128,0.04); border: 1px solid var(--bd); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; justify-content: center;">
-                                        <div style="display:flex; align-items:center; gap:6px; color:var(--mute); font-size: 0.8rem; font-weight:600;">
+                                    <div style="background: rgba(128,128,128,0.04); border: 1px solid var(--bd); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; align-items: center; justify-content: center; text-align: center;">
+                                        <div style="display:flex; align-items:center; justify-content:center; gap:6px; color:var(--mute); font-size: 0.8rem; font-weight:600;">
                                             <?= icon('calendar', 14) ?> تاریخ عضویت
                                         </div>
                                         <span class="cf" style="color:var(--text); font-size: 0.95rem; font-weight:700;"><?= safe_date($u['register'] ?? null) ?></span>
                                     </div>
 
-                                    <div style="background: rgba(16,185,129,0.04); border: 1px solid var(--bd); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; justify-content: center;">
-                                        <div style="display:flex; align-items:center; gap:6px; color:var(--mute); font-size: 0.8rem; font-weight:600;">
+                                    <div style="background: rgba(16,185,129,0.04); border: 1px solid var(--bd); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; align-items: center; justify-content: center; text-align: center;">
+                                        <div style="display:flex; align-items:center; justify-content:center; gap:6px; color:var(--mute); font-size: 0.8rem; font-weight:600;">
                                             <?= icon('wallet', 14) ?> کیف پول کاربر
                                         </div>
                                         <span class="cn" style="font-weight:700; font-size:1.05rem; color:var(--ac);">
@@ -397,11 +397,11 @@ include __DIR__ . '/inc/layout_head.php';
                                         </span>
                                     </div>
 
-                                    <div style="background: rgba(245,158,11,0.04); border: 1px solid var(--bd); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; justify-content: center;">
-                                        <div style="display:flex; align-items:center; gap:6px; color:var(--mute); font-size: 0.8rem; font-weight:600;">
+                                    <div style="background: rgba(245,158,11,0.04); border: 1px solid var(--bd); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; align-items: center; justify-content: center; text-align: center;">
+                                        <div style="display:flex; align-items:center; justify-content:center; gap:6px; color:var(--mute); font-size: 0.8rem; font-weight:600;">
                                             <?= icon('star', 14) ?> امتیاز کاربر
                                         </div>
-                                        <div style="display:flex; align-items:center; gap:4px; font-weight:700; color:var(--warn); font-size:1.05rem;">
+                                        <div style="display:flex; align-items:center; justify-content:center; gap:4px; font-weight:700; color:var(--warn); font-size:1.05rem;">
                                             <span class="cn"><?= (int) ($u['score'] ?? 0) ?></span>
                                         </div>
                                     </div>

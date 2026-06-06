@@ -1510,6 +1510,14 @@
     }
     
     .tbl-wrap.dash-pays td:nth-child(3) {
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        justify-content: flex-start !important;
+        background: rgba(128, 128, 128, 0.04) !important;
+        border-radius: 12px !important;
+        padding: 12px !important;
+    }
+    .tbl-wrap.dash-pays td:nth-child(4) {
         position: absolute !important;
         top: 14px !important;
         left: 14px !important;

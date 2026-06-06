@@ -17,8 +17,8 @@ $initials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title><?= $textbotlang['panel']['layoutBrandName'] ?></title>
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/mobile_optimizations.css">
+  <link rel="stylesheet" href="css/style.css?v=<?= time() ?>">
+  <link rel="stylesheet" href="css/mobile_optimizations.css?v=<?= time() ?>">
   <script>
     (function () {
       var _LIGHT = ['light', 'linen', 'mint', 'lavender'];

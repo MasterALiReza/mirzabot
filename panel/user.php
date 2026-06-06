@@ -567,14 +567,13 @@ include __DIR__ . '/inc/layout_head.php';
                                 <th style="text-align:right;"><?= $textbotlang['panel']['dashColProduct'] ?? 'محصول' ?></th>
                                 <th class="desktop-text-center" style="text-align:right;"><?= $textbotlang['panel']['dashColAmount'] ?? 'مبلغ' ?></th>
                                 <th class="desktop-text-center" style="text-align:right;">تاریخ</th>
-                                <th style="text-align:right;"><?= $textbotlang['panel']['dashColVolume'] ?? 'حجم' ?></th>
                                 <th style="text-align:right;"><?= $textbotlang['panel']['dashColStatus'] ?? 'وضعیت' ?></th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php if (empty($invoices)): ?>
                                 <tr>
-                                    <td colspan="5">
+                                    <td colspan="4">
                                         <div class="empty" style="padding:30px">
                                             <p><?= $textbotlang['panel']['userColId'] ?></p>
                                         </div>
@@ -618,15 +617,6 @@ include __DIR__ . '/inc/layout_head.php';
                                                     <span style="opacity:0.2; font-size:0.85em;">|</span>
                                                     <span style="opacity:0.8; font-size:0.95em;"><?= safe_date($inv['time_sell'] ?? null, 'H:i') ?></span>
                                                 </span>
-                                            </div>
-                                        </td>
-                                        <td data-label="<?= $textbotlang['panel']['dashColVolume'] ?? 'حجم' ?>" class="cn cf" style="text-align:right;">
-                                            <div class="dash-unified-content mobile-flex-between" style="align-items: center; gap: 8px;">
-                                                <div style="display:flex; align-items:center; gap:6px;">
-                                                    <span class="icon-span" style="color:var(--mute)"><?= icon('hard-drive', 14) ?></span>
-                                                    <span class="mobile-label" style="display:none; color:var(--mute); font-weight:normal;"><?= $textbotlang['panel']['dashColVolume'] ?? 'حجم' ?>:</span>
-                                                </div>
-                                                <span style="font-weight:700; color:var(--text);"><?= htmlspecialchars($inv['Volume'] ?? 'نامشخص') ?></span>
                                             </div>
                                         </td>
                                         <td data-label="<?= $textbotlang['panel']['dashColStatus'] ?? 'وضعیت' ?>" style="text-align:right;">
