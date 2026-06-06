@@ -250,43 +250,44 @@ include __DIR__ . '/inc/layout_head.php';
 
     <div class="u-sidebar" style="display:flex;flex-direction:column;gap:12px">
 
-        <div class="card fade-up" style="position: relative;">
-            <div style="position: absolute; top: 16px; left: 16px; display: flex; align-items:center; gap: 8px;">
-                <span style="font-size:0.8rem; font-weight:600; color:var(--mute);">وضعیت:</span>
-                <span class="tag <?= user_role_tag($agent) ?>">
-                    <?= user_role_label($agent) ?>
-                </span>
-                <span class="tag <?= $isBlocked ? 'tag-no' : 'tag-ok' ?>">
-                    <?= $isBlocked ? $textbotlang['panel']['userStatusBlocked'] : $textbotlang['panel']['userStatusActive'] ?>
-                </span>
-            </div>
-
-            <div class="profile-head" style="margin-top: 10px; display: flex; flex-direction: column; gap: 16px;">
-                <!-- Row 1: Avatar and Name -->
-                <div style="display: flex; gap: 16px; align-items: center; width: 100%;">
-                    <div style="width: 84px; display:flex; justify-content:center; flex-shrink:0;">
-                        <div class="profile-avatar" style="width: 84px; height: 84px; display:flex; align-items:center; justify-content:center; font-size: 2.5rem; background: rgba(var(--ac-rgb), 0.1); color: var(--ac); border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-                            <?= htmlspecialchars($initials) ?>
+        <div class="card fade-up">
+            <div class="profile-head" style="display: flex; flex-direction: column; gap: 16px;">
+                <!-- Row 1: Avatar, Name and Status Tags -->
+                <div style="display: flex; gap: 16px; align-items: center; justify-content: space-between; width: 100%; flex-wrap: wrap;">
+                    <div style="display: flex; gap: 16px; align-items: center;">
+                        <div style="width: 84px; display:flex; justify-content:center; flex-shrink:0;">
+                            <div class="profile-avatar" style="width: 84px; height: 84px; display:flex; align-items:center; justify-content:center; font-size: 2.5rem; background: rgba(var(--ac-rgb), 0.1); color: var(--ac); border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                                <?= htmlspecialchars($initials) ?>
+                            </div>
+                        </div>
+                        <div style="display:flex; flex-direction:column; gap:6px; justify-content: center; text-align:right; align-items:flex-start;">
+                            <span style="font-weight:800; font-size:1.35rem; color:var(--text);">
+                                <?php if ($fullName): ?>
+                                    <?= htmlspecialchars($fullName) ?>
+                                <?php elseif ($username): ?>
+                                    <span class="cm" style="direction:ltr; display:inline-block;">@<?= htmlspecialchars($username) ?></span>
+                                <?php else: ?>
+                                    <span style="font-size:1.15rem; font-weight:600; opacity:0.8; text-align:center;">بدون نام</span>
+                                <?php endif; ?>
+                            </span>
+                            <?php if ($fullName && $username): ?>
+                                <span class="cm" style="color:var(--mute); font-size:1rem; font-weight:600; direction:ltr; display:inline-block;">@<?= htmlspecialchars($username) ?></span>
+                            <?php endif; ?>
                         </div>
                     </div>
-                    <div style="display:flex; flex-direction:column; gap:6px; justify-content: center; text-align:right; align-items:flex-start;">
-                        <span style="font-weight:800; font-size:1.35rem; color:var(--text);">
-                            <?php if ($fullName): ?>
-                                <?= htmlspecialchars($fullName) ?>
-                            <?php elseif ($username): ?>
-                                <span class="cm" style="direction:ltr; display:inline-block;">@<?= htmlspecialchars($username) ?></span>
-                            <?php else: ?>
-                                <span style="font-size:1.15rem; font-weight:600; opacity:0.8; text-align:center;">بدون نام</span>
-                            <?php endif; ?>
+                    
+                    <div style="display: flex; align-items:center; gap: 8px;">
+                        <span class="tag <?= user_role_tag($agent) ?>">
+                            <?= user_role_label($agent) ?>
                         </span>
-                        <?php if ($fullName && $username): ?>
-                            <span class="cm" style="color:var(--mute); font-size:1rem; font-weight:600; direction:ltr; display:inline-block;">@<?= htmlspecialchars($username) ?></span>
-                        <?php endif; ?>
+                        <span class="tag <?= $isBlocked ? 'tag-no' : 'tag-ok' ?>">
+                            <?= $isBlocked ? $textbotlang['panel']['userStatusBlocked'] : $textbotlang['panel']['userStatusActive'] ?>
+                        </span>
                     </div>
                 </div>
                 
                 <!-- Row 2: User ID -->
-                <div style="display: flex; gap: 16px; align-items: center; width: 100%;">
+                <div style="display: flex; gap: 16px; align-items: center; justify-content: flex-start; width: 100%;">
                     <div style="width: 84px; display:flex; justify-content:center; flex-shrink:0;">
                         <div onclick="navigator.clipboard.writeText('<?= htmlspecialchars($user['id']) ?>').then(()=> {let o=this.style.color; this.style.color='var(--ac)'; this.style.borderColor='var(--ac)'; setTimeout(()=>{this.style.color=o; this.style.borderColor='var(--bd)';},1000);})" style="width: 58px; height: 58px; display:flex; align-items:center; justify-content:center; background: var(--sf2); color: var(--mute); border-radius: 14px; border: 1px solid var(--bd); cursor: pointer; transition: 0.2s;" title="کپی شناسه" onmouseover="this.style.color='var(--ac)'; this.style.borderColor='var(--ac)';" onmouseout="this.style.color='var(--mute)'; this.style.borderColor='var(--bd)';">
                             <?= icon('copy', 20) ?>
