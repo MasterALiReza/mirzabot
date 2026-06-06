@@ -122,8 +122,13 @@ function safe_date($ts, string $fmt = 'Y/m/d'): string
 {
     if (!$ts)
         return '—';
-    if (!is_numeric($ts))
+    if (!is_numeric($ts)) {
+        $parsed = strtotime($ts);
+        if ($parsed !== false && $parsed > 0) {
+            return date($fmt, $parsed);
+        }
         return htmlspecialchars((string) $ts);
+    }
     return date($fmt, (int) $ts);
 }
 function check_login_rate(string $ip): bool

@@ -1486,21 +1486,44 @@
         content: none !important;
     }
     
+    .tbl-wrap.dash-pays td:nth-child(3) {
+        order: 1 !important;
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        font-size: 1.05rem !important;
+        font-weight: 800 !important;
+        color: var(--fg) !important;
+        border-bottom: 1px dashed rgba(128,128,128,0.2) !important;
+        padding-bottom: 12px !important;
+        padding-left: 80px !important; /* Space for absolute pill */
+        margin-bottom: 8px !important;
+        justify-content: flex-start !important;
+        background: transparent !important;
+    }
+    .tbl-wrap.dash-pays td:nth-child(3) .dash-unified-content {
+        justify-content: flex-start !important;
+        gap: 8px !important;
+    }
+    
     .tbl-wrap.dash-pays td:nth-child(1) {
+        order: 2 !important;
         flex: 1 1 100% !important;
         width: 100% !important;
         justify-content: flex-start !important;
-        background: rgba(16, 185, 129, 0.04) !important;
+        background: rgba(var(--glass-base-rgb), 0.3) !important;
+        border: 1px solid var(--bd) !important;
         border-radius: 12px !important;
         padding: 12px !important;
-        padding-left: 80px !important; /* Space for absolute pill */
+        margin-bottom: 8px !important;
     }
     .tbl-wrap.dash-pays td:nth-child(1) .dash-unified-content {
         width: 100%;
-        justify-content: space-between !important;
+        justify-content: flex-start !important;
+        gap: 12px !important;
     }
     
     .tbl-wrap.dash-pays td:nth-child(2) {
+        order: 3 !important;
         flex: 1 1 100% !important;
         width: 100% !important;
         justify-content: flex-start !important;
@@ -1508,16 +1531,14 @@
         border-radius: 12px !important;
         padding: 12px !important;
     }
-    
-    .tbl-wrap.dash-pays td:nth-child(3) {
-        flex: 1 1 100% !important;
-        width: 100% !important;
+    .tbl-wrap.dash-pays td:nth-child(2) .dash-unified-content {
+        width: 100%;
         justify-content: flex-start !important;
-        background: rgba(128, 128, 128, 0.04) !important;
-        border-radius: 12px !important;
-        padding: 12px !important;
+        gap: 12px !important;
     }
+
     .tbl-wrap.dash-pays td:nth-child(4) {
+        order: 4 !important;
         position: absolute !important;
         top: 14px !important;
         left: 14px !important;
@@ -1551,5 +1572,52 @@
 @media (max-width: 480px) {
     .users-details-grid {
         grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Service Orders List Mobile Optimization */
+@media (max-width: 768px) {
+    .tbl-wrap.dash-services tr {
+        position: relative;
+        padding-top: 45px;
+    }
+    .tbl-wrap.dash-services td {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center;
+        border-bottom: 1px dashed var(--bd) !important;
+    }
+    .tbl-wrap.dash-services td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: var(--mute);
+    }
+    .tbl-wrap.dash-services td[data-label="کاربر"] {
+        justify-content: flex-start !important;
+        padding-bottom: 12px !important;
+        border-bottom: 1px solid var(--bd) !important;
+        margin-bottom: 8px !important;
+    }
+    .tbl-wrap.dash-services td[data-label="کاربر"]::before {
+        display: none !important;
+    }
+    .tbl-wrap.dash-services td[data-label="وضعیت"] {
+        position: absolute !important;
+        top: 14px !important;
+        left: 14px !important;
+        border: none !important;
+        width: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    .tbl-wrap.dash-services td[data-label="وضعیت"]::before {
+        display: none !important;
+    }
+    .tbl-wrap.dash-services td[data-label="عملیات"] {
+        justify-content: space-between !important;
+        background: rgba(128,128,128,0.02) !important;
+        border-radius: 8px !important;
+        margin-top: 8px !important;
+        border-bottom: none !important;
     }
 }
