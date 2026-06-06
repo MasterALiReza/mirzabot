@@ -208,6 +208,7 @@ include __DIR__ . '/inc/layout_head.php';
     margin-bottom: -1px;
     white-space: nowrap;
     flex-shrink: 0;
+    min-height: 44px;
 }
 .tab-item:hover {
     color: var(--text);
@@ -358,8 +359,8 @@ include __DIR__ . '/inc/layout_head.php';
 
                                     <div style="display:flex; align-items:center; gap:12px; align-self:flex-start; text-align:right;">
                                         <div style="width: 44px; display:flex; justify-content:center; flex-shrink:0;">
-                                            <div onclick="navigator.clipboard.writeText('<?= htmlspecialchars($u['id']) ?>'); this.style.color='var(--ac)'; setTimeout(()=>this.style.color='var(--mute)', 1000);" style="background: var(--sf2); color: var(--mute); width: 31px; height: 31px; border-radius: 50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:1px solid var(--bd); transition: 0.2s;" title="کپی شناسه">
-                                                <?= icon('copy', 14) ?>
+                                            <div onclick="navigator.clipboard.writeText('<?= htmlspecialchars($u['id']) ?>'); this.style.color='var(--ac)'; setTimeout(()=>this.style.color='var(--mute)', 1000);" style="background: var(--sf2); color: var(--mute); width: 44px; height: 44px; border-radius: 50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:1px solid var(--bd); transition: 0.2s; flex-shrink:0;" title="کپی شناسه">
+                                                <?= icon('copy', 16) ?>
                                             </div>
                                         </div>
                                         <div style="display:flex; align-items:center; gap:6px; font-size:0.85rem;">
