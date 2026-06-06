@@ -717,6 +717,79 @@ if (!empty($bestSelling)) {
     gap: 24px;
 }
 
+/* Dash Card Layouts */
+.dash-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 140px;
+}
+.dash-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-direction: row-reverse; /* Icon Left, Title Right */
+    margin-bottom: 16px;
+}
+.dash-card-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--mute);
+}
+.icon-glow {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    flex-shrink: 0;
+}
+.icon-glow.bg-blue { background: #0ea5e9; box-shadow: 0 6px 14px -3px rgba(14, 165, 233, 0.4); }
+.icon-glow.bg-emerald { background: #10b981; box-shadow: 0 6px 14px -3px rgba(16, 185, 129, 0.4); }
+.icon-glow.bg-purple { background: #8b5cf6; box-shadow: 0 6px 14px -3px rgba(139, 92, 246, 0.4); }
+.icon-glow.bg-orange { background: #f59e0b; box-shadow: 0 6px 14px -3px rgba(245, 158, 11, 0.4); }
+.icon-glow svg { width: 22px; height: 22px; }
+
+.dash-card-footer {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-direction: row-reverse; /* Pill Left, Value Right */
+}
+.dash-card-value {
+    font-size: 1.85rem;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+.dash-card-value-flex {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
+.dash-card-unit {
+    font-size: 0.85rem;
+    color: var(--mute);
+    font-weight: 600;
+}
+.dash-card-pill .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+.status-pill.success { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+.status-pill.danger { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+.status-pill.warning { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+.status-pill.neutral { background: rgba(148, 163, 184, 0.15); color: var(--mute); }
+.status-pill.panel-pill { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; }
+
 /* Table enhancements */
 .tbl-sm th {
     padding: 16px 20px;
