@@ -371,31 +371,47 @@ include __DIR__ . '/inc/layout_head.php';
                                 </div>
                             </td>
 
-                            <td data-label="جزئیات و مالی" class="no-label" style="vertical-align: top; padding-top:20px; text-align:right;">
-                                <div style="display:grid !important; grid-template-columns: max-content 1fr; gap:12px 16px; align-items:center; font-size:0.85rem; width:100%;">
-                                    <span style="color:var(--mute); font-weight:600;">اطلاعات تماس :</span>
-                                    <span class="cm cf" style="color:var(--text); font-weight:600;"><?= (!empty($u['number']) && $u['number'] !== 'none') ? htmlspecialchars($u['number']) : '—' ?></span>
-
-                                    <span style="color:var(--mute); font-weight:600;">تاریخ عضویت :</span>
-                                    <span class="cf" style="color:var(--text); font-weight:600;"><?= safe_date($u['register'] ?? null) ?></span>
-
-                                    <span style="color:var(--mute); font-weight:600;">کیف پول کاربر :</span>
-                                    <span class="cn" style="font-weight:700; font-size:1rem; color:var(--ac);">
-                                        <?= number_format((int) ($u['Balance'] ?? 0)) ?> <span class="cf" style="font-size:0.75rem">ت</span>
-                                    </span>
-
-                                    <span style="color:var(--mute); font-weight:600;">امتیاز کاربر :</span>
-                                    <div style="display:flex; align-items:center; gap:4px; font-weight:700; color:var(--warn); font-size:1rem;">
-                                        <span class="cn"><?= (int) ($u['score'] ?? 0) ?></span>
-                                        <?= icon('star', 16) ?>
+                            <td data-label="جزئیات و مالی" class="no-label" style="vertical-align: top; padding-top:20px; padding-bottom: 8px;">
+                                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:12px; width:100%;">
+                                    
+                                    <div style="background: rgba(128,128,128,0.04); border: 1px solid var(--bd); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; justify-content: center;">
+                                        <div style="display:flex; align-items:center; gap:6px; color:var(--mute); font-size: 0.8rem; font-weight:600;">
+                                            <?= icon('phone', 14) ?> اطلاعات تماس
+                                        </div>
+                                        <span class="cm cf" style="color:var(--text); font-size: 0.95rem; font-weight:700;"><?= (!empty($u['number']) && $u['number'] !== 'none') ? htmlspecialchars($u['number']) : '—' ?></span>
                                     </div>
+
+                                    <div style="background: rgba(128,128,128,0.04); border: 1px solid var(--bd); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; justify-content: center;">
+                                        <div style="display:flex; align-items:center; gap:6px; color:var(--mute); font-size: 0.8rem; font-weight:600;">
+                                            <?= icon('calendar', 14) ?> تاریخ عضویت
+                                        </div>
+                                        <span class="cf" style="color:var(--text); font-size: 0.95rem; font-weight:700;"><?= safe_date($u['register'] ?? null) ?></span>
+                                    </div>
+
+                                    <div style="background: rgba(16,185,129,0.04); border: 1px solid var(--bd); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; justify-content: center;">
+                                        <div style="display:flex; align-items:center; gap:6px; color:var(--mute); font-size: 0.8rem; font-weight:600;">
+                                            <?= icon('wallet', 14) ?> کیف پول کاربر
+                                        </div>
+                                        <span class="cn" style="font-weight:700; font-size:1.05rem; color:var(--ac);">
+                                            <?= number_format((int) ($u['Balance'] ?? 0)) ?> <span class="cf" style="font-size:0.75rem">ت</span>
+                                        </span>
+                                    </div>
+
+                                    <div style="background: rgba(245,158,11,0.04); border: 1px solid var(--bd); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; justify-content: center;">
+                                        <div style="display:flex; align-items:center; gap:6px; color:var(--mute); font-size: 0.8rem; font-weight:600;">
+                                            <?= icon('star', 14) ?> امتیاز کاربر
+                                        </div>
+                                        <div style="display:flex; align-items:center; gap:4px; font-weight:700; color:var(--warn); font-size:1.05rem;">
+                                            <span class="cn"><?= (int) ($u['score'] ?? 0) ?></span>
+                                        </div>
+                                    </div>
+
                                 </div>
                             </td>
 
                             <td data-label="عملیات" class="no-label" style="vertical-align: bottom; padding-bottom:16px;">
                                 <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; width:100%; height:100%; margin-top:10px;">
-                                    <span style="color:var(--mute); font-size:0.85rem; font-weight:600; display: block; text-align: center; width: 100%;">عملیات :</span>
-                                    <div style="display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap;">
+                                    <div style="display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap; width: 100%;">
                                         <a href="user.php?id=<?= (int) $u['id'] ?>" class="btn btn-ghost btn-sm" style="padding:6px 16px; font-weight:600;" title="<?= $textbotlang['panel']['usersViewBtn'] ?>">
                                             <?= icon('eye', 16) ?> ویرایش
                                         </a>

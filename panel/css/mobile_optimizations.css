@@ -1416,17 +1416,18 @@
         display: none !important; /* Hide the extra icon in the pill container on mobile since pill has its own */
     }
     
-    /* Users - Balance and Group: 50% width, side by side */
+    /* Users - Info and Actions: 100% width */
     .tbl-wrap.dash-users td:nth-child(2), .tbl-wrap.dash-users td:nth-child(3) {
-        flex: 1 1 calc(50% - 6px) !important;
-        width: calc(50% - 6px) !important;
-        max-width: calc(50% - 6px) !important;
-        background: rgba(var(--glass-base-rgb), 0.3) !important;
-        border: 1px solid var(--bd) !important;
-        padding: 8px 10px !important;
-        border-radius: 10px !important;
-        justify-content: center !important;
-        text-align: center !important;
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        background: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+        border-radius: 0 !important;
+        justify-content: flex-start !important;
+        text-align: right !important;
+        margin-bottom: 12px !important;
     }
 }
 
