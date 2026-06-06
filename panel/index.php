@@ -503,7 +503,7 @@ include __DIR__ . '/inc/layout_head.php';
 // Prepare data for Best Selling Bar Chart
 $bestSellingLabels = [];
 $bestSellingData = [];
-$bestSellingColors = ['#3b82f6', '#8b5cf6', '#14b8a6', '#f59e0b', '#ec4899']; // Colors for bars
+$bestSellingColors = ['#0EA5E9', '#6366F1', '#14B8A6', '#F59E0B', '#8B5CF6']; // Soft Structuralism premium colors
 if (!empty($bestSelling)) {
     foreach ($bestSelling as $prod) {
         $bestSellingLabels[] = trunc($prod['name_product'], 15);
@@ -706,23 +706,30 @@ if (!empty($bestSelling)) {
 <style>
 .dash-stats {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 20px;
-    margin-bottom: 24px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
 }
 
-
+.dash-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
 
 /* Table enhancements */
 .tbl-sm th {
-    padding: 12px 16px;
-    font-size: 0.8rem;
-    color: var(--cf);
+    padding: 16px 20px;
+    font-size: 0.75rem;
+    color: var(--mute);
     text-transform: uppercase;
-    font-weight: 600;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    border-bottom: 1px solid var(--bd);
 }
 .tbl-sm td {
-    padding: 14px 16px;
+    padding: 18px 20px;
+    font-weight: 500;
 }
 
 /* Responsive tweaks for the new dashboard grid */
@@ -736,11 +743,9 @@ if (!empty($bestSelling)) {
 @media (max-width: 640px) {
     .dash-stats {
         grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
-        margin-bottom: 16px;
+        gap: 16px;
+        margin-bottom: 24px;
     }
-    
-
 }
 </style>
 

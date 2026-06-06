@@ -152,260 +152,167 @@
 }
 
 /* ==========================================================================
-   PREMIUM CYBER-UTILITARIAN DESIGN SYSTEM (GLASSMORPHISM & GLOWS OVERRIDES)
+   SOFT STRUCTURALISM DESIGN SYSTEM
    ========================================================================== */
 
-/* Custom Scrollbars */
-::-webkit-scrollbar-thumb {
-    background: var(--bd) !important;
-    border-radius: 99px;
-    border: 2px solid transparent;
-}
-::-webkit-scrollbar-thumb:hover {
-    background: var(--bds) !important;
-}
-
-/* Global Premium Mesh Backdrop & Transitions */
+/* Typography & Macro Whitespace adjustments */
 body {
-    position: relative;
-    z-index: 1;
-}
-body::before {
-    content: "";
-    position: fixed;
-    top: 0; right: 0; bottom: 0; left: 0;
-    z-index: -2;
-    background: var(--bg);
-    transition: background var(--tm) ease-in-out;
-}
-body::after {
-    content: "";
-    position: fixed;
-    top: 0; right: 0; bottom: 0; left: 0;
-    z-index: -1;
-    opacity: 0.14;
-    background-image: 
-        radial-gradient(circle at 15% 20%, var(--ac) 0%, transparent 40%),
-        radial-gradient(circle at 85% 75%, var(--dim) 0%, transparent 45%);
-    pointer-events: none;
-    transition: opacity var(--tm) ease-in-out;
+    font-weight: 500;
+    letter-spacing: -0.01em;
 }
 
-/* Glassmorphism Cards & Glowing Overrides */
-.card, .stat, .dash-card, .product-card, .bc-section, .confirm-box, .modal {
-    background: rgba(var(--glass-base-rgb, 30, 41, 59), 0.35) !important;
-    backdrop-filter: blur(16px) saturate(120%) !important;
-    -webkit-backdrop-filter: blur(16px) saturate(120%) !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.05) !important;
-    border-radius: 16px !important;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2) !important;
-    transition: transform var(--tsp), border-color var(--tm), box-shadow var(--tm), background var(--tm) !important;
+h1, h2, h3, h4, .stat-num, .card-title, .brand-name, .pc-title, .pc-price {
+    font-weight: 800 !important;
+    letter-spacing: -0.02em;
 }
 
-/* Theme specific base color adjustments for Glassmorphism RGB representation */
-[data-theme=navy] { --glass-base-rgb: 30, 41, 59; }
-[data-theme=purple] { --glass-base-rgb: 35, 21, 69; }
-[data-theme=emerald] { --glass-base-rgb: 19, 46, 42; }
-[data-theme=sunset] { --glass-base-rgb: 42, 22, 21; }
-[data-theme=slate] { --glass-base-rgb: 20, 20, 20; }
-[data-theme=light] { --glass-base-rgb: 255, 255, 255; }
-[data-theme=linen] { --glass-base-rgb: 255, 255, 255; }
-[data-theme=mint] { --glass-base-rgb: 255, 255, 255; }
-[data-theme=lavender] { --glass-base-rgb: 255, 255, 255; }
-
-/* Light Theme tweaks to keep text readable */
-[data-theme=light] .card, [data-theme=linen] .card, [data-theme=mint] .card, [data-theme=lavender] .card,
-[data-theme=light] .stat, [data-theme=linen] .stat, [data-theme=mint] .stat, [data-theme=lavender] .stat,
-[data-theme=light] .dash-card, [data-theme=linen] .dash-card, [data-theme=mint] .dash-card, [data-theme=lavender] .dash-card,
-[data-theme=light] .product-card, [data-theme=linen] .product-card, [data-theme=mint] .product-card, [data-theme=lavender] .product-card,
-[data-theme=light] .bc-section, [data-theme=linen] .bc-section, [data-theme=mint] .bc-section, [data-theme=lavender] .bc-section,
-[data-theme=light] .confirm-box, [data-theme=linen] .confirm-box, [data-theme=mint] .confirm-box, [data-theme=lavender] .confirm-box,
-[data-theme=light] .modal, [data-theme=linen] .modal, [data-theme=mint] .modal, [data-theme=lavender] .modal {
-    background: rgba(255, 255, 255, 0.65) !important;
-    border: 1.5px solid rgba(0, 0, 0, 0.08) !important;
-    box-shadow: 0 8px 32px 0 rgba(15, 23, 42, 0.05) !important;
+/* Base structural layout */
+.content {
+    padding: 32px 48px;
+    max-width: 1400px;
+    margin: 0 auto;
 }
 
-/* Card hover and focus glow animations */
-.card:hover, .stat:hover, .dash-card:hover, .product-card:hover, .bc-section:hover {
-    border-color: var(--ac) !important;
-    box-shadow: 0 12px 40px -10px rgba(0, 0, 0, 0.4), 0 0 18px var(--acg) !important;
-    transform: translateY(-4px) !important;
+@media (max-width: 768px) {
+    .content {
+        padding: 16px 20px;
+    }
 }
 
-/* Glow animation details */
-.btn-primary {
-    border: none !important;
-    box-shadow: 0 4px 18px var(--acg) !important;
+/* Double-Bezel & Ambient Shadows */
+.card, .stat, .dash-card, .product-card, .bc-section {
+    background: var(--sf) !important;
+    border: 1px solid var(--bd) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+    transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+    padding: 24px;
     position: relative;
     overflow: hidden;
-    z-index: 1;
-}
-.btn-primary::before {
-    content: "";
-    position: absolute;
-    top: 0; left: -100%; width: 100%; height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: left 0.6s ease;
-    z-index: -1;
-}
-.btn-primary:hover::before {
-    left: 100%;
-}
-.btn-primary:hover {
-    box-shadow: 0 6px 24px var(--acg) !important;
-    transform: translateY(-1.5px) !important;
 }
 
-/* Premium Form Elements */
+.card:hover, .stat:hover, .dash-card:hover, .product-card:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04) !important;
+    border-color: var(--bd) !important;
+}
+
+/* Clean up glass backgrounds */
+body::after, body::before {
+    display: none !important;
+}
+
+/* Forms and Inputs */
 .input, .select, .textarea, .search-box {
-    background: rgba(var(--glass-base-rgb), 0.2) !important;
+    background: var(--sf2) !important;
     border: 1.5px solid var(--bd) !important;
-    color: var(--text) !important;
-    border-radius: 10px !important;
-    transition: border-color var(--tf), box-shadow var(--tf) !important;
+    border-radius: 12px !important;
+    padding: 12px 16px;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.02) !important;
+    transition: all 0.3s ease !important;
 }
-[data-theme=light] .input, [data-theme=linen] .input, [data-theme=mint] .input, [data-theme=lavender] .input,
-[data-theme=light] .select, [data-theme=linen] .select, [data-theme=mint] .select, [data-theme=lavender] .select,
-[data-theme=light] .textarea, [data-theme=linen] .textarea, [data-theme=mint] .textarea, [data-theme=lavender] .textarea,
-[data-theme=light] .search-box, [data-theme=linen] .search-box, [data-theme=mint] .search-box, [data-theme=lavender] .search-box {
-    background: rgba(255, 255, 255, 0.9) !important;
-    border: 1.5px solid rgba(0, 0, 0, 0.12) !important;
-}
-.input:hover, .select:hover, .textarea:hover, .search-box:hover {
-    border-color: var(--bds) !important;
-}
+
 .input:focus, .select:focus, .textarea:focus, .search-box:focus-within {
     border-color: var(--ac) !important;
-    box-shadow: 0 0 0 4px var(--acs) !important;
+    box-shadow: 0 0 0 4px var(--acs), inset 0 2px 4px rgba(0,0,0,0.01) !important;
+    background: var(--sf) !important;
 }
 
-/* Custom Switches instead of standard checkboxes */
-.switch-container {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    cursor: pointer;
-}
-.switch-input {
-    display: none;
-}
-.switch-slider {
-    width: 44px;
-    height: 24px;
-    background: var(--sf3);
-    border: 1.5px solid var(--bd);
-    border-radius: 99px;
-    position: relative;
-    transition: all var(--tf) ease;
-}
-.switch-slider::before {
-    content: "";
-    position: absolute;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: var(--mute);
-    top: 50%;
-    right: 3px;
-    transform: translateY(-50%);
-    transition: all var(--tf) ease;
-}
-.switch-input:checked + .switch-slider {
-    background: var(--acs);
-    border-color: var(--ac);
-}
-.switch-input:checked + .switch-slider::before {
-    background: var(--ac);
-    transform: translateY(-50%) translateX(-20px);
+/* Buttons */
+.btn {
+    border-radius: 12px;
+    font-weight: 700;
+    padding: 10px 18px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
 }
 
-/* SweetAlert overrides */
-.swal2-popup {
-    background: rgba(var(--glass-base-rgb), 0.8) !important;
-    backdrop-filter: blur(16px) !important;
-    border: 1.5px solid var(--bd) !important;
-    color: var(--text) !important;
-    border-radius: 16px !important;
+.btn-primary {
+    box-shadow: 0 4px 12px var(--acg) !important;
+    border: none !important;
+}
+
+.btn-primary:hover {
+    box-shadow: 0 8px 20px var(--acg) !important;
+    transform: translateY(-2px);
+}
+
+/* Badges & Pills */
+.tag {
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-weight: 700;
+}
+
+/* Custom Color Palette Overrides for Soft Structuralism */
+[data-theme=light], :root {
+    --bg: #F8FAFC;
+    --sf: #FFFFFF;
+    --sf2: #F1F5F9;
+    --sf3: #E2E8F0;
+    --bd: #E2E8F0;
+    --bds: #CBD5E1;
+    --text: #0F172A;
+    --text2: #334155;
+    --mute: #64748B;
+    --dim: #94A3B8;
+    --ac: #0EA5E9;
+    --ach: #0284C7;
+    --acs: rgba(14, 165, 233, 0.12);
+    --acg: rgba(14, 165, 233, 0.25);
+}
+
+[data-theme=navy] {
+    --bg: #0B1120;
+    --sf: #111827;
+    --sf2: #1F2937;
+    --sf3: #374151;
+    --bd: #1F2937;
+    --bds: #374151;
+    --text: #F9FAFB;
+    --text2: #E5E7EB;
+    --mute: #9CA3AF;
+    --dim: #6B7280;
+    --ac: #38BDF8;
+    --ach: #7DD3FC;
+    --acs: rgba(56, 189, 248, 0.12);
+    --acg: rgba(56, 189, 248, 0.25);
+}
+
+/* Modal and Overlays */
+.modal-veil {
+    background: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(4px);
+}
+.modal, .confirm-box {
+    border-radius: 24px !important;
+    border: 1px solid var(--bd) !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15) !important;
 }
 
 /* Sidebar Custom Hover Effect */
 .sidebar .nav-item {
     transition: transform var(--tf), background var(--tf), color var(--tf) !important;
+    border-radius: 12px;
 }
 .sidebar .nav-item:hover {
     transform: translateX(-4px) !important;
-    background: var(--sf3) !important;
+    background: var(--sf2) !important;
 }
 .sidebar .nav-item.active {
     background: var(--acs) !important;
     color: var(--ach) !important;
 }
 
-/* ========================================================================
-   OPTIMIZED NAVY (DARK) THEME â€” Premium contrast & depth calibration
-   ======================================================================== */
-[data-theme=navy] {
-    /* Deeper, more premium background layers */
-    --bg:   #0C1525;
-    --sf:   #1A2540;
-    --sf2:  #162035;
-    --sf3:  #1F2E4A;
-    --sfh:  #253558;
-    --hl:   #1C2A42;
-    /* Stronger border definition */
-    --bd:   #253550;
-    --bds:  #3A4F70;
-    /* Accent: slightly warmer cyan with more pop */
-    --ac:   #07C8E8;
-    --ach:  #2DDAF5;
-    --acs:  rgba(7, 200, 232, 0.14);
-    --acg:  rgba(7, 200, 232, 0.28);
-    /* Glass base */
-    --glass-base-rgb: 22, 32, 53;
+/* Tables in Cards */
+.card-body {
+    padding: 0 !important;
 }
-
-/* ========================================================================
-   OPTIMIZED LIGHT THEME â€” Clean, airy, high-contrast professional look
-   ======================================================================== */
-[data-theme=light] {
-    --bg:   #EFF3F8;
-    --sf:   #FFFFFF;
-    --sf2:  #F5F8FC;
-    --sf3:  #E8EEF5;
-    --sfh:  #D8E1EC;
-    --hl:   #ECF0F6;
-    --bd:   #C8D4E2;
-    --bds:  #A0B2C8;
-    --ac:   #0778A8;
-    --ach:  #055F8A;
-    --acs:  rgba(7, 120, 168, 0.11);
-    --acg:  rgba(7, 120, 168, 0.22);
-    --ok:   #0D6E34;
-    --oks:  rgba(13, 110, 52, 0.11);
-    --no:   #C0392B;
-    --nos:  rgba(192, 57, 43, 0.11);
-    --warn: #9A6000;
-    --warns:rgba(154, 96, 0, 0.11);
-    --text: #0D1F33;
-    --text2:#1A3048;
-    --mute: #374E65;
-    --dim:  #6B7F96;
-    --fade: #9AAFC5;
-    --glass-base-rgb: 240, 245, 252;
+.card-body > .tbl-wrap > table {
+    margin-bottom: 0;
 }
-
-/* Fix light-theme glassmorphism cards with updated base */
-[data-theme=light] .card,
-[data-theme=light] .stat,
-[data-theme=light] .dash-card,
-[data-theme=light] .product-card,
-[data-theme=light] .bc-section,
-[data-theme=light] .confirm-box,
-[data-theme=light] .modal {
-    background: rgba(255, 255, 255, 0.78) !important;
-    border: 1.5px solid rgba(0, 0, 0, 0.07) !important;
-    box-shadow: 0 4px 24px 0 rgba(12, 28, 52, 0.07) !important;
+.card > .card-head {
+    border-bottom: 1px solid var(--bd);
+    padding: 20px 24px;
 }
 
 /* ========================================================================
