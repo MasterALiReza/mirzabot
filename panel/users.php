@@ -371,7 +371,7 @@ include __DIR__ . '/inc/layout_head.php';
                             </td>
 
                             <td data-label="جزئیات و مالی" class="no-label" style="vertical-align: top; padding-top:20px; text-align:right;">
-                                <div style="display:grid; grid-template-columns: max-content 1fr; gap:12px 16px; align-items:center; font-size:0.85rem; width:100%;">
+                                <div style="display:grid !important; grid-template-columns: max-content 1fr; gap:12px 16px; align-items:center; font-size:0.85rem; width:100%;">
                                     <span style="color:var(--mute); font-weight:600;">اطلاعات تماس :</span>
                                     <span class="cm cf" style="color:var(--text); font-weight:600;"><?= (!empty($u['number']) && $u['number'] !== 'none') ? htmlspecialchars($u['number']) : '—' ?></span>
 
