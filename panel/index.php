@@ -277,18 +277,6 @@ include __DIR__ . '/inc/layout_head.php';
             </div>
             <a href="invoice.php" class="btn-link" style="font-size:.78rem"><?= $textbotlang['panel']['dashViewAll'] ?></a>
         </div>
-        <style>
-        @media (max-width: 768px) {
-            .dash-orders td {
-                justify-content: flex-start !important;
-                gap: 12px !important;
-            }
-            .dash-orders td::before {
-                min-width: 80px;
-                color: var(--mute) !important;
-            }
-        }
-        </style>
         <div class="tbl-wrap dash-orders">
             <table class="tbl-sm">
                 <thead>
@@ -325,12 +313,12 @@ include __DIR__ . '/inc/layout_head.php';
                             ?>
                             <tr style="border-bottom: 1px solid var(--bd);">
                                 <td data-label="<?= $textbotlang['panel']['dashColUser'] ?>" class="no-label" style="text-align:right;">
-                                    <div class="user-profile-cell" style="display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; gap:8px; background:var(--sf2); padding:12px; border-radius:8px; border:1px solid var(--bd);">
-                                        <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
+                                    <div class="user-profile-cell" style="display:flex; flex-direction:row; justify-content:space-between; align-items:center; width:100%; gap:8px; background:var(--sf2); padding:12px; border-radius:8px; border:1px solid var(--bd);">
+                                        <div style="display:flex; flex-direction:row; align-items:center; gap:10px;">
                                             <div class="avatar-icon" style="color: var(--ac); padding: 4px; border-radius: 50%; display:flex; align-items:center; justify-content:center;">
                                                 <?= icon('user', 18) ?>
                                             </div>
-                                            <div style="display:flex; flex-direction:column; gap:2px; align-items:center; text-align:center;">
+                                            <div style="display:flex; flex-direction:column; gap:2px; align-items:flex-start; text-align:right;">
                                                 <span class="profile-name" style="font-weight:700; font-size:0.95rem; color:var(--text);">
                                                     <?php if (!empty($inv['name'])): ?>
                                                         <?= htmlspecialchars(trunc($inv['name'], 18)) ?>
