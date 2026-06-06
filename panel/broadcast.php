@@ -25,7 +25,25 @@ $products = $products_stmt ? $products_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
     max-width: 880px;
     margin: 0 auto;
 }
+.truncate-td {
+    max-width: 250px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.truncate-text {
+    display: inline-block;
+    text-align: right;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 
+@media (max-width: 768px) {
+    .truncate-td {
+        max-width: 100% !important;
+    }
+}
 .bc-header {
     margin-bottom: 30px;
     padding-bottom: 20px;
@@ -367,7 +385,7 @@ $products = $products_stmt ? $products_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
         </div>
         
         <?php if (count($histories) > 0): ?>
-        <div class="tbl-wrap" style="margin-top: 20px;">
+        <div class="tbl-wrap dash-bc-history" style="margin-top: 20px;">
             <table class="tbl-sm">
                 <thead>
                     <tr>
@@ -382,8 +400,8 @@ $products = $products_stmt ? $products_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
                 <tbody>
                     <?php foreach($histories as $history): ?>
                     <tr>
-                        <td data-label="محتوا / لینک" style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="<?= htmlspecialchars($history['content']) ?>">
-                            <span dir="ltr" style="display:inline-block; text-align:right; width:100%;"><?= htmlspecialchars($history['content']) ?></span>
+                        <td data-label="محتوا / لینک" class="truncate-td" title="<?= htmlspecialchars($history['content']) ?>">
+                            <span class="truncate-text"><?= htmlspecialchars($history['content']) ?></span>
                         </td>
                         <td data-label="نوع">
                             <?php if($history['message_type'] == 'text'): ?>
