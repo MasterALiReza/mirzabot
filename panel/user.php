@@ -1106,5 +1106,13 @@ include __DIR__ . '/inc/layout_head.php';
 </div>
 
 <script src="js/profile.js?v=<?= time() ?>"></script>
+<script>
+    // Fix browser back caching
+    window.onpageshow = function(event) {
+        if (event.persisted) {
+            window.location.reload();
+        }
+    };
+</script>
 
 <?php include __DIR__ . '/inc/layout_foot.php'; ?>
