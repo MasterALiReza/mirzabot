@@ -183,30 +183,6 @@ $products = $products_stmt ? $products_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
 }
 
 /* History Table Styles */
-.bc-history-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-}
-
-.bc-history-table th,
-.bc-history-table td {
-    padding: 12px;
-    text-align: right;
-    border-bottom: 1px solid var(--bd);
-    font-size: 0.9rem;
-}
-
-.bc-history-table th {
-    color: var(--dim);
-    font-weight: 600;
-    background: var(--sf);
-}
-
-.bc-history-table tr:hover {
-    background: var(--sf3);
-}
-
 .bc-badge {
     padding: 4px 8px;
     border-radius: 6px;
@@ -238,11 +214,6 @@ $products = $products_stmt ? $products_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
     .bc-submit .btn {
         width: 100%;
         justify-content: center;
-    }
-    
-    .bc-history-table {
-        display: block;
-        overflow-x: auto;
     }
 }
 </style>
@@ -396,40 +367,48 @@ $products = $products_stmt ? $products_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
         </div>
         
         <?php if (count($histories) > 0): ?>
-        <table class="bc-history-table">
-            <thead>
-                <tr>
-                    <th>محتوا / لینک</th>
-                    <th>نوع</th>
-                    <th>جامعه هدف</th>
-                    <th>وضعیت</th>
-                    <th>زمان ارسال</th>
-                    <th>عملیات</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach($histories as $history): ?>
-                <tr>
-                    <td style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="<?= htmlspecialchars($history['content']) ?>">
-                        <?= htmlspecialchars($history['content']) ?>
-                    </td>
-                    <td>
-                        <?php if($history['message_type'] == 'text'): ?>
-                            <span class="bc-badge badge-text">متنی</span>
-                        <?php else: ?>
-                            <span class="bc-badge badge-link">لینک کانال</span>
-                        <?php endif; ?>
-                    </td>
-                    <td><span class="bc-badge badge-audience"><?= htmlspecialchars($history['target_audience']) ?></span></td>
-                    <td><?= $history['status'] == 'completed' ? 'پایان یافته' : 'در جریان' ?></td>
-                    <td dir="ltr" style="text-align:center;"><?= jdate('Y/m/d H:i', $history['created_at']) ?></td>
-                    <td>
-                        <button type="button" class="btn btn-sm reuse-btn" data-history="<?= htmlspecialchars(json_encode($history), ENT_QUOTES, 'UTF-8') ?>" onclick="reuseBroadcast(this)" style="padding: 4px 10px; font-size: 0.8rem; background: var(--sf3); border: 1px solid var(--bd);">استفاده مجدد</button>
-                    </td>
-                </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+        <div class="tbl-wrap" style="margin-top: 20px;">
+            <table class="tbl-sm">
+                <thead>
+                    <tr>
+                        <th>محتوا / لینک</th>
+                        <th>نوع</th>
+                        <th>جامعه هدف</th>
+                        <th>وضعیت</th>
+                        <th style="text-align:center;">زمان ارسال</th>
+                        <th style="text-align:center;">عملیات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach($histories as $history): ?>
+                    <tr>
+                        <td data-label="محتوا / لینک" style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="<?= htmlspecialchars($history['content']) ?>">
+                            <span dir="ltr" style="display:inline-block; text-align:right; width:100%;"><?= htmlspecialchars($history['content']) ?></span>
+                        </td>
+                        <td data-label="نوع">
+                            <?php if($history['message_type'] == 'text'): ?>
+                                <span class="bc-badge badge-text">متنی</span>
+                            <?php else: ?>
+                                <span class="bc-badge badge-link">لینک کانال</span>
+                            <?php endif; ?>
+                        </td>
+                        <td data-label="جامعه هدف"><span class="bc-badge badge-audience"><?= htmlspecialchars($history['target_audience']) ?></span></td>
+                        <td data-label="وضعیت">
+                            <?php if($history['status'] == 'completed'): ?>
+                                <span class="status-pill success" style="font-size:0.8rem; padding:4px 8px;">پایان یافته</span>
+                            <?php else: ?>
+                                <span class="status-pill warning" style="font-size:0.8rem; padding:4px 8px;">در جریان</span>
+                            <?php endif; ?>
+                        </td>
+                        <td data-label="زمان ارسال" dir="ltr" style="text-align:center;"><?= jdate('Y/m/d H:i', $history['created_at']) ?></td>
+                        <td data-label="عملیات" style="text-align:center;">
+                            <button type="button" class="btn btn-sm reuse-btn" data-history="<?= htmlspecialchars(json_encode($history), ENT_QUOTES, 'UTF-8') ?>" onclick="reuseBroadcast(this)" style="padding: 4px 10px; font-size: 0.8rem; background: var(--sf3); border: 1px solid var(--bd);">استفاده مجدد</button>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
         <?php else: ?>
         <div style="text-align: center; padding: 30px; color: var(--dim); background: var(--sf); border-radius: 12px; border: 1px dashed var(--bd);">
             <?= icon('inbox', 32) ?>
