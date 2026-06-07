@@ -429,7 +429,7 @@ try {
         addFieldToTable("marzban_panel", "type", "marzban", "VARCHAR(50)");
         addFieldToTable("marzban_panel", "Methodextend", $textbotlang['keyboard']['resetVolumeTime'], "VARCHAR(100)");
         addFieldToTable("marzban_panel", "namecustom", "vpn", "VARCHAR(100)");
-        addFieldToTable("marzban_panel", "limit_panel", "unlimted", "VARCHAR(50)");
+        addFieldToTable("marzban_panel", "limit_panel", "unlimited", "VARCHAR(50)");
         addFieldToTable("marzban_panel", "TestAccount", "ONTestAccount", "VARCHAR(50)");
         addFieldToTable("marzban_panel", "status", "active", "VARCHAR(50)");
         addFieldToTable("marzban_panel", "sublink", "onsublink", "VARCHAR(50)");

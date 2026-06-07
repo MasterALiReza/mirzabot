@@ -67,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     
     $MethodUsername = trim($_POST['MethodUsername'] ?? $textbotlang['keyboard']['numericIdRandom']);
     $namecustom = trim($_POST['namecustom'] ?? 'vpn');
-    $limit_panel = trim($_POST['limit_panel'] ?? 'unlimted');
+    $limit_panel = trim($_POST['limit_panel'] ?? 'unlimited');
     $sublink = trim($_POST['sublink'] ?? 'onsublink');
     $config = trim($_POST['config'] ?? 'offconfig');
     
@@ -513,7 +513,7 @@ include __DIR__ . '/inc/layout_head.php';
                         <div class="field-group">
                             <label>محدودیت IP</label>
                             <select name="limit_panel" id="panelLimitPanel" class="input">
-                                <option value="unlimted">نامحدود</option>
+                                <option value="unlimited">نامحدود</option>
                                 <?php for($j=1; $j<=100; $j++): ?>
                                     <option value="<?= $j ?>"><?= $j ?> کاربره</option>
                                 <?php endfor; ?>
@@ -845,7 +845,7 @@ function openPanelModal(action, btn = null) {
         document.getElementById('panelSanaeiGroup').value = '';
         
         document.getElementById('panelNamecustom').value = 'vpn';
-        document.getElementById('panelLimitPanel').value = 'unlimted';
+        document.getElementById('panelLimitPanel').value = 'unlimited';
         document.getElementById('panelSublink').value = 'onsublink';
         document.getElementById('panelConfig').value = 'offconfig';
         document.getElementById('panelChangeloc').value = 'offchangeloc';
@@ -886,7 +886,7 @@ function openPanelModal(action, btn = null) {
         
         if (data.MethodUsername) document.getElementById('panelMethodUsername').value = data.MethodUsername;
         document.getElementById('panelNamecustom').value = data.namecustom || 'vpn';
-        document.getElementById('panelLimitPanel').value = data.limit_panel || 'unlimted';
+        document.getElementById('panelLimitPanel').value = data.limit_panel || 'unlimited';
         document.getElementById('panelSublink').value = data.sublink || 'onsublink';
         document.getElementById('panelConfig').value = data.config || 'offconfig';
         document.getElementById('panelChangeloc').value = data.changeloc || 'offchangeloc';
