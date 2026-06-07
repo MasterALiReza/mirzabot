@@ -242,7 +242,11 @@ $products = $products_stmt ? $products_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
         <p>در این بخش می‌توانید به صورت همگانی برای گروه‌های مختلف کاربری ربات، پیام متنی ارسال کنید، از لینک کانال پیام را کپی کنید یا پیام‌های قبلی را از حالت پین خارج کنید.</p>
     </div>
 
-    <?php if (is_file('../cronbot/info') || is_file('../cronbot/users.json')): ?>
+    <?php
+    $info_path = __DIR__ . '/../cronbot/info';
+    $users_path = __DIR__ . '/../cronbot/users.json';
+    if (is_file($info_path) || is_file($users_path)): 
+    ?>
         <div class="bc-alert">
             <div class="bc-alert-icon">
                 <?= icon('alert-triangle', 24) ?>
@@ -372,7 +376,7 @@ $products = $products_stmt ? $products_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
         </div>
 
         <div class="bc-submit">
-            <button type="submit" class="btn btn-primary" <?php if (is_file('../cronbot/info')) echo 'disabled'; ?>>
+            <button type="submit" class="btn btn-primary" <?php if (is_file(__DIR__ . '/../cronbot/info')) echo 'disabled'; ?>>
                 <?= icon('send', 18) ?> آغاز عملیات ارسال
             </button>
         </div>
@@ -465,6 +469,23 @@ function toggleFields() {
     }
 }
 
+function toggleBtnFields() {
+    var btnVal = document.getElementById('btnmessage').value;
+    var customUrlFields = document.getElementById('customUrlFields');
+    var customProductFields = document.getElementById('customProductFields');
+    
+    if (btnVal === 'custom_url') {
+        customUrlFields.style.display = 'block';
+        customProductFields.style.display = 'none';
+    } else if (btnVal === 'custom_product') {
+        customUrlFields.style.display = 'none';
+        customProductFields.style.display = 'block';
+    } else {
+        customUrlFields.style.display = 'none';
+        customProductFields.style.display = 'none';
+    }
+}
+
 function reuseBroadcast(btn) {
     var data = JSON.parse(btn.getAttribute('data-history'));
     if (data.message_type === 'text') {
@@ -478,11 +499,29 @@ function reuseBroadcast(btn) {
     document.getElementById('targetUsers').value = data.target_audience;
     document.getElementById('targetAgent').value = 'all'; // Default
     
+    // Restore button values if present in the data!
+    if (data.button_type) {
+        document.getElementById('btnmessage').value = data.button_type;
+        if (data.button_type === 'custom_url') {
+            document.getElementById('customBtnTextUrl').value = data.button_text || '';
+            document.getElementById('customBtnLink').value = data.button_data || '';
+        } else if (data.button_type === 'custom_product') {
+            document.getElementById('customBtnTextProd').value = data.button_text || '';
+            document.getElementById('customBtnCallback').value = data.button_data || '';
+        }
+    } else {
+        document.getElementById('btnmessage').value = 'none';
+    }
+    
     toggleFields();
+    toggleBtnFields();
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // Initialize on load
-document.addEventListener('DOMContentLoaded', toggleFields);
+document.addEventListener('DOMContentLoaded', function() {
+    toggleFields();
+    toggleBtnFields();
+});
 </script>
 <?php require 'inc/layout_foot.php'; ?>
