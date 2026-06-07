@@ -376,10 +376,11 @@ $products = $products_stmt ? $products_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
         </div>
 
         <div class="bc-submit">
-            <button type="submit" class="btn btn-primary" <?php if (is_file(__DIR__ . '/../cronbot/info')) echo 'disabled'; ?>>
+            <button type="submit" class="btn btn-primary" id="broadcastSubmitBtn" <?php if (is_file(__DIR__ . '/../cronbot/info')) echo 'disabled'; ?> >
                 <?= icon('send', 18) ?> آغاز عملیات ارسال
             </button>
         </div>
+
     </form>
 
     <div id="broadcastFeedback" style="margin-top: 20px;"></div>
@@ -443,7 +444,8 @@ $products = $products_stmt ? $products_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
 </div>
 
 <script>
-function toggleFields() {
+window.toggleFields = function toggleFields() {
+
     var type = document.getElementById('messageType').value;
     var btn = document.getElementById('btnmessage');
     var msg = document.getElementById('messageGroup');
@@ -521,7 +523,8 @@ function reuseBroadcast(btn) {
 }
 
 // Initialize on load
-document.addEventListener('DOMContentLoaded', function() {
+ document.addEventListener('DOMContentLoaded', function() {
+
     toggleFields();
     toggleBtnFields();
 });
