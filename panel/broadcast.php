@@ -444,7 +444,7 @@ $products = $products_stmt ? $products_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
 </div>
 
 <script>
-window.toggleFields = function toggleFields() {
+function toggleFields() {
 
     var type = document.getElementById('messageType').value;
     var btn = document.getElementById('btnmessage');
@@ -472,6 +472,8 @@ window.toggleFields = function toggleFields() {
         linkGroup.style.display = 'none';
     }
 }
+
+window.toggleFields = toggleFields;
 
 function toggleBtnFields() {
     var btnVal = document.getElementById('btnmessage').value;
