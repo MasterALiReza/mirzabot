@@ -102,6 +102,10 @@ try {
     $custom_btn_text_prod = trim($_POST['custom_btn_text_prod'] ?? '');
     $custom_btn_callback = trim($_POST['custom_btn_callback'] ?? '');
 
+    // Debug breadcrumb (visible in HTMX feedback)
+    echo '<div class="alert alert-info">Debug: request accepted. type=' . htmlspecialchars($type) . ', usersTarget=' . htmlspecialchars($target_users) . ', agent=' . htmlspecialchars($target_agent) . '</div>';
+
+
     $info = [
         'id_admin' => $id_admin,
         'id_message' => 0, // Panel doesn't have a specific telegram message to edit for progress
