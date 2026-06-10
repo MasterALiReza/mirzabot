@@ -498,8 +498,14 @@ function addDynamicButton() {
     row.className = 'dynamic-button-row';
     row.style = 'display: flex; gap: 10px; align-items: center; margin-bottom: 10px;';
     row.innerHTML = `
-        <input type="text" class="input dyn-btn-text" name="custom_btn_text_url[]" placeholder="متن دکمه" style="flex: 1;" required>
-        <input type="url" class="input dyn-btn-link" name="custom_btn_link[]" placeholder="لینک" dir="ltr" style="flex: 2;" required>
+        <input type="text" class="input dyn-btn-text" name="custom_btn_text_url[]" placeholder="متن دکمه" style="flex: 2;" required>
+        <input type="url" class="input dyn-btn-link" name="custom_btn_link[]" placeholder="لینک" dir="ltr" style="flex: 3;" required>
+        <select class="input dyn-btn-color" name="custom_btn_color[]" style="flex: 1; padding: 0 5px;">
+            <option value="default">پیش‌فرض</option>
+            <option value="primary">آبی (Primary)</option>
+            <option value="success">سبز (Success)</option>
+            <option value="danger">قرمز (Danger)</option>
+        </select>
         <button type="button" class="btn btn-sm" onclick="removeDynamicButton(this)" style="background:var(--nos); color:var(--no); border:none; border-radius:8px; padding:8px;">❌</button>
     `;
     container.appendChild(row);
@@ -621,6 +627,9 @@ function reuseBroadcast(btn) {
                     var lastRow = document.querySelector('.dynamic-button-row:last-child');
                     lastRow.querySelector('.dyn-btn-text').value = b.text || '';
                     lastRow.querySelector('.dyn-btn-link').value = b.url || '';
+                    if (b.color) {
+                        lastRow.querySelector('.dyn-btn-color').value = b.color;
+                    }
                 });
             } catch(e) {
                 // Fallback for old single button records

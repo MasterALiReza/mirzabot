@@ -124,14 +124,16 @@ try {
     if ($btnmessage === 'custom_url') {
         $texts = $_POST['custom_btn_text_url'] ?? [];
         $links = $_POST['custom_btn_link'] ?? [];
+        $colors = $_POST['custom_btn_color'] ?? [];
         
         $buttonsArray = [];
         if (is_array($texts) && is_array($links)) {
             for ($i = 0; $i < count($texts); $i++) {
                 $t = trim($texts[$i] ?? '');
                 $l = trim($links[$i] ?? '');
+                $c = trim($colors[$i] ?? 'default');
                 if ($t !== '' && $l !== '') {
-                    $buttonsArray[] = ['text' => $t, 'url' => $l];
+                    $buttonsArray[] = ['text' => $t, 'url' => $l, 'color' => $c];
                 }
             }
         }

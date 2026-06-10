@@ -220,9 +220,11 @@ if (isset($info['btnmessage']) && $info['btnmessage'] !== "none") {
         $dynamic_buttons = json_decode($info['custom_btn_dynamic'], true) ?: [];
         $keyboard_rows = [];
         foreach ($dynamic_buttons as $btn) {
-            $keyboard_rows[] = [
-                ['text' => $btn['text'], 'url' => $btn['url']]
-            ];
+            $btn_arr = ['text' => $btn['text'], 'url' => $btn['url']];
+            if (isset($btn['color']) && $btn['color'] !== 'default') {
+                $btn_arr['color'] = $btn['color'];
+            }
+            $keyboard_rows[] = [$btn_arr];
         }
         $custom_keyboard = json_encode(['inline_keyboard' => $keyboard_rows]);
     } elseif ($info['btnmessage'] == "custom_product") {
