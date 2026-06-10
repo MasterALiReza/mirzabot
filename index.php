@@ -3550,14 +3550,14 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
     } else {
         $query = "SELECT * FROM product WHERE $loc_condition AND agent= '{$user['agent']}' AND category = '$categorynames'";
     }
-    $marzban_list_get = select("marzban_panel", "*", "name_panel", $userdate['name_panel'], "select");
-    $statuscustomvolume = json_decode($marzban_list_get['customvolume'], true)[$user['agent']];
-    if ($marzban_list_get['MethodUsername'] == $textbotlang['users']['customusername'] || $marzban_list_get['MethodUsername'] == $textbotlang['keyboard']['customUsernameRandom']) {
+    $marzban_list_get = !empty($userdate['name_panel']) ? select("marzban_panel", "*", "name_panel", $userdate['name_panel'], "select") : false;
+    $statuscustomvolume = $marzban_list_get ? json_decode($marzban_list_get['customvolume'], true)[$user['agent']] : 0;
+    if ($marzban_list_get && ($marzban_list_get['MethodUsername'] == $textbotlang['users']['customusername'] || $marzban_list_get['MethodUsername'] == $textbotlang['keyboard']['customUsernameRandom'])) {
         $datakeyboard = "prodcutservices_";
     } else {
         $datakeyboard = "prodcutservice_";
     }
-    if ($statuscustomvolume == "1" && $marzban_list_get['type'] != "Manualsale") {
+    if ($statuscustomvolume == "1" && $marzban_list_get && $marzban_list_get['type'] != "Manualsale") {
         $statuscustom = true;
     } else {
         $statuscustom = false;

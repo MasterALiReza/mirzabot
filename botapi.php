@@ -106,14 +106,17 @@ function senddocumentsid($chat_id,$documentid,$caption){
     ]);
 }
 function Editmessagetext($chat_id, $message_id, $text, $keyboard,$parse_mode = 'HTML'){
-    return telegram('editmessagetext', [
+    $res = telegram('editmessagetext', [
         'chat_id' => $chat_id,
         'message_id' => $message_id,
         'text' => $text,
         'reply_markup' => $keyboard,
         'parse_mode' => $parse_mode,
-
     ]);
+    if (isset($res['ok']) && !$res['ok'] && strpos($res['description'], 'there is no text in the message to edit') !== false) {
+        return sendmessage($chat_id, $text, $keyboard, $parse_mode);
+    }
+    return $res;
 }
  function deletemessage($chat_id, $message_id){
   telegram('deletemessage', [
