@@ -313,7 +313,7 @@ include __DIR__ . '/inc/layout_head.php';
                             ?>
                             <tr style="border-bottom: 1px solid var(--bd);">
                                 <!-- User Col -->
-                                <td data-label="<?= $textbotlang['panel']['dashColUser'] ?>" class="no-label" style="text-align:right; overflow:hidden;">
+                                <td data-label="<?= $textbotlang['panel']['dashColUser'] ?>" class="no-label" style="text-align:right;">
                                     <div style="display:flex; align-items:center; gap:10px; min-width:0;">
                                         <div style="background: var(--acs); color: var(--ac); width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
                                             <?= icon('user', 16) ?>
@@ -335,25 +335,25 @@ include __DIR__ . '/inc/layout_head.php';
                                     </div>
                                 </td>
                                 <!-- Product Col -->
-                                <td style="text-align:right; overflow:hidden;">
+                                <td style="text-align:right;">
                                     <span style="font-weight:600; font-size:0.85rem; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block;"><?= htmlspecialchars(trunc($inv['name_product'] ?? '—', 16)) ?></span>
                                 </td>
                                 <!-- Amount Col -->
-                                <td style="text-align:right;">
+                                <td style="text-align:center;">
                                     <span style="font-weight:700; font-size:0.9rem; color:var(--ac); white-space:nowrap;">
                                         <?= number_format((int) ($inv['price_product'] ?? 0)) ?>
                                         <small style="font-size:0.7rem; color:var(--mute); font-weight:500;"><?= $textbotlang['panel']['dashTomanShort'] ?></small>
                                     </span>
                                 </td>
                                 <!-- Date Col -->
-                                <td style="text-align:right;">
+                                <td style="text-align:center;">
                                     <div style="font-size:0.8rem; color:var(--text2); white-space:nowrap;">
                                         <div><?= safe_date($inv['time_sell'] ?? null, 'Y/m/d') ?></div>
                                         <div style="font-size:0.72rem; color:var(--mute);"><?= safe_date($inv['time_sell'] ?? null, 'H:i') ?></div>
                                     </div>
                                 </td>
                                 <!-- Status Col -->
-                                <td style="text-align:right;">
+                                <td style="text-align:center;">
                                     <span class="<?= $pillClass ?>" style="font-size:0.72rem; padding:4px 8px; white-space:nowrap;"><?= $label ?></span>
                                 </td>
                             </tr>
