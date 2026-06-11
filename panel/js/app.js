@@ -157,7 +157,7 @@ window.closeConfirm = function () {
 
 
 var _THEME_BG = {
-    navy: '#1D3557', purple: '#1D3557', emerald: '#1D3557',
+    navy: '#222831', purple: '#1D3557', emerald: '#1D3557',
     sunset: '#1D3557', slate: '#1D3557', light: '#F1F5F9',
     linen: '#FAF7F2', mint: '#F0FDF4', lavender: '#FAF5FF'
 };
@@ -166,7 +166,7 @@ var _LIGHT_THEMES = ['light', 'linen', 'mint', 'lavender'];
 window.applyTheme = function (t) {
     var root = document.documentElement;
     root.setAttribute('data-theme', t);
-    root.style.backgroundColor = _THEME_BG[t] || '#1D3557';
+    root.style.backgroundColor = _THEME_BG[t] || '#222831';
     var isLight = _LIGHT_THEMES.indexOf(t) >= 0;
     root.style.colorScheme = isLight ? 'light' : 'dark';
     localStorage.setItem('panel-theme', t);

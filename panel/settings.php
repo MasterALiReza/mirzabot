@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'chang
 $tab = $_GET['tab'] ?? 'appearance';
 
 $themes = [
-    'navy' => ['name' => $textbotlang['panel']['settingsThemeBlueSea'], 'desc' => $textbotlang['panel']['settingsThemeBlueSeaDesc'], 'c' => ['#1D3557', '#457B9D', '#A8DADC', '#E63946'], 'dark' => true],
+    'navy' => ['name' => $textbotlang['panel']['settingsThemeBlueSea'], 'desc' => $textbotlang['panel']['settingsThemeBlueSeaDesc'], 'c' => ['#222831', '#393e46', '#00adb5', '#eeeeee'], 'dark' => true],
     'purple' => ['name' => $textbotlang['panel']['settingsThemeDreamPurple'], 'desc' => $textbotlang['panel']['settingsThemeDreamPurpleDesc'], 'c' => ['#1D3557', '#274366', '#A8DADC', '#E63946'], 'dark' => true],
     'emerald' => ['name' => $textbotlang['panel']['settingsThemeEmeraldGreen'], 'desc' => $textbotlang['panel']['settingsThemeEmeraldGreenDesc'], 'c' => ['#1D3557', '#315D78', '#F1FAEE', '#A8DADC'], 'dark' => true],
     'sunset' => ['name' => $textbotlang['panel']['settingsThemeWarmSunset'], 'desc' => $textbotlang['panel']['settingsThemeWarmSunsetDesc'], 'c' => ['#1D3557', '#457B9D', '#E63946', '#F1FAEE'], 'dark' => true],
