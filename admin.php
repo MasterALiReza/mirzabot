@@ -2825,11 +2825,9 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
         'text' => $textbotlang['keyboard']['confirmed'],
         'show_alert' => false,
     ]);
-    if ($Payment_report['Payment_Method'] != "cart to cart" && $Payment_report['Payment_Method'] != "arze digital offline") {
-        $Balance_id = select("user", "*", "id", $Payment_report['id_user'], "select");
-        $textconfrom = sprintf($textbotlang['Admin']['adminphp']['ok_user_admin_payment'], $Balance_id['id'], $order_id, $Balance_id['username'], $Balance_id['Balance'], $format_price_cart);
-        Editmessagetext($from_id, $message_id, $textconfrom, $Confirm_pay);
-    }
+    $Balance_id = select("user", "*", "id", $Payment_report['id_user'], "select");
+    $textconfrom = sprintf($textbotlang['Admin']['adminphp']['ok_user_admin_payment'], $Balance_id['id'], $order_id, $Balance_id['username'], $Balance_id['Balance'], $format_price_cart);
+    Editmessagetext($from_id, $message_id, $textconfrom, $Confirm_pay);
 } elseif (preg_match('/reject_pay_(\w+)/', $datain, $datagetr) && ($adminrulecheck['rule'] == "administrator" || $adminrulecheck['rule'] == "Seller")) {
     $id_order = $datagetr[1];
     $Payment_report = select("Payment_report", "*", "id_order", $id_order, "select");
