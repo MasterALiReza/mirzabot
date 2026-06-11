@@ -117,7 +117,9 @@ if ($status !== '') {
     $where[] = "User_Status = ?";
     $params[] = $status;
 }
-if ($role !== '') {
+if ($role === 'agents') {
+    $where[] = "agent IN ('n', 'n2')";
+} elseif ($role !== '') {
     $where[] = "agent = ?";
     $params[] = $role;
 }

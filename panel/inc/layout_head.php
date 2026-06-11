@@ -97,6 +97,8 @@ $initials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
             walk(e.detail.elt);
             // Update active nav links
             var path = window.location.pathname.split('/').pop() || 'index.php';
+            var search = window.location.search; // e.g. "?tab=admins"
+            var fullPath = path + search;
             
             // Clear all active and open states
             document.querySelectorAll('.sidebar-nav .nav-item, .sidebar-nav .nav-sub-item, .sidebar-nav .nav-group-btn, .bottom-nav .bnav-item').forEach(function(el) {
@@ -106,8 +108,14 @@ $initials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
                 el.classList.remove('open');
             });
 
-            // Find the active link
-            var activeLink = document.querySelector('.sidebar-nav a[href="' + path + '"], .bottom-nav a[href="' + path + '"]');
+            // Find the active link (try exact match with query string first)
+            var activeLink = document.querySelector('.sidebar-nav a[href="' + fullPath + '"], .bottom-nav a[href="' + fullPath + '"]');
+            
+            // If no exact match, try matching just the path (ignoring query string)
+            if (!activeLink) {
+                activeLink = document.querySelector('.sidebar-nav a[href="' + path + '"], .bottom-nav a[href="' + path + '"]');
+            }
+
             if (activeLink) {
                 activeLink.classList.add('active');
                 // If it's a sub-item, open its parent group
@@ -167,11 +175,33 @@ $initials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
               <svg class="nav-group-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
             </button>
             <div class="nav-sub">
-              <a href="users.php" class="nav-sub-item <?= $activeNav === 'users' ? 'active' : '' ?>" title="<?= $textbotlang['panel']['layoutPageTitleUsers'] ?? 'لیست کاربران' ?>">
-                <div class="nav-sub-dot"></div><?= $textbotlang['panel']['layoutMenuSectionMain'] ?? 'لیست کاربران' ?>
+              <a href="users.php" class="nav-sub-item <?= ($activeNav === 'users' && !isset($_GET['tab']) && !isset($_GET['role'])) ? 'active' : '' ?>" title="<?= $textbotlang['panel']['layoutPageTitleUsers'] ?? 'لیست کاربران' ?>">
+                <div class="nav-sub-dot"></div>لیست کاربران
+              </a>
+              <a href="users.php?tab=admins" class="nav-sub-item <?= (isset($_GET['tab']) && $_GET['tab'] === 'admins') ? 'active' : '' ?>" title="مدیران پنل">
+                <div class="nav-sub-dot"></div>مدیران و همکاران پنل
               </a>
               <a href="broadcast.php" class="nav-sub-item <?= $activeNav === 'broadcast' ? 'active' : '' ?>" title="ارسال پیام همگانی">
                 <div class="nav-sub-dot"></div>پیام همگانی
+              </a>
+            </div>
+          </div>
+
+          <!-- نماینده‌ها -->
+          <div class="nav-group <?= (isset($_GET['role']) && $_GET['role'] === 'agents') || (isset($_GET['tab']) && $_GET['tab'] === 'agents') ? 'open' : '' ?>">
+            <button class="nav-group-btn <?= (isset($_GET['role']) && $_GET['role'] === 'agents') || (isset($_GET['tab']) && $_GET['tab'] === 'agents') ? 'active' : '' ?>">
+              <div class="nav-group-title">
+                <span class="nav-icon"><?= icon('briefcase') ?></span>
+                <span class="nav-label">نماینده‌ها</span>
+              </div>
+              <svg class="nav-group-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+            <div class="nav-sub">
+              <a href="users.php?role=agents" class="nav-sub-item <?= (isset($_GET['role']) && $_GET['role'] === 'agents') ? 'active' : '' ?>" title="لیست نماینده‌ها">
+                <div class="nav-sub-dot"></div>لیست نماینده‌ها
+              </a>
+              <a href="bot_settings.php?tab=agents" class="nav-sub-item <?= (isset($_GET['tab']) && $_GET['tab'] === 'agents') ? 'active' : '' ?>" title="تنظیمات نماینده‌ها">
+                <div class="nav-sub-dot"></div>تنظیمات نماینده‌ها
               </a>
             </div>
           </div>
@@ -218,8 +248,8 @@ $initials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
           </div>
 
           <!-- تنظیمات -->
-          <div class="nav-group <?= in_array($activeNav, ['bot_settings', 'keyboard', 'settings']) ? 'open' : '' ?>">
-            <button class="nav-group-btn <?= in_array($activeNav, ['bot_settings', 'keyboard', 'settings']) ? 'active' : '' ?>">
+          <div class="nav-group <?= (in_array($activeNav, ['bot_settings', 'keyboard', 'settings']) && (!isset($_GET['tab']) || $_GET['tab'] !== 'agents')) ? 'open' : '' ?>">
+            <button class="nav-group-btn <?= (in_array($activeNav, ['bot_settings', 'keyboard', 'settings']) && (!isset($_GET['tab']) || $_GET['tab'] !== 'agents')) ? 'active' : '' ?>">
               <div class="nav-group-title">
                 <span class="nav-icon"><?= icon('settings') ?></span>
                 <span class="nav-label">تنظیمات</span>
@@ -227,7 +257,7 @@ $initials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
               <svg class="nav-group-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
             </button>
             <div class="nav-sub">
-              <a href="bot_settings.php" class="nav-sub-item <?= $activeNav === 'bot_settings' ? 'active' : '' ?>" title="<?= $textbotlang['panel']['layoutPageTitleBotSettings'] ?? 'تنظیمات ربات' ?>">
+              <a href="bot_settings.php" class="nav-sub-item <?= ($activeNav === 'bot_settings' && (!isset($_GET['tab']) || $_GET['tab'] !== 'agents')) ? 'active' : '' ?>" title="<?= $textbotlang['panel']['layoutPageTitleBotSettings'] ?? 'تنظیمات ربات' ?>">
                 <div class="nav-sub-dot"></div><?= $textbotlang['panel']['layoutNavBotSettings'] ?? 'تنظیمات ربات' ?>
               </a>
               <a href="keyboard.php" class="nav-sub-item <?= $activeNav === 'keyboard' ? 'active' : '' ?>" title="<?= $textbotlang['panel']['layoutPageTitleKeyboard'] ?? 'چیدمان کیبورد' ?>">
