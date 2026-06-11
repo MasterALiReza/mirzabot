@@ -489,7 +489,7 @@
     
     .content {
         padding: 12px !important;
-        padding-bottom: 80px !important; /* Make room for bottom nav */
+        padding-bottom: 120px !important; /* Make room for bottom nav */
     }
 
     /* Center align .kv list items on mobile using grid for perfect alignment */
@@ -1556,6 +1556,16 @@
     grid-template-columns: repeat(4, 1fr);
     gap: 12px;
     width: 100%;
+}
+.users-details-grid > div {
+    min-width: 0;
+}
+.users-details-grid > div > div, 
+.users-details-grid > div > span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
 }
 
 @media (max-width: 1200px) {

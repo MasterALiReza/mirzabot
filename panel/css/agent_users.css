@@ -496,6 +496,9 @@ body.agent-panel-body {
 
 /* Responsive */
 @media (max-width: 1024px) {
+    :root {
+        --au-mobile-offset: 65px;
+    }
     .au-sidebar {
         transform: translateX(100%);
     }

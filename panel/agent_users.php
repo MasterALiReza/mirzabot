@@ -162,17 +162,9 @@ $initials = mb_strtoupper(mb_substr($agentUsername, 0, 1, 'UTF-8'), 'UTF-8');
 
                 let html = '';
                 users.forEach(user => {
-                    // Calculate percentage
-                    let percent = 0;
-                    if (user.total_gb !== 'نامحدود' && user.total_gb > 0) {
-                        percent = (user.used_gb / user.total_gb) * 100;
-                        if (percent > 100) percent = 100;
-                    }
-
                     const statusColor = user.status === 'active' ? '' : 'background: rgba(239, 68, 68, 0.15); color: var(--au-danger);';
                     const activeClass = user.status === 'active' ? 'au-badge-active' : '';
                     const dotStyle = user.status === 'active' ? '' : 'background: var(--au-danger);';
-                    const barColor = percent >= 100 ? 'background: var(--au-danger);' : '';
 
                     html += `
                     <div class="au-card">
@@ -204,12 +196,8 @@ $initials = mb_strtoupper(mb_substr($agentUsername, 0, 1, 'UTF-8'), 'UTF-8');
                         </div>
 
                         <div class="au-card-usage">
-                            <div class="au-usage-header">
-                                <span>مصرف داده</span>
-                                <span>${user.used_gb} GB از ${user.total_gb} GB (${percent.toFixed(1)}%)</span>
-                            </div>
-                            <div class="au-usage-bar-bg">
-                                <div class="au-usage-bar-fill" data-percent="${percent}" style="width: ${percent}%; ${barColor}"></div>
+                            <div class="au-usage-header" style="justify-content: center;">
+                                <span><i class="fa-solid fa-database"></i> حجم: ${user.total_gb} | <i class="fa-solid fa-clock"></i> مدت: ${user.service_time_str}</span>
                             </div>
                         </div>
 

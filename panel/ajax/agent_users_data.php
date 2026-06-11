@@ -64,9 +64,18 @@ if ($action === 'get_users') {
         $start_date = $time_sell > 0 ? jdate('Y/m/d H:i', $time_sell) : 'نامشخص';
         $exp_date = $days > 0 ? jdate('Y/m/d', $expire_ts) : 'نامحدود';
 
+        global $textbotlang;
         $vol_total = (float)$inv['Volume'];
-        $vol_used = isset($inv['used_volume']) ? (float)$inv['used_volume'] : 0; // if used_volume exists from cron, else 0
+        $name_product = $inv['name_product'];
+        $is_test = ($name_product == $textbotlang['Admin']['adminphp']['db_test_service_name']);
 
+        if ($is_test) {
+            $formatted_time = $inv['Service_time'] . ' ' . $textbotlang['Admin']['adminphp']['btn_hour'];
+            $formatted_vol = $vol_total . ' ' . $textbotlang['Admin']['adminphp']['btn_8'];
+        } else {
+            $formatted_time = $inv['Service_time'] . ' ' . $textbotlang['Admin']['adminphp']['btn_day_1'];
+            $formatted_vol = $vol_total == 0 ? 'نامحدود' : $vol_total . ' ' . $textbotlang['Admin']['adminphp']['btn_9'];
+        }
 
         $status_label = '';
         if ($inv['Status'] === 'active') {
@@ -89,8 +98,8 @@ if ($action === 'get_users') {
             'location' => $inv['Service_location'],
             'created_at' => $start_date,
             'expires_at' => $exp_date,
-            'total_gb' => $vol_total == 0 ? 'نامحدود' : $vol_total,
-            'used_gb' => $vol_used, // we might need to parse it if stored differently
+            'total_gb' => $formatted_vol,
+            'service_time_str' => $formatted_time,
             'price' => number_format((float)($inv['price_product'] ?? 0)) . ' تومان'
         ];
     }
