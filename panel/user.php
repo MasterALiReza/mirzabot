@@ -249,7 +249,7 @@ include __DIR__ . '/inc/layout_head.php';
 
 <div class="profile-grid u-profile-grid">
 
-    <div class="u-sidebar" style="display:flex;flex-direction:column;gap:12px">
+    <div class="u-sidebar" style="display:flex;flex-direction:column;gap:12px;position:sticky;top:80px;align-self:flex-start;">
 
         <div class="card fade-up">
             <div class="profile-head" style="display: flex; flex-direction: column; gap: 16px;">
