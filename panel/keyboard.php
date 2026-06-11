@@ -11,7 +11,7 @@ if ($method == "POST" && is_array($keyboard)) {
     update("setting", "keyboardmain", json_encode($keyboardmain), null, null);
     exit;
 } else {
-    $keyboardmain_default = '{"keyboard":[[{"text":"text_sell"},{"text":"text_extend"}],[{"text":"text_usertest"},{"text":"text_wheel_luck"}],[{"text":"text_Purchased_services"},{"text":"accountwallet"}],[{"text":"text_affiliates"},{"text":"text_Tariff_list"}],[{"text":"text_support"},{"text":"text_help"}]]}';
+    $keyboardmain_default = '{"keyboard":[[{"text":"text_extend"},{"text":"text_sell"}],[{"text":"text_Purchased_services"}],[{"text":"text_Tariff_list"},{"text":"text_usertest"}],[{"text":"text_help"},{"text":"accountwallet"}],[{"text":"text_affiliates"},{"text":"text_support"}],[{"text":"text_wheel_luck"}]]}';
     $action = filter_input(INPUT_GET, 'action');
     if ($action === "reaset") {
         update("setting", "keyboardmain", $keyboardmain_default, null, null);
