@@ -112,7 +112,7 @@ include __DIR__ . '/inc/layout_head.php';
     <div class="toolbar">
         <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap">
             <div class="toolbar-title">همکاری در فروش (زیرمجموعه‌ها)</div>
-            <a href="settings_agents.php" class="btn btn-ghost btn-sm" style="display:inline-flex; align-items:center; gap:6px;">
+            <a href="settings_agents.php?tab=affiliates" class="btn btn-ghost btn-sm" style="display:inline-flex; align-items:center; gap:6px;">
                 <?= icon('settings', 14) ?> تنظیمات پورسانت
             </a>
         </div>

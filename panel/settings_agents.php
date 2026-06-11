@@ -72,22 +72,30 @@ $lottery_prize = json_decode($row['Lottery_prize'] ?? '{}', true);
 
 $schema = [
     'agents' => [
-        'title' => 'نمایندگان و همکاری',
+        'title' => 'تنظیمات نمایندگان',
         'icon' => 'users',
         'sections' => [
-            'تنظیمات نمایندگان' => [
+            'نمایندگی' => [
                 ['name' => 'set_statusagentrequest', 'label' => 'درخواست نمایندگی', 'type' => 'select', 'options' => ['onrequestagent' => 'باز', 'offrequestagent' => 'بسته'], 'val' => $row['statusagentrequest'] ?? ''],
                 ['name' => 'set_agentreqprice', 'label' => 'حداقل شارژ برای درخواست (تومان)', 'type' => 'number', 'val' => $row['agentreqprice'] ?? ''],
-            ],
-            'همکاری در فروش (Affiliates)' => [
-                ['name' => 'set_affiliatesstatus', 'label' => 'وضعیت همکاری در فروش', 'type' => 'select', 'options' => ['onaffiliates' => 'فعال', 'offaffiliates' => 'غیرفعال'], 'val' => $row['affiliatesstatus'] ?? ''],
+            ]
+        ]
+    ],
+    'affiliates' => [
+        'title' => 'همکاری در فروش (Affiliates)',
+        'icon' => 'percent',
+        'sections' => [
+            'سیستم پورسانت' => [
+                ['name' => 'set_affiliatesstatus', 'label' => 'وضعیت سیستم همکاری در فروش', 'type' => 'select', 'options' => ['onaffiliates' => 'فعال', 'offaffiliates' => 'غیرفعال'], 'val' => $row['affiliatesstatus'] ?? ''],
                 ['name' => 'set_affiliatespercentage', 'label' => 'درصد پورسانت', 'type' => 'number', 'val' => $row['affiliatespercentage'] ?? '0'],
-                ['name' => 'aff_status_commission', 'label' => 'وضعیت پورسانت‌دهی', 'type' => 'select', 'options' => ['oncommission' => 'فعال', 'offcommission' => 'غیرفعال'], 'val' => $affiliate_settings['status_commission'] ?? ''],
+                ['name' => 'aff_status_commission', 'label' => 'وضعیت پورسانت‌دهی خریدار', 'type' => 'select', 'options' => ['oncommission' => 'فعال', 'offcommission' => 'غیرفعال'], 'val' => $affiliate_settings['status_commission'] ?? ''],
+                ['name' => 'aff_porsant_one_buy', 'label' => 'پورسانت فقط خرید اول', 'type' => 'select', 'options' => ['on_buy_porsant' => 'بله', 'off_buy_porsant' => 'خیر'], 'val' => $affiliate_settings['porsant_one_buy'] ?? ''],
+            ],
+            'تخفیف و رسانه' => [
                 ['name' => 'aff_Discount', 'label' => 'کد تخفیف به معرف', 'type' => 'select', 'options' => ['onDiscountaffiliates' => 'فعال', 'offDiscountaffiliates' => 'غیرفعال'], 'val' => $affiliate_settings['Discount'] ?? ''],
                 ['name' => 'aff_price_Discount', 'label' => 'مبلغ/درصد تخفیف', 'type' => 'number', 'val' => $affiliate_settings['price_Discount'] ?? '0'],
-                ['name' => 'aff_porsant_one_buy', 'label' => 'پورسانت فقط خرید اول', 'type' => 'select', 'options' => ['on_buy_porsant' => 'بله', 'off_buy_porsant' => 'خیر'], 'val' => $affiliate_settings['porsant_one_buy'] ?? ''],
-                ['name' => 'aff_description', 'label' => 'متن توضیحات', 'type' => 'text', 'val' => $affiliate_settings['description'] ?? ''],
-                ['name' => 'aff_id_media', 'label' => 'فایل مدیای راهنما', 'type' => 'text', 'val' => $affiliate_settings['id_media'] ?? ''],
+                ['name' => 'aff_id_media', 'label' => 'شناسه مدیا راهنما', 'type' => 'text', 'val' => $affiliate_settings['id_media'] ?? ''],
+                ['name' => 'aff_description', 'label' => 'متن توضیحات راهنما', 'type' => 'text', 'val' => $affiliate_settings['description'] ?? ''],
             ]
         ]
     ]
@@ -228,7 +236,7 @@ if (!in_array($sec, $sections)) {
     $sec = $sections[0];
 }
 
-$pageTitle = 'تنظیمات نمایندگان';
+$pageTitle = $schema[$tab]['title'] ?? 'تنظیمات نمایندگان';
 $activeNav = 'settings_agents';
 include __DIR__ . '/inc/layout_head.php';
 ?>
@@ -573,7 +581,7 @@ input:checked + .arvan-slider:before {
 
 <div class="fade-up">
     <!-- Main Tabs -->
-    <div class="arvan-main-tabs" style="display: none;">
+    <div class="arvan-main-tabs" style="<?= count($schema) > 1 ? 'display: flex;' : 'display: none;' ?>">
         <?php foreach ($schema as $key => $tab_data): ?>
             <button type="button" class="arvan-main-tab-btn <?= $tab === $key ? 'active' : '' ?>" data-tab="<?= $key ?>">
                 <?= icon($tab_data['icon'] ?? 'settings', 22) ?>
