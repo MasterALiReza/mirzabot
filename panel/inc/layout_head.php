@@ -97,10 +97,27 @@ $initials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
             walk(e.detail.elt);
             // Update active nav links
             var path = window.location.pathname.split('/').pop() || 'index.php';
-            document.querySelectorAll('.sidebar-nav .nav-item, .bottom-nav .bnav-item').forEach(function(el) {
-                if(el.getAttribute('href') === path) el.classList.add('active');
-                else el.classList.remove('active');
+            
+            // Clear all active and open states
+            document.querySelectorAll('.sidebar-nav .nav-item, .sidebar-nav .nav-sub-item, .sidebar-nav .nav-group-btn, .bottom-nav .bnav-item').forEach(function(el) {
+                el.classList.remove('active');
             });
+            document.querySelectorAll('.sidebar-nav .nav-group').forEach(function(el) {
+                el.classList.remove('open');
+            });
+
+            // Find the active link
+            var activeLink = document.querySelector('.sidebar-nav a[href="' + path + '"], .bottom-nav a[href="' + path + '"]');
+            if (activeLink) {
+                activeLink.classList.add('active');
+                // If it's a sub-item, open its parent group
+                var group = activeLink.closest('.nav-group');
+                if (group) {
+                    group.classList.add('open');
+                    var groupBtn = group.querySelector('.nav-group-btn');
+                    if (groupBtn) groupBtn.classList.add('active');
+                }
+            }
         });
     });
   </script>
