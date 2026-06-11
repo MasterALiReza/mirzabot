@@ -71,7 +71,7 @@ $limitnumber = json_decode($row['limitnumber'] ?? '{}', true);
 $lottery_prize = json_decode($row['Lottery_prize'] ?? '{}', true);
 
 $schema = [
-    'general' => [    'general' => [
+    'general' => [
         'title' => 'عمومی',
         'icon' => 'settings',
         'sections' => [
