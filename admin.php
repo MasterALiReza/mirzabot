@@ -1,6 +1,6 @@
 <?php
 #----------------[  admin section  ]------------------#
-$textadmin = ["panel", "/panel", $textbotlang['panel']['panelAdmin']];
+$textadmin = ["panel", "/panel", $textbotlang['Admin']['panelAdmin'] ?? '👨‍💼 پنل مدیریت'];
 $text_panel_admin_login_template = sprintf($textbotlang['Admin']['adminphp']['msg_panel_admin_bot_report'], $version);
 
 if (!in_array($from_id, $admin_ids))
@@ -10,7 +10,7 @@ $domainhostsEscaped = htmlspecialchars($domainhosts, ENT_QUOTES | ENT_SUBSTITUTE
 
 $miniAppInstructionText = sprintf($textbotlang['Admin']['adminphp']['msg_mini_app_instruction'], $domainhostsEscaped);
 
-if (in_array($text, $textadmin) || $datain == "admin") {
+if (in_array($text, $textadmin, true) || $datain == "admin") {
     if ($datain == "admin")
         deletemessage($from_id, $message_id);
     if ($buyreport == "0" || $otherservice == "0" || $otherreport == "0" || $paymentreports == "0" || $reporttest == "0" || $errorreport == "0") {
