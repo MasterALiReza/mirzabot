@@ -71,76 +71,108 @@ $limitnumber = json_decode($row['limitnumber'] ?? '{}', true);
 $lottery_prize = json_decode($row['Lottery_prize'] ?? '{}', true);
 
 $schema = [
-    'general' => [    'general' => [
-        'title' => 'عمومی',
-        'icon' => 'settings',
+    'financial' => [
+        'title' => 'مالی و درگاه‌ها',
+        'icon' => 'card',
         'sections' => [
-            'وضعیت و دسترسی' => [
-                ['name' => 'set_Bot_Status', 'label' => 'وضعیت ربات', 'type' => 'select', 'options' => ['botstatuson' => 'روشن', 'botstatusoff' => 'خاموش'], 'val' => $row['Bot_Status'] ?? ''],
-                ['name' => 'set_roll_Status', 'label' => 'تایید قوانین', 'type' => 'select', 'options' => ['rolleon' => 'اجباری', 'rolleoff' => 'اختیاری'], 'val' => $row['roll_Status'] ?? ''],
-                ['name' => 'set_NotUser', 'label' => 'قفل برای غیرکاربران', 'type' => 'select', 'options' => ['onnotuser' => 'فعال', 'offnotuser' => 'غیرفعال'], 'val' => $row['NotUser'] ?? ''],
-                ['name' => 'set_statusnewuser', 'label' => 'وضعیت کاربران جدید', 'type' => 'select', 'options' => ['onnewuser' => 'آزاد', 'offnewuser' => 'بسته'], 'val' => $row['statusnewuser'] ?? ''],
-                ['name' => 'set_verifystart', 'label' => 'تاییدیه شروع کار', 'type' => 'select', 'options' => ['onverify' => 'فعال', 'offverify' => 'غیرفعال'], 'val' => $row['verifystart'] ?? ''],
-                ['name' => 'set_verifybucodeuser', 'label' => 'تاییدیه پیامکی (کد)', 'type' => 'select', 'options' => ['onverify' => 'فعال', 'offverify' => 'غیرفعال'], 'val' => $row['verifybucodeuser'] ?? ''],
-                ['name' => 'set_get_number', 'label' => 'دریافت شماره تماس', 'type' => 'select', 'options' => ['onAuthenticationphone' => 'اجباری', 'offAuthenticationphone' => 'اختیاری/خاموش'], 'val' => $row['get_number'] ?? ''],
-                ['name' => 'set_iran_number', 'label' => 'فقط شماره ایران', 'type' => 'select', 'options' => ['onAuthenticationiran' => 'بله', 'offAuthenticationiran' => 'خیر'], 'val' => $row['iran_number'] ?? ''],
-                ['name' => 'set_limitnumber_free', 'label' => 'محدودیت (کاربران رایگان)', 'type' => 'number', 'val' => $limitnumber['free'] ?? '100'],
-                ['name' => 'set_limitnumber_all', 'label' => 'محدودیت (همه کاربران)', 'type' => 'number', 'val' => $limitnumber['all'] ?? '100'],
-                ['name' => 'set_numbercount', 'label' => 'محدودیت اکانت با هر شماره', 'type' => 'number', 'val' => $row['numbercount'] ?? '0'],
-                ['name' => 'set_timeauto_not_verify', 'label' => 'زمان حذف تایید نشده (روز)', 'type' => 'number', 'val' => $row['timeauto_not_verify'] ?? '4'],
+            'تنظیمات کلی مالی' => [
+                ['name' => 'pay_minbalance', 'label' => 'حداقل مبلغ پرداخت (عمومی)', 'type' => 'number', 'val' => $pay_settings['minbalance'] ?? ''],
+                ['name' => 'pay_maxbalance', 'label' => 'حداکثر مبلغ پرداخت (عمومی)', 'type' => 'number', 'val' => $pay_settings['maxbalance'] ?? ''],
+                ['name' => 'pay_minbalancepaynotverify', 'label' => 'حداقل پرداخت (احراز نشده)', 'type' => 'number', 'val' => $pay_settings['minbalancepaynotverify'] ?? ''],
+                ['name' => 'pay_maxbalancepaynotverify', 'label' => 'حداکثر پرداخت (احراز نشده)', 'type' => 'number', 'val' => $pay_settings['maxbalancepaynotverify'] ?? ''],
+                ['name' => 'set_showcard', 'label' => 'نمایش شماره کارت در ربات', 'type' => 'select', 'options' => ['1' => 'بله', '0' => 'خیر'], 'val' => $row['showcard'] ?? ''],
+                ['name' => 'set_statuscopycart', 'label' => 'قابلیت کپی شماره کارت', 'type' => 'select', 'options' => ['1' => 'بله', '0' => 'خیر'], 'val' => $row['statuscopycart'] ?? ''],
             ],
-            'گزارشات و ارتباطات' => [
-                ['name' => 'set_Channel_Report', 'label' => 'آیدی کانال گزارشات', 'type' => 'text', 'placeholder' => '-100xxxxxxxxx', 'val' => $row['Channel_Report'] ?? ''],
-                ['name' => 'set_id_support', 'label' => 'آیدی پشتیبانی', 'type' => 'text', 'placeholder' => '123456789', 'val' => $row['id_support'] ?? ''],
-                ['name' => 'set_statussupportpv', 'label' => 'پشتیبانی PV', 'type' => 'select', 'options' => ['onpvsupport' => 'فعال', 'offpvsupport' => 'غیرفعال'], 'val' => $row['statussupportpv'] ?? ''],
-                ['name' => 'set_categoryhelp', 'label' => 'راهنما در دسته‌بندی‌ها', 'type' => 'select', 'options' => ['1' => 'نمایش', '0' => 'عدم نمایش'], 'val' => $row['categoryhelp'] ?? ''],
-                ['name' => 'set_linkappstatus', 'label' => 'لینک اپلیکیشن در منو', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => $row['linkappstatus'] ?? ''],
-                ['name' => 'set_statusnoteforf', 'label' => 'یادداشت اجباری در خرید', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => $row['statusnoteforf'] ?? ''],
+            'کارت به کارت' => [
+                ['name' => 'pay_Cartstatus', 'label' => 'کارت به کارت عمومی', 'type' => 'select', 'options' => ['oncard' => 'روشن', 'offcard' => 'خاموش'], 'val' => $pay_settings['Cartstatus'] ?? ''],
+                ['name' => 'pay_Cartstatuspv', 'label' => 'کارت به کارت در PV', 'type' => 'select', 'options' => ['oncardpv' => 'روشن', 'offcardpv' => 'خاموش'], 'val' => $pay_settings['Cartstatuspv'] ?? ''],
+                ['name' => 'pay_cardnumber', 'label' => 'شماره کارت', 'type' => 'text', 'val' => $pay_settings['cardnumber'] ?? ''],
+                ['name' => 'pay_namecard', 'label' => 'نام صاحب کارت', 'type' => 'text', 'val' => $pay_settings['namecard'] ?? ''],
+                ['name' => 'pay_minbalancecart', 'label' => 'حداقل مبلغ شارژ', 'type' => 'number', 'val' => $pay_settings['minbalancecart'] ?? ''],
+                ['name' => 'pay_maxbalancecart', 'label' => 'حداکثر مبلغ شارژ', 'type' => 'number', 'val' => $pay_settings['maxbalancecart'] ?? ''],
+                ['name' => 'pay_chashbackcart', 'label' => 'درصد کش‌بک شارژ', 'type' => 'number', 'val' => $pay_settings['chashbackcart'] ?? '0'],
+                ['name' => 'pay_statuscardautoconfirm', 'label' => 'تایید خودکار کارت به کارت', 'type' => 'select', 'options' => ['onautoconfirm' => 'روشن', 'offautoconfirm' => 'خاموش'], 'val' => $pay_settings['statuscardautoconfirm'] ?? ''],
+                ['name' => 'pay_autoconfirmcart', 'label' => 'ربات تاییدگر کارت', 'type' => 'select', 'options' => ['onauto' => 'روشن', 'offauto' => 'خاموش'], 'val' => $pay_settings['autoconfirmcart'] ?? ''],
+                ['name' => 'pay_checkpaycartfirst', 'label' => 'بررسی تراکنش اول', 'type' => 'select', 'options' => ['onpayverify' => 'روشن', 'offpayverify' => 'خاموش'], 'val' => $pay_settings['checkpaycartfirst'] ?? ''],
             ],
-            'کاربر و سرویس' => [
-                ['name' => 'set_limit_usertest_all', 'label' => 'تعداد تست مجاز هر کاربر', 'type' => 'number', 'val' => $row['limit_usertest_all'] ?? ''],
-                ['name' => 'set_removedayc', 'label' => 'روزهای نگهداری سرویس حذف شده', 'type' => 'number', 'val' => $row['removedayc'] ?? ''],
-                ['name' => 'set_on_hold_day', 'label' => 'روزهای مسدودی موقت', 'type' => 'number', 'val' => $row['on_hold_day'] ?? ''],
-                ['name' => 'set_cronvolumere', 'label' => 'بررسی حجم کرون‌جاب (ساعت)', 'type' => 'number', 'val' => $row['cronvolumere'] ?? ''],
-                ['name' => 'set_daywarn', 'label' => 'هشدار پایان سرویس (روز)', 'type' => 'number', 'val' => $row['daywarn'] ?? ''],
-                ['name' => 'set_volumewarn', 'label' => 'هشدار پایان حجم (گیگابایت)', 'type' => 'number', 'val' => $row['volumewarn'] ?? ''],
-                ['name' => 'set_statusnamecustom', 'label' => 'نام سفارشی سرویس‌ها', 'type' => 'select', 'options' => ['onnamecustom' => 'فعال', 'offnamecustom' => 'غیرفعال'], 'val' => $row['statusnamecustom'] ?? ''],
+            'درگاه زرین‌پال' => [
+                ['name' => 'pay_zarinpalstatus', 'label' => 'وضعیت زرین‌پال', 'type' => 'select', 'options' => ['onzarinpal' => 'روشن', 'offzarinpal' => 'خاموش'], 'val' => $pay_settings['zarinpalstatus'] ?? ''],
+                ['name' => 'pay_merchant_zarinpal', 'label' => 'مرچنت زرین‌پال', 'type' => 'text', 'val' => $pay_settings['merchant_zarinpal'] ?? ''],
+                ['name' => 'pay_minbalancezarinpal', 'label' => 'حداقل مبلغ', 'type' => 'number', 'val' => $pay_settings['minbalancezarinpal'] ?? ''],
+                ['name' => 'pay_maxbalancezarinpal', 'label' => 'حداکثر مبلغ', 'type' => 'number', 'val' => $pay_settings['maxbalancezarinpal'] ?? ''],
+                ['name' => 'pay_chashbackzarinpal', 'label' => 'درصد کش‌بک', 'type' => 'number', 'val' => $pay_settings['chashbackzarinpal'] ?? '0'],
             ],
-            'ظاهر و منوها' => [
-                ['name' => 'set_inlinebtnmain', 'label' => 'دکمه‌های شیشه‌ای منوی اصلی', 'type' => 'select', 'options' => ['oninline' => 'روشن', 'offinline' => 'خاموش'], 'val' => $row['inlinebtnmain'] ?? ''],
-                ['name' => 'set_btn_status_extned', 'label' => 'دکمه تمدید سرویس', 'type' => 'select', 'options' => ['1' => 'روشن', '0' => 'خاموش'], 'val' => $row['btn_status_extned'] ?? ''],
-                ['name' => 'set_status_keyboard_config', 'label' => 'کیبورد تنظیمات کانفیگ', 'type' => 'select', 'options' => ['1' => 'روشن', '0' => 'خاموش'], 'val' => $row['status_keyboard_config'] ?? ''],
-                ['name' => 'set_status_manual_config', 'label' => 'دریافت دستی کانفیگ (QR)', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => $row['status_manual_config'] ?? '1'],
+            'درگاه NowPayment' => [
+                ['name' => 'pay_statusnowpayment', 'label' => 'وضعیت NowPayment', 'type' => 'select', 'options' => ['1' => 'روشن', '0' => 'خاموش'], 'val' => $pay_settings['statusnowpayment'] ?? '0'],
+                ['name' => 'pay_marchent_tronseller', 'label' => 'API Key (NowPayment)', 'type' => 'text', 'val' => $pay_settings['marchent_tronseller'] ?? ''],
+                ['name' => 'pay_minbalancenowpayment', 'label' => 'حداقل مبلغ', 'type' => 'number', 'val' => $pay_settings['minbalancenowpayment'] ?? ''],
+                ['name' => 'pay_maxbalancenowpayment', 'label' => 'حداکثر مبلغ', 'type' => 'number', 'val' => $pay_settings['maxbalancenowpayment'] ?? ''],
+                ['name' => 'pay_cashbacknowpayment', 'label' => 'درصد کش‌بک', 'type' => 'number', 'val' => $pay_settings['cashbacknowpayment'] ?? '0'],
             ],
-            'مدیریت کرون‌جاب' => [
-                ['name' => 'set_cron_day', 'label' => 'محاسبه روزها (day)', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => ($cron_status['day'] ?? true) ? '1' : '0'],
-                ['name' => 'set_cron_volume', 'label' => 'محاسبه حجم (volume)', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => ($cron_status['volume'] ?? true) ? '1' : '0'],
-                ['name' => 'set_cron_remove', 'label' => 'حذف پایان‌یافته', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => ($cron_status['remove'] ?? false) ? '1' : '0'],
-                ['name' => 'set_cron_remove_volume', 'label' => 'حذف تمام‌شده', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => ($cron_status['remove_volume'] ?? false) ? '1' : '0'],
-                ['name' => 'set_cron_test', 'label' => 'حذف سرویس تست', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => ($cron_status['test'] ?? false) ? '1' : '0'],
-                ['name' => 'set_cron_on_hold', 'label' => 'مسدودی موقت', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => ($cron_status['on_hold'] ?? false) ? '1' : '0'],
-                ['name' => 'set_cron_uptime_node', 'label' => 'پایداری نودها', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => ($cron_status['uptime_node'] ?? false) ? '1' : '0'],
-                ['name' => 'set_cron_uptime_panel', 'label' => 'پایداری پنل‌ها', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => ($cron_status['uptime_panel'] ?? false) ? '1' : '0'],
-            ]
-        ]
-    ],
-    'gamification' => [
-        'title' => 'سرگرمی و امتیاز',
-        'icon' => 'star',
-        'sections' => [
-            'گردونه شانس' => [
-                ['name' => 'set_wheelـluck', 'label' => 'وضعیت گردونه', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => $row['wheelـluck'] ?? ''],
-                ['name' => 'set_wheelـluck_price', 'label' => 'قیمت هر چرخش (تومان)', 'type' => 'number', 'val' => $row['wheelـluck_price'] ?? '0'],
-                ['name' => 'set_statusfirstwheel', 'label' => 'اولین چرخش رایگان', 'type' => 'select', 'options' => ['1' => 'بله', '0' => 'خیر'], 'val' => $row['statusfirstwheel'] ?? ''],
-                ['name' => 'set_wheelagent', 'label' => 'گردونه برای نمایندگان', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => $row['wheelagent'] ?? ''],
-                ['name' => 'set_prize_one', 'label' => 'جایزه سطح 1', 'type' => 'number', 'val' => $lottery_prize['one'] ?? '0'],
-                ['name' => 'set_prize_tow', 'label' => 'جایزه سطح 2', 'type' => 'number', 'val' => $lottery_prize['tow'] ?? '0'],
-                ['name' => 'set_prize_theree', 'label' => 'جایزه سطح 3', 'type' => 'number', 'val' => $lottery_prize['theree'] ?? '0'],
+            'درگاه Plisio' => [
+                ['name' => 'pay_nowpaymentstatus', 'label' => 'وضعیت Plisio', 'type' => 'select', 'options' => ['onnowpayment' => 'روشن', 'offnowpayment' => 'خاموش'], 'val' => $pay_settings['nowpaymentstatus'] ?? ''],
+                ['name' => 'pay_apinowpayment', 'label' => 'API Key (Plisio)', 'type' => 'text', 'val' => $pay_settings['apinowpayment'] ?? ''],
+                ['name' => 'pay_minbalanceplisio', 'label' => 'حداقل مبلغ', 'type' => 'number', 'val' => $pay_settings['minbalanceplisio'] ?? ''],
+                ['name' => 'pay_maxbalanceplisio', 'label' => 'حداکثر مبلغ', 'type' => 'number', 'val' => $pay_settings['maxbalanceplisio'] ?? ''],
+                ['name' => 'pay_chashbackplisio', 'label' => 'درصد کش‌بک', 'type' => 'number', 'val' => $pay_settings['chashbackplisio'] ?? '0'],
             ],
-            'سایر بازی‌ها و امتیازات' => [
-                ['name' => 'set_Dice', 'label' => 'بازی تاس', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => $row['Dice'] ?? ''],
-                ['name' => 'set_scorestatus', 'label' => 'سیستم امتیازدهی', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => $row['scorestatus'] ?? ''],
-                ['name' => 'set_Lotteryagent', 'label' => 'قرعه‌کشی نمایندگان', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => $row['Lotteryagent'] ?? ''],
+            'درگاه آقای پرداخت' => [
+                ['name' => 'pay_statusaqayepardakht', 'label' => 'وضعیت آقای پرداخت', 'type' => 'select', 'options' => ['onaqayepardakht' => 'روشن', 'offaqayepardakht' => 'خاموش'], 'val' => $pay_settings['statusaqayepardakht'] ?? ''],
+                ['name' => 'pay_merchant_id_aqayepardakht', 'label' => 'مرچنت آیدی', 'type' => 'text', 'val' => $pay_settings['merchant_id_aqayepardakht'] ?? ''],
+                ['name' => 'pay_minbalanceaqayepardakht', 'label' => 'حداقل مبلغ', 'type' => 'number', 'val' => $pay_settings['minbalanceaqayepardakht'] ?? ''],
+                ['name' => 'pay_maxbalanceaqayepardakht', 'label' => 'حداکثر مبلغ', 'type' => 'number', 'val' => $pay_settings['maxbalanceaqayepardakht'] ?? ''],
+                ['name' => 'pay_chashbackaqaypardokht', 'label' => 'درصد کش‌بک', 'type' => 'number', 'val' => $pay_settings['chashbackaqaypardokht'] ?? '0'],
+            ],
+            'درگاه ایران پی 3' => [
+                ['name' => 'pay_statusiranpay3', 'label' => 'وضعیت ایران پی 3', 'type' => 'select', 'options' => ['oniranpay3' => 'روشن', 'offiranpay3' => 'خاموش'], 'val' => $pay_settings['statusiranpay3'] ?? ''],
+                ['name' => 'pay_apiiranpay', 'label' => 'API Key', 'type' => 'text', 'val' => $pay_settings['apiiranpay'] ?? ''],
+                ['name' => 'pay_minbalanceiranpay', 'label' => 'حداقل مبلغ', 'type' => 'number', 'val' => $pay_settings['minbalanceiranpay'] ?? ''],
+                ['name' => 'pay_maxbalanceiranpay', 'label' => 'حداکثر مبلغ', 'type' => 'number', 'val' => $pay_settings['maxbalanceiranpay'] ?? ''],
+                ['name' => 'pay_chashbackiranpay3', 'label' => 'درصد کش‌بک', 'type' => 'number', 'val' => $pay_settings['chashbackiranpay3'] ?? '0'],
+            ],
+            'ترون و ارز دیجیتال' => [
+                ['name' => 'pay_digistatus', 'label' => 'وضعیت درگاه کریپتو', 'type' => 'select', 'options' => ['ondigi' => 'روشن', 'offdigi' => 'خاموش'], 'val' => $pay_settings['digistatus'] ?? ''],
+                ['name' => 'pay_urlpaymenttron', 'label' => 'آدرس API TronSeller', 'type' => 'text', 'val' => $pay_settings['urlpaymenttron'] ?? ''],
+                ['name' => 'pay_walletaddress', 'label' => 'آدرس کیف پول TRC20', 'type' => 'text', 'val' => $pay_settings['walletaddress'] ?? ''],
+                ['name' => 'pay_minbalancedigitaltron', 'label' => 'حداقل مبلغ کریپتو', 'type' => 'number', 'val' => $pay_settings['minbalancedigitaltron'] ?? ''],
+                ['name' => 'pay_maxbalancedigitaltron', 'label' => 'حداکثر مبلغ کریپتو', 'type' => 'number', 'val' => $pay_settings['maxbalancedigitaltron'] ?? ''],
+            ],
+            'درگاه تلگرام استارز' => [
+                ['name' => 'pay_statusstar', 'label' => 'وضعیت استارز', 'type' => 'select', 'options' => ['1' => 'روشن', '0' => 'خاموش'], 'val' => $pay_settings['statusstar'] ?? '0'],
+                ['name' => 'pay_minbalancestar', 'label' => 'حداقل مبلغ', 'type' => 'number', 'val' => $pay_settings['minbalancestar'] ?? ''],
+                ['name' => 'pay_maxbalancestar', 'label' => 'حداکثر مبلغ', 'type' => 'number', 'val' => $pay_settings['maxbalancestar'] ?? ''],
+                ['name' => 'pay_chashbackstar', 'label' => 'درصد کش‌بک', 'type' => 'number', 'val' => $pay_settings['chashbackstar'] ?? '0'],
+            ],
+            'سایر درگاه‌ها و پرداخت‌ها' => [
+                ['name' => 'pay_statusSwapWallet', 'label' => 'وضعیت SwapWallet / ایران پی 1', 'type' => 'select', 'options' => ['onSwapinoBot' => 'روشن', 'offSwapinoBot' => 'خاموش'], 'val' => $pay_settings['statusSwapWallet'] ?? ''],
+                ['name' => 'pay_marchent_floypay', 'label' => 'مرچنت FloyPay', 'type' => 'text', 'val' => $pay_settings['marchent_floypay'] ?? ''],
+                ['name' => 'pay_minbalanceiranpay1', 'label' => 'حداقل ایران پی 1', 'type' => 'number', 'val' => $pay_settings['minbalanceiranpay1'] ?? ''],
+                ['name' => 'pay_maxbalanceiranpay1', 'label' => 'حداکثر ایران پی 1', 'type' => 'number', 'val' => $pay_settings['maxbalanceiranpay1'] ?? ''],
+                ['name' => 'pay_chashbackiranpay1', 'label' => 'کش‌بک ایران پی 1', 'type' => 'number', 'val' => $pay_settings['chashbackiranpay1'] ?? '0'],
+                ['name' => 'pay_statustarnado', 'label' => 'وضعیت ترنادو / ایران پی 2', 'type' => 'select', 'options' => ['onternado' => 'روشن', 'offternado' => 'خاموش'], 'val' => $pay_settings['statustarnado'] ?? ''],
+                ['name' => 'pay_apiternado', 'label' => 'API Key ترنادو', 'type' => 'text', 'val' => $pay_settings['apiternado'] ?? ''],
+                ['name' => 'pay_minbalanceiranpay2', 'label' => 'حداقل ترنادو', 'type' => 'number', 'val' => $pay_settings['minbalanceiranpay2'] ?? ''],
+                ['name' => 'pay_maxbalanceiranpay2', 'label' => 'حداکثر ترنادو', 'type' => 'number', 'val' => $pay_settings['maxbalanceiranpay2'] ?? ''],
+                ['name' => 'pay_chashbackiranpay2', 'label' => 'کش‌بک ترنادو', 'type' => 'number', 'val' => $pay_settings['chashbackiranpay2'] ?? '0'],
+                ['name' => 'pay_minbalanceperfect', 'label' => 'حداقل Perfect Money', 'type' => 'number', 'val' => $pay_settings['minbalanceperfect'] ?? ''],
+                ['name' => 'pay_maxbalanceperfect', 'label' => 'حداکثر Perfect Money', 'type' => 'number', 'val' => $pay_settings['maxbalanceperfect'] ?? ''],
+                ['name' => 'pay_chashbackperfect', 'label' => 'کش‌بک Perfect Money', 'type' => 'number', 'val' => $pay_settings['chashbackperfect'] ?? '0'],
+            ],
+            'راهنمای درگاه‌ها' => [
+                ['name' => 'pay_helpcart', 'label' => 'راهنمای کارت به کارت', 'type' => 'text', 'val' => $pay_settings['helpcart'] ?? ''],
+                ['name' => 'pay_helpaqayepardakht', 'label' => 'راهنمای آقای پرداخت', 'type' => 'text', 'val' => $pay_settings['helpaqayepardakht'] ?? ''],
+                ['name' => 'pay_helpstar', 'label' => 'راهنمای استارز', 'type' => 'text', 'val' => $pay_settings['helpstar'] ?? ''],
+                ['name' => 'pay_helpplisio', 'label' => 'راهنمای Plisio', 'type' => 'text', 'val' => $pay_settings['helpplisio'] ?? ''],
+                ['name' => 'pay_helpiranpay1', 'label' => 'راهنمای ایران پی 1', 'type' => 'text', 'val' => $pay_settings['helpiranpay1'] ?? ''],
+                ['name' => 'pay_helpiranpay2', 'label' => 'راهنمای ایران پی 2 (ترنادو)', 'type' => 'text', 'val' => $pay_settings['helpiranpay2'] ?? ''],
+                ['name' => 'pay_helpiranpay3', 'label' => 'راهنمای ایران پی 3', 'type' => 'text', 'val' => $pay_settings['helpiranpay3'] ?? ''],
+                ['name' => 'pay_helpperfectmony', 'label' => 'راهنمای پرفکت مانی', 'type' => 'text', 'val' => $pay_settings['helpperfectmony'] ?? ''],
+                ['name' => 'pay_helpzarinpal', 'label' => 'راهنمای زرین‌پال', 'type' => 'text', 'val' => $pay_settings['helpzarinpal'] ?? ''],
+                ['name' => 'pay_helpnowpayment', 'label' => 'راهنمای NowPayment', 'type' => 'text', 'val' => $pay_settings['helpnowpayment'] ?? ''],
+                ['name' => 'pay_helpofflinearze', 'label' => 'راهنمای کریپتو آفلاین', 'type' => 'text', 'val' => $pay_settings['helpofflinearze'] ?? ''],
+            ],
+            'استثنائات تایید' => [
+                ['name' => 'pay_Exception_auto_cart', 'label' => 'استثنائات کارت (JSON)', 'type' => 'text', 'placeholder' => '{"userid1": true, "userid2": true}', 'val' => $pay_settings['Exception_auto_cart'] ?? '{}'],
             ]
         ]
     ]
@@ -266,7 +298,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     flash('success', $textbotlang['panel']['botSettingsSuccess'] ?? 'تنظیمات با موفقیت ذخیره شد.');
     $redirect_tab = $_POST['current_tab'] ?? 'general';
     $redirect_sec = $_POST['current_sec'] ?? '';
-    header('Location: bot_settings.php?tab=' . urlencode($redirect_tab) . '&sec=' . urlencode($redirect_sec));
+    header('Location: settings_financial.php?tab=' . urlencode($redirect_tab) . '&sec=' . urlencode($redirect_sec));
     exit;
 }
 
@@ -281,8 +313,8 @@ if (!in_array($sec, $sections)) {
     $sec = $sections[0];
 }
 
-$pageTitle = 'تنظیمات عمومی و سرگرمی';
-$activeNav = 'bot_settings';
+$pageTitle = 'تنظیمات مالی';
+$activeNav = 'settings_financial';
 include __DIR__ . '/inc/layout_head.php';
 ?>
 
@@ -626,7 +658,7 @@ input:checked + .arvan-slider:before {
 
 <div class="fade-up">
     <!-- Main Tabs -->
-    <div class="arvan-main-tabs">
+    <div class="arvan-main-tabs" style="display: none;">
         <?php foreach ($schema as $key => $tab_data): ?>
             <button type="button" class="arvan-main-tab-btn <?= $tab === $key ? 'active' : '' ?>" data-tab="<?= $key ?>">
                 <?= icon($tab_data['icon'] ?? 'settings', 22) ?>

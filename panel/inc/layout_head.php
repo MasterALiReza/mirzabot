@@ -188,8 +188,8 @@ $initials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
           </div>
 
           <!-- نماینده‌ها -->
-          <div class="nav-group <?= (isset($_GET['role']) && $_GET['role'] === 'agents') || (isset($_GET['tab']) && $_GET['tab'] === 'agents') ? 'open' : '' ?>">
-            <button class="nav-group-btn <?= (isset($_GET['role']) && $_GET['role'] === 'agents') || (isset($_GET['tab']) && $_GET['tab'] === 'agents') ? 'active' : '' ?>">
+          <div class="nav-group <?= (isset($_GET['role']) && $_GET['role'] === 'agents') || $activeNav === 'settings_agents' ? 'open' : '' ?>">
+            <button class="nav-group-btn <?= (isset($_GET['role']) && $_GET['role'] === 'agents') || $activeNav === 'settings_agents' ? 'active' : '' ?>">
               <div class="nav-group-title">
                 <span class="nav-icon"><?= icon('briefcase') ?></span>
                 <span class="nav-label">نماینده‌ها</span>
@@ -200,15 +200,15 @@ $initials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
               <a href="users.php?role=agents" class="nav-sub-item <?= (isset($_GET['role']) && $_GET['role'] === 'agents') ? 'active' : '' ?>" title="لیست نماینده‌ها">
                 <div class="nav-sub-dot"></div>لیست نماینده‌ها
               </a>
-              <a href="bot_settings.php?tab=agents" class="nav-sub-item <?= (isset($_GET['tab']) && $_GET['tab'] === 'agents') ? 'active' : '' ?>" title="تنظیمات نماینده‌ها">
+              <a href="settings_agents.php" class="nav-sub-item <?= $activeNav === 'settings_agents' ? 'active' : '' ?>" title="تنظیمات نماینده‌ها">
                 <div class="nav-sub-dot"></div>تنظیمات نماینده‌ها
               </a>
             </div>
           </div>
 
           <!-- فروشگاه و خدمات -->
-          <div class="nav-group <?= in_array($activeNav, ['product', 'service', 'panels_manage']) ? 'open' : '' ?>">
-            <button class="nav-group-btn <?= in_array($activeNav, ['product', 'service', 'panels_manage']) ? 'active' : '' ?>">
+          <div class="nav-group <?= in_array($activeNav, ['product', 'service', 'panels_manage', 'settings_shop']) ? 'open' : '' ?>">
+            <button class="nav-group-btn <?= in_array($activeNav, ['product', 'service', 'panels_manage', 'settings_shop']) ? 'active' : '' ?>">
               <div class="nav-group-title">
                 <span class="nav-icon"><?= icon('package') ?></span>
                 <span class="nav-label">فروشگاه و محصولات</span>
@@ -225,12 +225,15 @@ $initials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
               <a href="panels_manage.php" class="nav-sub-item <?= $activeNav === 'panels_manage' ? 'active' : '' ?>" title="<?= $textbotlang['panel']['layoutPageTitlePanels'] ?? 'مدیریت پنل‌ها' ?>">
                 <div class="nav-sub-dot"></div><?= $textbotlang['panel']['layoutNavPanels'] ?? 'مدیریت پنل‌ها' ?>
               </a>
+              <a href="settings_shop.php" class="nav-sub-item <?= $activeNav === 'settings_shop' ? 'active' : '' ?>" title="تنظیمات فروشگاه">
+                <div class="nav-sub-dot"></div>تنظیمات فروشگاه
+              </a>
             </div>
           </div>
 
           <!-- مالی و سفارشات -->
-          <div class="nav-group <?= in_array($activeNav, ['invoice', 'payment']) ? 'open' : '' ?>">
-            <button class="nav-group-btn <?= in_array($activeNav, ['invoice', 'payment']) ? 'active' : '' ?>">
+          <div class="nav-group <?= in_array($activeNav, ['invoice', 'payment', 'settings_financial']) ? 'open' : '' ?>">
+            <button class="nav-group-btn <?= in_array($activeNav, ['invoice', 'payment', 'settings_financial']) ? 'active' : '' ?>">
               <div class="nav-group-title">
                 <span class="nav-icon"><?= icon('card') ?></span>
                 <span class="nav-label">مالی و سفارشات</span>
@@ -243,6 +246,9 @@ $initials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
               </a>
               <a href="payment.php" class="nav-sub-item <?= $activeNav === 'payment' ? 'active' : '' ?>" title="<?= $textbotlang['panel']['layoutPageTitlePayment'] ?? 'پرداختی‌ها' ?>">
                 <div class="nav-sub-dot"></div><?= $textbotlang['panel']['layoutSearchBoxPlaceholder'] ?? 'پرداختی‌ها' ?>
+              </a>
+              <a href="settings_financial.php" class="nav-sub-item <?= $activeNav === 'settings_financial' ? 'active' : '' ?>" title="تنظیمات مالی">
+                <div class="nav-sub-dot"></div>تنظیمات مالی
               </a>
             </div>
           </div>

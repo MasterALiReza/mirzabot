@@ -71,76 +71,37 @@ $limitnumber = json_decode($row['limitnumber'] ?? '{}', true);
 $lottery_prize = json_decode($row['Lottery_prize'] ?? '{}', true);
 
 $schema = [
-    'general' => [    'general' => [
-        'title' => 'عمومی',
-        'icon' => 'settings',
+    'shop' => [
+        'title' => 'فروشگاه',
+        'icon' => 'package',
         'sections' => [
-            'وضعیت و دسترسی' => [
-                ['name' => 'set_Bot_Status', 'label' => 'وضعیت ربات', 'type' => 'select', 'options' => ['botstatuson' => 'روشن', 'botstatusoff' => 'خاموش'], 'val' => $row['Bot_Status'] ?? ''],
-                ['name' => 'set_roll_Status', 'label' => 'تایید قوانین', 'type' => 'select', 'options' => ['rolleon' => 'اجباری', 'rolleoff' => 'اختیاری'], 'val' => $row['roll_Status'] ?? ''],
-                ['name' => 'set_NotUser', 'label' => 'قفل برای غیرکاربران', 'type' => 'select', 'options' => ['onnotuser' => 'فعال', 'offnotuser' => 'غیرفعال'], 'val' => $row['NotUser'] ?? ''],
-                ['name' => 'set_statusnewuser', 'label' => 'وضعیت کاربران جدید', 'type' => 'select', 'options' => ['onnewuser' => 'آزاد', 'offnewuser' => 'بسته'], 'val' => $row['statusnewuser'] ?? ''],
-                ['name' => 'set_verifystart', 'label' => 'تاییدیه شروع کار', 'type' => 'select', 'options' => ['onverify' => 'فعال', 'offverify' => 'غیرفعال'], 'val' => $row['verifystart'] ?? ''],
-                ['name' => 'set_verifybucodeuser', 'label' => 'تاییدیه پیامکی (کد)', 'type' => 'select', 'options' => ['onverify' => 'فعال', 'offverify' => 'غیرفعال'], 'val' => $row['verifybucodeuser'] ?? ''],
-                ['name' => 'set_get_number', 'label' => 'دریافت شماره تماس', 'type' => 'select', 'options' => ['onAuthenticationphone' => 'اجباری', 'offAuthenticationphone' => 'اختیاری/خاموش'], 'val' => $row['get_number'] ?? ''],
-                ['name' => 'set_iran_number', 'label' => 'فقط شماره ایران', 'type' => 'select', 'options' => ['onAuthenticationiran' => 'بله', 'offAuthenticationiran' => 'خیر'], 'val' => $row['iran_number'] ?? ''],
-                ['name' => 'set_limitnumber_free', 'label' => 'محدودیت (کاربران رایگان)', 'type' => 'number', 'val' => $limitnumber['free'] ?? '100'],
-                ['name' => 'set_limitnumber_all', 'label' => 'محدودیت (همه کاربران)', 'type' => 'number', 'val' => $limitnumber['all'] ?? '100'],
-                ['name' => 'set_numbercount', 'label' => 'محدودیت اکانت با هر شماره', 'type' => 'number', 'val' => $row['numbercount'] ?? '0'],
-                ['name' => 'set_timeauto_not_verify', 'label' => 'زمان حذف تایید نشده (روز)', 'type' => 'number', 'val' => $row['timeauto_not_verify'] ?? '4'],
+            'تنظیمات عمومی فروشگاه' => [
+                ['name' => 'set_bulkbuy', 'label' => 'خرید عمده', 'type' => 'select', 'options' => ['onbulk' => 'مجاز', 'offbulk' => 'غیرمجاز'], 'val' => $row['bulkbuy'] ?? ''],
+                ['name' => 'shop_minbalancebuybulk', 'label' => 'حداقل موجودی خرید عمده', 'type' => 'number', 'val' => $shop_settings['minbalancebuybulk'] ?? '0'],
+                ['name' => 'set_statuscategory', 'label' => 'دسته‌بندی در فروشگاه', 'type' => 'select', 'options' => ['oncategory' => 'فعال', 'offcategory' => 'غیرفعال'], 'val' => $row['statuscategory'] ?? ''],
+                ['name' => 'set_statuscategorygenral', 'label' => 'دسته‌بندی سراسری', 'type' => 'select', 'options' => ['oncategorys' => 'فعال', 'offcategorys' => 'غیرفعال'], 'val' => $row['statuscategorygenral'] ?? ''],
+                ['name' => 'set_statusterffh', 'label' => 'نمایش لیست تعرفه‌ها', 'type' => 'select', 'options' => ['onterffh' => 'فعال', 'offterffh' => 'غیرفعال'], 'val' => $row['statusterffh'] ?? ''],
+                ['name' => 'shop_statusdirectpabuy', 'label' => 'پرداخت مستقیم (بدون شارژ)', 'type' => 'select', 'options' => ['ondirectbuy' => 'فعال', 'offdirectbuy' => 'غیرفعال'], 'val' => $shop_settings['statusdirectpabuy'] ?? ''],
+                ['name' => 'shop_statusdisorder', 'label' => 'وضعیت اختلال فروشگاه', 'type' => 'select', 'options' => ['ondisorder' => 'اختلال', 'offdisorder' => 'عادی'], 'val' => $shop_settings['statusdisorder'] ?? ''],
+                ['name' => 'shop_statuschangeservice', 'label' => 'امکان تغییر سرویس', 'type' => 'select', 'options' => ['onstatus' => 'مجاز', 'offstatus' => 'غیرمجاز'], 'val' => $shop_settings['statuschangeservice'] ?? ''],
+                ['name' => 'shop_statusshowprice', 'label' => 'نمایش قیمت‌ها', 'type' => 'select', 'options' => ['onshowprice' => 'نمایش', 'offshowprice' => 'مخفی'], 'val' => $shop_settings['statusshowprice'] ?? ''],
+                ['name' => 'shop_configshow', 'label' => 'نمایش کانفیگ پس از خرید', 'type' => 'select', 'options' => ['onconfig' => 'نمایش', 'offconfig' => 'عدم نمایش'], 'val' => $shop_settings['configshow'] ?? ''],
+                ['name' => 'shop_backserviecstatus', 'label' => 'بازگشت سرویس به فروشگاه', 'type' => 'select', 'options' => ['on' => 'فعال', 'off' => 'غیرفعال'], 'val' => $shop_settings['backserviecstatus'] ?? ''],
+                ['name' => 'set_Debtsettlement', 'label' => 'تسویه حساب بدهی', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => $row['Debtsettlement'] ?? ''],
+                ['name' => 'set_statuslimitchangeloc', 'label' => 'محدودیت تغییر لوکیشن', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => $row['statuslimitchangeloc'] ?? ''],
             ],
-            'گزارشات و ارتباطات' => [
-                ['name' => 'set_Channel_Report', 'label' => 'آیدی کانال گزارشات', 'type' => 'text', 'placeholder' => '-100xxxxxxxxx', 'val' => $row['Channel_Report'] ?? ''],
-                ['name' => 'set_id_support', 'label' => 'آیدی پشتیبانی', 'type' => 'text', 'placeholder' => '123456789', 'val' => $row['id_support'] ?? ''],
-                ['name' => 'set_statussupportpv', 'label' => 'پشتیبانی PV', 'type' => 'select', 'options' => ['onpvsupport' => 'فعال', 'offpvsupport' => 'غیرفعال'], 'val' => $row['statussupportpv'] ?? ''],
-                ['name' => 'set_categoryhelp', 'label' => 'راهنما در دسته‌بندی‌ها', 'type' => 'select', 'options' => ['1' => 'نمایش', '0' => 'عدم نمایش'], 'val' => $row['categoryhelp'] ?? ''],
-                ['name' => 'set_linkappstatus', 'label' => 'لینک اپلیکیشن در منو', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => $row['linkappstatus'] ?? ''],
-                ['name' => 'set_statusnoteforf', 'label' => 'یادداشت اجباری در خرید', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => $row['statusnoteforf'] ?? ''],
-            ],
-            'کاربر و سرویس' => [
-                ['name' => 'set_limit_usertest_all', 'label' => 'تعداد تست مجاز هر کاربر', 'type' => 'number', 'val' => $row['limit_usertest_all'] ?? ''],
-                ['name' => 'set_removedayc', 'label' => 'روزهای نگهداری سرویس حذف شده', 'type' => 'number', 'val' => $row['removedayc'] ?? ''],
-                ['name' => 'set_on_hold_day', 'label' => 'روزهای مسدودی موقت', 'type' => 'number', 'val' => $row['on_hold_day'] ?? ''],
-                ['name' => 'set_cronvolumere', 'label' => 'بررسی حجم کرون‌جاب (ساعت)', 'type' => 'number', 'val' => $row['cronvolumere'] ?? ''],
-                ['name' => 'set_daywarn', 'label' => 'هشدار پایان سرویس (روز)', 'type' => 'number', 'val' => $row['daywarn'] ?? ''],
-                ['name' => 'set_volumewarn', 'label' => 'هشدار پایان حجم (گیگابایت)', 'type' => 'number', 'val' => $row['volumewarn'] ?? ''],
-                ['name' => 'set_statusnamecustom', 'label' => 'نام سفارشی سرویس‌ها', 'type' => 'select', 'options' => ['onnamecustom' => 'فعال', 'offnamecustom' => 'غیرفعال'], 'val' => $row['statusnamecustom'] ?? ''],
-            ],
-            'ظاهر و منوها' => [
-                ['name' => 'set_inlinebtnmain', 'label' => 'دکمه‌های شیشه‌ای منوی اصلی', 'type' => 'select', 'options' => ['oninline' => 'روشن', 'offinline' => 'خاموش'], 'val' => $row['inlinebtnmain'] ?? ''],
-                ['name' => 'set_btn_status_extned', 'label' => 'دکمه تمدید سرویس', 'type' => 'select', 'options' => ['1' => 'روشن', '0' => 'خاموش'], 'val' => $row['btn_status_extned'] ?? ''],
-                ['name' => 'set_status_keyboard_config', 'label' => 'کیبورد تنظیمات کانفیگ', 'type' => 'select', 'options' => ['1' => 'روشن', '0' => 'خاموش'], 'val' => $row['status_keyboard_config'] ?? ''],
-                ['name' => 'set_status_manual_config', 'label' => 'دریافت دستی کانفیگ (QR)', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => $row['status_manual_config'] ?? '1'],
-            ],
-            'مدیریت کرون‌جاب' => [
-                ['name' => 'set_cron_day', 'label' => 'محاسبه روزها (day)', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => ($cron_status['day'] ?? true) ? '1' : '0'],
-                ['name' => 'set_cron_volume', 'label' => 'محاسبه حجم (volume)', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => ($cron_status['volume'] ?? true) ? '1' : '0'],
-                ['name' => 'set_cron_remove', 'label' => 'حذف پایان‌یافته', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => ($cron_status['remove'] ?? false) ? '1' : '0'],
-                ['name' => 'set_cron_remove_volume', 'label' => 'حذف تمام‌شده', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => ($cron_status['remove_volume'] ?? false) ? '1' : '0'],
-                ['name' => 'set_cron_test', 'label' => 'حذف سرویس تست', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => ($cron_status['test'] ?? false) ? '1' : '0'],
-                ['name' => 'set_cron_on_hold', 'label' => 'مسدودی موقت', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => ($cron_status['on_hold'] ?? false) ? '1' : '0'],
-                ['name' => 'set_cron_uptime_node', 'label' => 'پایداری نودها', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => ($cron_status['uptime_node'] ?? false) ? '1' : '0'],
-                ['name' => 'set_cron_uptime_panel', 'label' => 'پایداری پنل‌ها', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => ($cron_status['uptime_panel'] ?? false) ? '1' : '0'],
-            ]
-        ]
-    ],
-    'gamification' => [
-        'title' => 'سرگرمی و امتیاز',
-        'icon' => 'star',
-        'sections' => [
-            'گردونه شانس' => [
-                ['name' => 'set_wheelـluck', 'label' => 'وضعیت گردونه', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => $row['wheelـluck'] ?? ''],
-                ['name' => 'set_wheelـluck_price', 'label' => 'قیمت هر چرخش (تومان)', 'type' => 'number', 'val' => $row['wheelـluck_price'] ?? '0'],
-                ['name' => 'set_statusfirstwheel', 'label' => 'اولین چرخش رایگان', 'type' => 'select', 'options' => ['1' => 'بله', '0' => 'خیر'], 'val' => $row['statusfirstwheel'] ?? ''],
-                ['name' => 'set_wheelagent', 'label' => 'گردونه برای نمایندگان', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => $row['wheelagent'] ?? ''],
-                ['name' => 'set_prize_one', 'label' => 'جایزه سطح 1', 'type' => 'number', 'val' => $lottery_prize['one'] ?? '0'],
-                ['name' => 'set_prize_tow', 'label' => 'جایزه سطح 2', 'type' => 'number', 'val' => $lottery_prize['tow'] ?? '0'],
-                ['name' => 'set_prize_theree', 'label' => 'جایزه سطح 3', 'type' => 'number', 'val' => $lottery_prize['theree'] ?? '0'],
-            ],
-            'سایر بازی‌ها و امتیازات' => [
-                ['name' => 'set_Dice', 'label' => 'بازی تاس', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => $row['Dice'] ?? ''],
-                ['name' => 'set_scorestatus', 'label' => 'سیستم امتیازدهی', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => $row['scorestatus'] ?? ''],
-                ['name' => 'set_Lotteryagent', 'label' => 'قرعه‌کشی نمایندگان', 'type' => 'select', 'options' => ['1' => 'فعال', '0' => 'غیرفعال'], 'val' => $row['Lotteryagent'] ?? ''],
+            'حجم و زمان اضافه (اکسترا)' => [
+                ['name' => 'shop_chashbackextend', 'label' => 'درصد کش‌بک تمدید', 'type' => 'number', 'val' => $shop_settings['chashbackextend'] ?? '0'],
+                ['name' => 'shop_statusextra', 'label' => 'فروش حجم اضافه', 'type' => 'select', 'options' => ['onextra' => 'فعال', 'offextra' => 'غیرفعال'], 'val' => $shop_settings['statusextra'] ?? ''],
+                ['name' => 'shop_statustimeextra', 'label' => 'فروش زمان اضافه', 'type' => 'select', 'options' => ['ontimeextraa' => 'فعال', 'offtimeextraa' => 'غیرفعال'], 'val' => $shop_settings['statustimeextra'] ?? ''],
+                ['name' => 'shop_customvolmef', 'label' => 'قیمت حجم اضافه (پلن f)', 'type' => 'number', 'val' => $shop_settings['customvolmef'] ?? ''],
+                ['name' => 'shop_customvolmen', 'label' => 'قیمت حجم اضافه (پلن n)', 'type' => 'number', 'val' => $shop_settings['customvolmen'] ?? ''],
+                ['name' => 'shop_customvolmen2', 'label' => 'قیمت حجم اضافه (پلن n2)', 'type' => 'number', 'val' => $shop_settings['customvolmen2'] ?? ''],
+                ['name' => 'shop_customtimepricef', 'label' => 'قیمت زمان اضافه (پلن f)', 'type' => 'number', 'val' => $shop_settings['customtimepricef'] ?? ''],
+                ['name' => 'shop_customtimepricen', 'label' => 'قیمت زمان اضافه (پلن n)', 'type' => 'number', 'val' => $shop_settings['customtimepricen'] ?? ''],
+                ['name' => 'shop_customtimepricen2', 'label' => 'قیمت زمان اضافه (پلن n2)', 'type' => 'number', 'val' => $shop_settings['customtimepricen2'] ?? ''],
+                ['name' => 'shop_chashbackextend_agent_n', 'label' => 'کش‌بک تمدید نماینده (n)', 'type' => 'number', 'val' => $shop_settings['chashbackextend_agent_n'] ?? '0'],
+                ['name' => 'shop_chashbackextend_agent_n2', 'label' => 'کش‌بک تمدید نماینده (n2)', 'type' => 'number', 'val' => $shop_settings['chashbackextend_agent_n2'] ?? '0'],
             ]
         ]
     ]
@@ -266,7 +227,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     flash('success', $textbotlang['panel']['botSettingsSuccess'] ?? 'تنظیمات با موفقیت ذخیره شد.');
     $redirect_tab = $_POST['current_tab'] ?? 'general';
     $redirect_sec = $_POST['current_sec'] ?? '';
-    header('Location: bot_settings.php?tab=' . urlencode($redirect_tab) . '&sec=' . urlencode($redirect_sec));
+    header('Location: settings_shop.php?tab=' . urlencode($redirect_tab) . '&sec=' . urlencode($redirect_sec));
     exit;
 }
 
@@ -281,8 +242,8 @@ if (!in_array($sec, $sections)) {
     $sec = $sections[0];
 }
 
-$pageTitle = 'تنظیمات عمومی و سرگرمی';
-$activeNav = 'bot_settings';
+$pageTitle = 'تنظیمات فروشگاه';
+$activeNav = 'settings_shop';
 include __DIR__ . '/inc/layout_head.php';
 ?>
 
@@ -626,7 +587,7 @@ input:checked + .arvan-slider:before {
 
 <div class="fade-up">
     <!-- Main Tabs -->
-    <div class="arvan-main-tabs">
+    <div class="arvan-main-tabs" style="display: none;">
         <?php foreach ($schema as $key => $tab_data): ?>
             <button type="button" class="arvan-main-tab-btn <?= $tab === $key ? 'active' : '' ?>" data-tab="<?= $key ?>">
                 <?= icon($tab_data['icon'] ?? 'settings', 22) ?>
