@@ -650,7 +650,11 @@ function MHSanaei_router($methodName, $args) {
             $user_data_res = get_client_MHSanaei($username, $name_panel);
             $context = mhsanaei_extract_client_context($user_data_res);
             if (!$context['success']) {
-                return array('status' => 'Unsuccessful', 'msg' => $context['msg']);
+                $msg = $context['msg'];
+                if (stripos($msg, 'not found') !== false) {
+                    $msg = 'User not found';
+                }
+                return array('status' => 'Unsuccessful', 'msg' => $msg);
             }
 
             $user_ptr = $context['client'];

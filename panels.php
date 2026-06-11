@@ -407,9 +407,13 @@ class ManagePanel
             } else {
                 $UsernameData = json_decode($UsernameData['body'], true);
                 if (!empty($UsernameData['detail'])) {
+                    $msg = $UsernameData['detail'];
+                    if (is_string($msg) && stripos($msg, 'not found') !== false) {
+                        $msg = 'User not found';
+                    }
                     return array(
                         'status' => 'Unsuccessful',
-                        'msg' => $UsernameData['detail']
+                        'msg' => $msg
                     );
                 }
                 if (!preg_match('/^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:\d+)?((\/[^\s\/]+)+)?$/', $UsernameData['subscription_url'])) {
@@ -486,7 +490,7 @@ class ManagePanel
                 } elseif (!isset($UsernameData['username'])) {
                     $Output = array(
                         'status' => 'Unsuccessful',
-                        'msg' => "Unsuccessful"
+                        'msg' => 'User not found'
                     );
                 } else {
                     if (!preg_match('/^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:\d+)?((\/[^\s\/]+)+)?$/', $UsernameData['subscription_url'])) {
@@ -607,15 +611,19 @@ class ManagePanel
 
         } elseif ($Get_Data_Panel['type'] == "hiddify") {
             $UsernameData = getdatauser($username, $Get_Data_Panel['name_panel']);
-            if (!isset($UsernameData)) {
+            if (!isset($UsernameData) || empty($UsernameData)) {
                 $Output = array(
                     'status' => 'Unsuccessful',
-                    'msg' => "Not Connected TO paonel"
+                    'msg' => 'User not found'
                 );
             } elseif (isset($UsernameData['message'])) {
+                $msg = $UsernameData['message'];
+                if (stripos($msg, 'not found') !== false || empty($msg)) {
+                    $msg = 'User not found';
+                }
                 $Output = array(
                     'status' => 'Unsuccessful',
-                    'msg' => $UsernameData['message']
+                    'msg' => $msg
                 );
             } else {
                 $startDate = $UsernameData['start_date'] ?? null;
@@ -666,6 +674,12 @@ class ManagePanel
             $stmt->bindParam(':username', $username);
             $stmt->execute();
             $configman = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (!$configman) {
+                $Output = array(
+                    'status' => 'Unsuccessful',
+                    'msg' => 'User not found'
+                );
+            } else {
             $service = select("invoice", "*", "username", $username, "select");
             $Output = array(
                 'status' => $service['Status'],
@@ -680,24 +694,25 @@ class ManagePanel
                 'sub_last_user_agent' => null,
                 'uuid' => null
             );
+            }
         } elseif ($Get_Data_Panel['type'] == "alireza_single") {
             $UsernameData2 = get_clinetsalireza($username, $Get_Data_Panel['name_panel']);
-            if (!is_array($UsernameData2)) {
+            if (!is_array($UsernameData2) || empty($UsernameData2)) {
                 $Output = array(
                     'status' => 'Unsuccessful',
-                    'msg' => "user not found"
+                    'msg' => 'User not found'
                 );
-            }
-            $UsernameData = $UsernameData2[1];
-            $UsernameData2 = $UsernameData2[0];
-            $expire = $UsernameData['expiryTime'] / 1000;
-            if (!$UsernameData['id']) {
-                if (!isset($UsernameData['msg']))
-                    $UsernameData['msg'] = null;
-                $Output = array(
-                    'status' => 'Unsuccessful',
-                    'msg' => $UsernameData['msg']
-                );
+            } else {
+                $UsernameData = $UsernameData2[1];
+                $UsernameData2 = $UsernameData2[0];
+                $expire = $UsernameData['expiryTime'] / 1000;
+                if (!$UsernameData['id']) {
+                    if (!isset($UsernameData['msg']))
+                        $UsernameData['msg'] = 'User not found';
+                    $Output = array(
+                        'status' => 'Unsuccessful',
+                        'msg' => $UsernameData['msg']
+                    );
             } else {
                 if ($UsernameData['enable']) {
                     $UsernameData['enable'] = "active";
@@ -727,14 +742,16 @@ class ManagePanel
                     'sub_last_user_agent' => null,
                 );
             }
+        }
         } elseif ($Get_Data_Panel['type'] == "WGDashboard") {
             $UsernameData = get_userwg($username, $Get_Data_Panel['name_panel']);
             $invoiceinfo = select("invoice", "*", "username", $username, "select");
             $infoconfig = isset($invoiceinfo['user_info']) ? json_decode($invoiceinfo['user_info'], true) : json_encode(array());
             if (!isset($UsernameData['id'])) {
+                $msg = isset($UsernameData['msg']) ? $UsernameData['msg'] : (empty($UsernameData) ? 'User not found' : '');
                 $Output = array(
                     'status' => 'Unsuccessful',
-                    'msg' => isset($UsernameData['msg']) ? $UsernameData['msg'] : ''
+                    'msg' => $msg
                 );
             } else {
                 $jobtime = [];
@@ -796,9 +813,13 @@ class ManagePanel
             $UsernameData = GetClientsS_UI($username, $Get_Data_Panel['name_panel']);
             $onlinestatus = get_onlineclients_ui($Get_Data_Panel['name_panel'], $username);
             if (!isset($UsernameData['id'])) {
+                $msg = isset($UsernameData['msg']) ? $UsernameData['msg'] : '';
+                if (empty($msg) || stripos($msg, 'not found') !== false) {
+                    $msg = 'User not found';
+                }
                 $Output = array(
                     'status' => 'Unsuccessful',
-                    'msg' => $UsernameData['msg']
+                    'msg' => $msg
                 );
             } else {
                 $links = [];
@@ -839,9 +860,13 @@ class ManagePanel
         } elseif ($Get_Data_Panel['type'] == "ibsng") {
             $UsernameData = GetUserIBsng($Get_Data_Panel['name_panel'], $username);
             if (!$UsernameData['status']) {
+                $msg = isset($UsernameData['msg']) ? $UsernameData['msg'] : '';
+                if (empty($msg) || stripos($msg, 'not found') !== false) {
+                    $msg = 'User not found';
+                }
                 $Output = array(
                     'status' => 'Unsuccessful',
-                    'msg' => $UsernameData['msg']
+                    'msg' => $msg
                 );
             } else {
                 $UsernameData = $UsernameData['data'];
@@ -862,13 +887,19 @@ class ManagePanel
                 );
             }
         } elseif ($Get_Data_Panel['type'] == "mikrotik") {
-            $UsernameData = GetUsermikrotik($Get_Data_Panel['name_panel'], $username)[0];
-            if (isset($UsernameData['error'])) {
+            $UsernameDataResp = GetUsermikrotik($Get_Data_Panel['name_panel'], $username);
+            if (isset($UsernameDataResp['error'])) {
                 $Output = array(
                     'status' => 'Unsuccessful',
-                    'msg' => $UsernameData['msg']
+                    'msg' => isset($UsernameDataResp['msg']) ? $UsernameDataResp['msg'] : $UsernameDataResp['error']
+                );
+            } elseif (empty($UsernameDataResp)) {
+                $Output = array(
+                    'status' => 'Unsuccessful',
+                    'msg' => 'User not found'
                 );
             } else {
+                $UsernameData = $UsernameDataResp[0];
                 $invocie = select("invoice", "*", "username", $username, "select");
                 $traffic_get = GetUsermikrotik_volume($Get_Data_Panel['name_panel'], $UsernameData['.id']);
                 $used_traffic = $traffic_get['total-upload'] + $traffic_get['total-download'];

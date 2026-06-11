@@ -4808,7 +4808,8 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
         sendmessage($from_id, $textbotlang['users']['status']['userNotFound'], null, 'html');
     } else {
         if ($DataUserOut['status'] == "Unsuccessful") {
-            sendmessage($from_id, $textbotlang['Admin']['adminphp']['err_error_3'], $keyboardadmin, 'HTML');
+            $err_msg = !empty($DataUserOut['msg']) ? "\n\nدلیل خطا: <code>" . htmlspecialchars(is_string($DataUserOut['msg']) ? $DataUserOut['msg'] : json_encode($DataUserOut['msg'])) . "</code>" : "";
+            sendmessage($from_id, $textbotlang['Admin']['adminphp']['err_error_3'] . $err_msg, $keyboardadmin, 'HTML');
         }
     }
     $ManagePanel->RemoveUser($info_product['Service_location'], $info_product['username']);
@@ -5361,8 +5362,9 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
     $text_order = sprintf($textbotlang['Admin']['adminphp']['msg_service_user_payment_1'], $OrderUser['id_invoice'], $OrderUser['Status'], $OrderUser['id_user'], $OrderUser['username'], $OrderUser['Service_location'], $OrderUser['name_product'], $OrderUser['price_product'], $OrderUser['Volume'], $OrderUser['Service_time'], $datatime);
     $DataUserOut = $ManagePanel->DataUser($OrderUser['Service_location'], $OrderUser['username']);
     if ($DataUserOut['status'] == "Unsuccessful") {
+        $err_msg = !empty($DataUserOut['msg']) ? "\n\nدلیل خطا: <code>" . htmlspecialchars(is_string($DataUserOut['msg']) ? $DataUserOut['msg'] : json_encode($DataUserOut['msg'])) . "</code>" : "";
         $keyboard_json = json_encode($keyboardlists);
-        sendmessage($from_id, $textbotlang['Admin']['adminphp']['err_notfound_panel_user'], $keyboardadmin, 'html');
+        sendmessage($from_id, $textbotlang['Admin']['adminphp']['err_notfound_panel_user'] . $err_msg, $keyboardadmin, 'html');
         sendmessage($from_id, $text_order, $keyboard_json, 'HTML');
         step('home', $from_id);
         return;
@@ -8898,7 +8900,8 @@ elseif ($text == $textbotlang['keyboard']['hidePanelForUser'] && $adminrulecheck
     }
     $DataUserOut = $ManagePanel->DataUser($nameloc['Service_location'], $nameloc['username']);
     if ($DataUserOut['status'] == "Unsuccessful") {
-        sendmessage($from_id, $textbotlang['users']['status']['error'], null, 'html');
+        $err_msg = !empty($DataUserOut['msg']) ? "\n\nدلیل خطا: <code>" . htmlspecialchars(is_string($DataUserOut['msg']) ? $DataUserOut['msg'] : json_encode($DataUserOut['msg'])) . "</code>" : "";
+        sendmessage($from_id, $textbotlang['users']['status']['error'] . $err_msg, null, 'html');
         return;
     }
     update("user", "Processing_value_one", $nameloc['id_invoice'], "id", $from_id);
@@ -10391,7 +10394,8 @@ if ($datain == "settimecornday" && $adminrulecheck['rule'] == "administrator") {
         return;
     }
     if ($DataUserOut['status'] == "Unsuccessful") {
-        sendmessage($from_id, $textbotlang['users']['status']['error'], null, 'html');
+        $err_msg = !empty($DataUserOut['msg']) ? "\n\nدلیل خطا: <code>" . htmlspecialchars(is_string($DataUserOut['msg']) ? $DataUserOut['msg'] : json_encode($DataUserOut['msg'])) . "</code>" : "";
+        sendmessage($from_id, $textbotlang['users']['status']['error'] . $err_msg, null, 'html');
         return;
     }
     if ($DataUserOut['status'] == "active") {
@@ -10432,7 +10436,8 @@ if ($datain == "settimecornday" && $adminrulecheck['rule'] == "administrator") {
     ]);
     $dataoutput = $ManagePanel->Change_status($nameloc['username'], $nameloc['Service_location']);
     if ($dataoutput['status'] == "Unsuccessful") {
-        Editmessagetext($from_id, $message_id, $textbotlang['users']['status']['notchanged'], $bakinfos);
+        $err_msg = !empty($dataoutput['msg']) ? "\n\nدلیل خطا: <code>" . htmlspecialchars(is_string($dataoutput['msg']) ? $dataoutput['msg'] : json_encode($dataoutput['msg'])) . "</code>" : "";
+        Editmessagetext($from_id, $message_id, $textbotlang['users']['status']['notchanged'] . $err_msg, $bakinfos);
         return;
     }
     $DataUserOut = $ManagePanel->DataUser($nameloc['Service_location'], $nameloc['username']);
