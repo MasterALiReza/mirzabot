@@ -123,6 +123,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     } elseif ($action === 'edit' && isset($_POST['id'])) {
         $id = (int)$_POST['id'];
         try {
+            $stmt_old = $pdo->prepare("SELECT name_panel FROM marzban_panel WHERE id = ?");
+            $stmt_old->execute([$id]);
+            $old_name_panel = $stmt_old->fetchColumn();
+
             db_query($pdo, "UPDATE marzban_panel SET 
                 name_panel = ?, url_panel = ?, username_panel = ?, password_panel = ?, type = ?, status = ?, agent = ?, 
                 MethodUsername = ?, inboundstatus = ?, inbound_deactive = ?, inboundid = ?, conecton = ?, Methodextend = ?,
@@ -140,6 +144,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $priceextratime, $val_usertest, $time_usertest, $id
                 ]
             );
+            
+            if ($old_name_panel && $old_name_panel !== $name_panel) {
+                db_query($pdo, "UPDATE invoice SET Service_location = ? WHERE Service_location = ?", [$name_panel, $old_name_panel]);
+            }
             flash('success', 'پنل با موفقیت ویرایش شد.');
         } catch (Exception $e) {
             flash('error', 'خطا در ویرایش پنل: ' . $e->getMessage());

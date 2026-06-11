@@ -5,6 +5,10 @@ ini_set('default_charset', 'UTF-8');
 ini_set('error_log', 'error_log');
 ini_set('memory_limit', '-1');
 require_once 'config.php';
+try {
+    $pdo->exec("UPDATE invoice SET Service_location = 'متصل نت ملی 🍭' WHERE Service_location = 'پرسرعت و اقتصادی 🎈'");
+    $pdo->exec("UPDATE invoice SET Service_location = 'وایرگارد گیمینگ 🇹🇷 🎮' WHERE Service_location = 'گیم ( کالاف - پابجی و...) 🎮'");
+} catch (Exception $e) {}
 require_once 'botapi.php';
 require_once 'jdf.php';
 require_once 'function.php';
