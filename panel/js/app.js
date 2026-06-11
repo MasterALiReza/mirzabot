@@ -484,6 +484,7 @@ setTimeout(function () {
 
 if (!window.__appListenersAdded) {
     window.__appListenersAdded = true;
+    var __previousContent = null;
 
 window.addEventListener('load', function () { _lb.done(); });
 
@@ -495,6 +496,7 @@ document.addEventListener('htmx:beforeRequest', function (e) {
     if (isGet && elt && (elt.tagName === 'A' || elt.classList.contains('nav-item') || elt.classList.contains('bnav-item') || elt.closest('.sidebar-nav') || elt.closest('.bottom-nav'))) {
         var content = document.querySelector('main.content');
         if (content) {
+            __previousContent = content.innerHTML;
             var targetPath = e.detail.requestConfig.path || '';
             content.innerHTML = getSkeletonHTML(targetPath);
             window.scrollTo({ top: 0, behavior: 'instant' });
@@ -508,6 +510,37 @@ document.addEventListener('htmx:beforeSwap', function (evt) {
     if (evt.detail.xhr.status === 401 || evt.detail.xhr.status === 403 || resp.indexOf('class="auth"') !== -1 || resp.indexOf('js/login.js') !== -1) {
         evt.preventDefault();
         window.location.href = 'login.php';
+    }
+});
+
+document.addEventListener('htmx:responseError', function (e) {
+    _lb.done();
+    var content = document.querySelector('main.content');
+    if (content && __previousContent) {
+        content.innerHTML = __previousContent;
+    }
+    var status = e.detail.xhr.status;
+    if (status === 401 || status === 403) {
+        window.location.href = 'login.php';
+    } else {
+        if (window.toast) {
+            window.toast('خطا در بارگذاری صفحه (' + status + ')', 'no');
+        } else {
+            alert('خطا در بارگذاری صفحه (' + status + ')');
+        }
+    }
+});
+
+document.addEventListener('htmx:sendError', function (e) {
+    _lb.done();
+    var content = document.querySelector('main.content');
+    if (content && __previousContent) {
+        content.innerHTML = __previousContent;
+    }
+    if (window.toast) {
+        window.toast('خطا در ارتباط با سرور. وضعیت شبکه خود را بررسی کنید.', 'warn');
+    } else {
+        alert('خطا در ارتباط با سرور. وضعیت شبکه خود را بررسی کنید.');
     }
 });
 
