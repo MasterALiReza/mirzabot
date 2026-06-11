@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/inc/config.php';
 require_once __DIR__ . '/inc/icons.php';
-require_once __DIR__ . '/../../botapi.php';
+require_once __DIR__ . '/../botapi.php';
 require_auth();
 
 $id = (int) ($_GET['id'] ?? 0);
