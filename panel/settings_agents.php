@@ -217,9 +217,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
-$tab = $_GET['tab'] ?? 'general';
+$tab = $_GET['tab'] ?? 'agents';
 if (!array_key_exists($tab, $schema)) {
-    $tab = 'general';
+    $tab = 'agents';
 }
 
 $sections = array_keys($schema[$tab]['sections']);

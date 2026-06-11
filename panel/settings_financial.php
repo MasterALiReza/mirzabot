@@ -302,9 +302,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
-$tab = $_GET['tab'] ?? 'general';
+$tab = $_GET['tab'] ?? 'financial';
 if (!array_key_exists($tab, $schema)) {
-    $tab = 'general';
+    $tab = 'financial';
 }
 
 $sections = array_keys($schema[$tab]['sections']);
