@@ -1,5 +1,6 @@
 <?php
 require 'inc/config.php';
+require_once '../jdf.php';
 require_auth();
 
 $title = 'ارسال پیام همگانی';
