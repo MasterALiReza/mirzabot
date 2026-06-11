@@ -376,6 +376,12 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
     update("user", "Processing_value_four", "0", "id", $from_id);
     step('home', $from_id);
     return;
+} elseif ($datain == "ignore") {
+    telegram('answerCallbackQuery', [
+        'callback_query_id' => $callback_query_id,
+        'text' => ""
+    ]);
+    return;
 } elseif ($text == "version") {
     sendmessage($from_id, $version, null, 'html');
 } elseif ($text == $textbotlang['users']['backbtn'] || $datain == "backuser") {
@@ -423,10 +429,20 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
     $keyboardlists = [
         'inline_keyboard' => [],
     ];
-    $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = '$from_id' AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold') ORDER BY time_sell DESC LIMIT $start_index, $items_per_page");
+    $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = '$from_id' AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold') ORDER BY Service_location ASC, time_sell DESC LIMIT $start_index, $items_per_page");
     $stmt->execute();
+    $current_panel = "";
     if ($setting['statusnamecustom'] == 'onnamecustom') {
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            if ($current_panel !== $row['Service_location']) {
+                $current_panel = $row['Service_location'];
+                $keyboardlists['inline_keyboard'][] = [
+                    [
+                        'text' => "🗄 " . $current_panel,
+                        'callback_data' => "ignore"
+                    ],
+                ];
+            }
             $data = "";
             if ($row != null)
                 $data = " | {$row['note']}";
@@ -439,6 +455,15 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
         }
     } else {
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            if ($current_panel !== $row['Service_location']) {
+                $current_panel = $row['Service_location'];
+                $keyboardlists['inline_keyboard'][] = [
+                    [
+                        'text' => "🗄 " . $current_panel,
+                        'callback_data' => "ignore"
+                    ],
+                ];
+            }
             $keyboardlists['inline_keyboard'][] = [
                 [
                     'text' => "✨" . $row['username'] . "✨",
@@ -485,10 +510,20 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
     $keyboardlists = [
         'inline_keyboard' => [],
     ];
-    $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = '$from_id' AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold') ORDER BY time_sell DESC LIMIT $start_index, $items_per_page");
+    $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = '$from_id' AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold') ORDER BY Service_location ASC, time_sell DESC LIMIT $start_index, $items_per_page");
     $stmt->execute();
+    $current_panel = "";
     if ($setting['statusnamecustom'] == 'onnamecustom') {
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            if ($current_panel !== $row['Service_location']) {
+                $current_panel = $row['Service_location'];
+                $keyboardlists['inline_keyboard'][] = [
+                    [
+                        'text' => "🗄 " . $current_panel,
+                        'callback_data' => "ignore"
+                    ],
+                ];
+            }
             $data = "";
             if ($row != null)
                 $data = " | {$row['note']}";
@@ -501,6 +536,15 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
         }
     } else {
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            if ($current_panel !== $row['Service_location']) {
+                $current_panel = $row['Service_location'];
+                $keyboardlists['inline_keyboard'][] = [
+                    [
+                        'text' => "🗄 " . $current_panel,
+                        'callback_data' => "ignore"
+                    ],
+                ];
+            }
             $keyboardlists['inline_keyboard'][] = [
                 [
                     'text' => "✨" . $row['username'] . "✨",
@@ -548,10 +592,20 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
     $keyboardlists = [
         'inline_keyboard' => [],
     ];
-    $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = '$from_id' AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold') ORDER BY time_sell DESC LIMIT $previous_page, $items_per_page");
+    $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = '$from_id' AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold') ORDER BY Service_location ASC, time_sell DESC LIMIT $previous_page, $items_per_page");
     $stmt->execute();
+    $current_panel = "";
     if ($setting['statusnamecustom'] == 'onnamecustom') {
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            if ($current_panel !== $row['Service_location']) {
+                $current_panel = $row['Service_location'];
+                $keyboardlists['inline_keyboard'][] = [
+                    [
+                        'text' => "🗄 " . $current_panel,
+                        'callback_data' => "ignore"
+                    ],
+                ];
+            }
             $data = "";
             if ($row != null)
                 $data = " | {$row['note']}";
@@ -564,6 +618,15 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
         }
     } else {
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            if ($current_panel !== $row['Service_location']) {
+                $current_panel = $row['Service_location'];
+                $keyboardlists['inline_keyboard'][] = [
+                    [
+                        'text' => "🗄 " . $current_panel,
+                        'callback_data' => "ignore"
+                    ],
+                ];
+            }
             $keyboardlists['inline_keyboard'][] = [
                 [
                     'text' => "✨" . $row['username'] . "✨",
@@ -6325,12 +6388,22 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
     $page = 1;
     $items_per_page = 20;
     $start_index = ($page - 1) * $items_per_page;
-    $result = mysqli_query($connect, "SELECT * FROM invoice WHERE id_user = '$from_id' AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold') ORDER BY time_sell DESC LIMIT $start_index, $items_per_page");
+    $result = mysqli_query($connect, "SELECT * FROM invoice WHERE id_user = '$from_id' AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold') ORDER BY Service_location ASC, time_sell DESC LIMIT $start_index, $items_per_page");
     $keyboardlists = [
         'inline_keyboard' => [],
     ];
+    $current_panel = "";
     if ($statusnote) {
         while ($row = mysqli_fetch_assoc($result)) {
+            if ($current_panel !== $row['Service_location']) {
+                $current_panel = $row['Service_location'];
+                $keyboardlists['inline_keyboard'][] = [
+                    [
+                        'text' => "🗄 " . $current_panel,
+                        'callback_data' => "ignore"
+                    ],
+                ];
+            }
             $data = "";
             if ($row != null)
                 $data = " | {$row['note']}";
@@ -6343,6 +6416,15 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
         }
     } else {
         while ($row = mysqli_fetch_assoc($result)) {
+            if ($current_panel !== $row['Service_location']) {
+                $current_panel = $row['Service_location'];
+                $keyboardlists['inline_keyboard'][] = [
+                    [
+                        'text' => "🗄 " . $current_panel,
+                        'callback_data' => "ignore"
+                    ],
+                ];
+            }
             $keyboardlists['inline_keyboard'][] = [
                 [
                     'text' => "✨" . $row['username'] . "✨",
@@ -6382,12 +6464,22 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
         $next_page = $page + 1;
     }
     $start_index = ($next_page - 1) * $items_per_page;
-    $result = mysqli_query($connect, "SELECT * FROM invoice WHERE id_user = '$from_id' AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold') ORDER BY time_sell DESC LIMIT $start_index, $items_per_page");
+    $result = mysqli_query($connect, "SELECT * FROM invoice WHERE id_user = '$from_id' AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold') ORDER BY Service_location ASC, time_sell DESC LIMIT $start_index, $items_per_page");
     $keyboardlists = [
         'inline_keyboard' => [],
     ];
+    $current_panel = "";
     if ($statusnote) {
         while ($row = mysqli_fetch_assoc($result)) {
+            if ($current_panel !== $row['Service_location']) {
+                $current_panel = $row['Service_location'];
+                $keyboardlists['inline_keyboard'][] = [
+                    [
+                        'text' => "🗄 " . $current_panel,
+                        'callback_data' => "ignore"
+                    ],
+                ];
+            }
             $data = "";
             if ($row != null)
                 $data = " | {$row['note']}";
@@ -6400,6 +6492,15 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
         }
     } else {
         while ($row = mysqli_fetch_assoc($result)) {
+            if ($current_panel !== $row['Service_location']) {
+                $current_panel = $row['Service_location'];
+                $keyboardlists['inline_keyboard'][] = [
+                    [
+                        'text' => "🗄 " . $current_panel,
+                        'callback_data' => "ignore"
+                    ],
+                ];
+            }
             $keyboardlists['inline_keyboard'][] = [
                 [
                     'text' => "✨" . $row['username'] . "✨",
@@ -6440,12 +6541,22 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
         $previous_page = $page - 1;
     }
     $start_index = ($previous_page - 1) * $items_per_page;
-    $result = mysqli_query($connect, "SELECT * FROM invoice WHERE id_user = '$from_id' AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold') ORDER BY time_sell DESC LIMIT $previous_page, $items_per_page");
+    $result = mysqli_query($connect, "SELECT * FROM invoice WHERE id_user = '$from_id' AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold') ORDER BY Service_location ASC, time_sell DESC LIMIT $previous_page, $items_per_page");
     $keyboardlists = [
         'inline_keyboard' => [],
     ];
+    $current_panel = "";
     if ($statusnote) {
         while ($row = mysqli_fetch_assoc($result)) {
+            if ($current_panel !== $row['Service_location']) {
+                $current_panel = $row['Service_location'];
+                $keyboardlists['inline_keyboard'][] = [
+                    [
+                        'text' => "🗄 " . $current_panel,
+                        'callback_data' => "ignore"
+                    ],
+                ];
+            }
             $data = "";
             if ($row != null)
                 $data = " | {$row['note']}";
@@ -6458,6 +6569,15 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
         }
     } else {
         while ($row = mysqli_fetch_assoc($result)) {
+            if ($current_panel !== $row['Service_location']) {
+                $current_panel = $row['Service_location'];
+                $keyboardlists['inline_keyboard'][] = [
+                    [
+                        'text' => "🗄 " . $current_panel,
+                        'callback_data' => "ignore"
+                    ],
+                ];
+            }
             $keyboardlists['inline_keyboard'][] = [
                 [
                     'text' => "✨" . $row['username'] . "✨",

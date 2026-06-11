@@ -277,15 +277,8 @@ include __DIR__ . '/inc/layout_head.php';
             </div>
             <a href="invoice.php" class="btn-link" style="font-size:.78rem"><?= $textbotlang['panel']['dashViewAll'] ?></a>
         </div>
-        <div class="tbl-wrap dash-orders" style="overflow-x: hidden;">
-            <table class="tbl-sm" style="min-width: 0; table-layout: fixed; width: 100%;">
-                <colgroup>
-                    <col style="width: 32%;">
-                    <col style="width: 20%;">
-                    <col style="width: 18%;">
-                    <col style="width: 18%;">
-                    <col style="width: 12%;">
-                </colgroup>
+        <div class="tbl-wrap dash-orders">
+            <table class="tbl-sm" style="width: 100%;">
                 <thead>
                     <tr>
                         <th style="text-align:right;"><?= $textbotlang['panel']['dashColUser'] ?></th>
@@ -384,9 +377,9 @@ include __DIR__ . '/inc/layout_head.php';
                 <thead>
                     <tr>
                         <th><?= $textbotlang['panel']['dashColName'] ?></th>
-                        <th class="desktop-text-center" style="text-align:right;"><?= $textbotlang['panel']['dashColBalance'] ?></th>
-                        <th class="desktop-text-center" style="text-align:right;">تاریخ عضویت</th>
-                        <th class="desktop-text-center" style="text-align:right;"><?= $textbotlang['panel']['dashColGroup'] ?></th>
+                        <th style="text-align:center;"><?= $textbotlang['panel']['dashColBalance'] ?></th>
+                        <th style="text-align:center;">تاریخ عضویت</th>
+                        <th style="text-align:center;"><?= $textbotlang['panel']['dashColGroup'] ?></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -440,7 +433,7 @@ include __DIR__ . '/inc/layout_head.php';
                                         </div>
                                     </div>
                                 </td>
-                                <td data-label="<?= $textbotlang['panel']['dashColBalance'] ?>" class="cn desktop-text-center" style="text-align:right;">
+                                <td data-label="<?= $textbotlang['panel']['dashColBalance'] ?>" class="cn" style="text-align:center;">
                                     <div class="desktop-vertical-stack mobile-flex-between">
                                         <div style="display:flex; align-items:center; gap:6px;">
                                             <span class="icon-span" style="color:var(--mute)"><?= icon('wallet', 14) ?></span>
@@ -451,7 +444,7 @@ include __DIR__ . '/inc/layout_head.php';
                                         </span>
                                     </div>
                                 </td>
-                                <td data-label="تاریخ عضویت" class="desktop-text-center" style="text-align:right;">
+                                <td data-label="تاریخ عضویت" style="text-align:center;">
                                     <div class="desktop-vertical-stack mobile-flex-between" style="font-size:0.85rem; color:var(--mute);">
                                         <div style="display:flex; align-items:center; gap:6px;">
                                             <span class="icon-span" style="color:var(--mute)"><?= icon('clock', 14) ?></span>
@@ -464,7 +457,7 @@ include __DIR__ . '/inc/layout_head.php';
                                         </span>
                                     </div>
                                 </td>
-                                <td data-label="<?= $textbotlang['panel']['dashColGroup'] ?>">
+                                <td data-label="<?= $textbotlang['panel']['dashColGroup'] ?>" style="text-align:center;">
                                     <?php if ($isBlocked): ?>
                                         <span class="status-pill danger"><?= $textbotlang['panel']['dashLabelBlocked'] ?></span>
                                     <?php else: ?>

@@ -101,7 +101,7 @@ switch ($data['actions']) {
         $countStmt->execute();
         $totalItems = $countStmt->fetchColumn();
         $totalPages = ceil($totalItems / $limit);
-        $stmt = $pdo->prepare("SELECT username,note,Service_location FROM invoice WHERE id_user = :user_id AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold') $querywhere  ORDER BY time_sell DESC LIMIT :limit OFFSET :offset ");
+        $stmt = $pdo->prepare("SELECT username,note,Service_location FROM invoice WHERE id_user = :user_id AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold') $querywhere  ORDER BY Service_location ASC, time_sell DESC LIMIT :limit OFFSET :offset ");
         $stmt->bindValue(':user_id', $user_id, PDO::PARAM_INT);
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
@@ -124,7 +124,8 @@ switch ($data['actions']) {
                     'username' => $invoice['username'],
                     'status' => $DataUserOut['status'],
                     'expire' => $expire,
-                    'note' => $invoice['note']
+                    'note' => $invoice['note'],
+                    'panel_name' => $invoice['Service_location']
                 ];
             }
         }
