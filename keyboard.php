@@ -83,6 +83,9 @@ if ($setting['inlinebtnmain'] == "oninline" && !empty($keyboardRows)) {
             if ($keyboard['text'] == "text_usertest") {
                 $trace_keyboard[$key][$keyboard_key]['callback_data'] = "usertestbtn";
             }
+            if (!isset($trace_keyboard[$key][$keyboard_key]['callback_data']) && !isset($trace_keyboard[$key][$keyboard_key]['url']) && !isset($trace_keyboard[$key][$keyboard_key]['web_app'])) {
+                $trace_keyboard[$key][$keyboard_key]['callback_data'] = "ignore";
+            }
         }
     }
     if ($admin_idss != 0) {
@@ -97,7 +100,9 @@ if ($setting['inlinebtnmain'] == "oninline" && !empty($keyboardRows)) {
     $keyboard = ['inline_keyboard' => []];
     $keyboardcustom = $trace_keyboard;
     $keyboardcustom = json_decode(strtr(strval(json_encode($keyboardcustom)), $replacements), true);
-    $keyboardcustom[] = $temp_addtional_key;
+    if (!empty($temp_addtional_key)) {
+        $keyboardcustom[] = $temp_addtional_key;
+    }
     $keyboard['inline_keyboard'] = $keyboardcustom;
     $keyboard = json_encode($keyboard);
 } else {
@@ -114,7 +119,9 @@ if ($setting['inlinebtnmain'] == "oninline" && !empty($keyboardRows)) {
     // Keep style key for Bot API 9.4+ button styling
     $keyboardcustom = $keyboardRows;
     $keyboardcustom = json_decode(strtr(strval(json_encode($keyboardcustom)), $replacements), true);
-    $keyboardcustom[] = $temp_addtional_key;
+    if (!empty($temp_addtional_key)) {
+        $keyboardcustom[] = $temp_addtional_key;
+    }
     $keyboard['keyboard'] = $keyboardcustom;
     $keyboard = json_encode($keyboard);
 }

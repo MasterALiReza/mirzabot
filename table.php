@@ -206,7 +206,7 @@ timeauto_not_verify,status_keyboard_config,cron_status
 ) VALUES (
 'botstatuson','rolleon','offAuthenticationphone','1','offAuthenticationiran','offnotuser',
 'offaffiliates','0','0','1','offcategory',
-'0','onnewuser','onrequestagent','2','offinline',
+'0','onnewuser','onrequestagent','2','oninline',
 'offverify','offpvsupport','offnamecustom','offcategorys',
 '0','5','onbulk','4','offverify',
 '0','$DATAAWARD','0','0','2',
@@ -249,7 +249,7 @@ timeauto_not_verify,status_keyboard_config,cron_status
         addFieldToTable("setting", "id_support", "0", "VARCHAR(100)");
         addFieldToTable("setting", "statussupportpv", "offpvsupport", "VARCHAR(100)");
         addFieldToTable("setting", "affiliatespercentage", "0", "VARCHAR(600)");
-        addFieldToTable("setting", "inlinebtnmain", "offinline", "VARCHAR(200)");
+        addFieldToTable("setting", "inlinebtnmain", "oninline", "VARCHAR(200)");
         addFieldToTable("setting", "volumewarn", "2", "VARCHAR(200)");
         addFieldToTable("setting", "statusagentrequest", "onrequestagent", "VARCHAR(600)");
         addFieldToTable("setting", "statusnewuser", "onnewuser", "VARCHAR(600)");
@@ -1330,6 +1330,7 @@ try {
 if ($check && $check->rowCount() != 0) {
     $pdo->exec("ALTER TABLE `user` DROP `ref_code`");
 }
+$pdo->exec("UPDATE setting SET inlinebtnmain = 'oninline' WHERE inlinebtnmain = 'offinline'");
 telegram('setwebhook', [
     'url' => "https://$domainhosts/index.php"
 ]);
