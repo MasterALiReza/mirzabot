@@ -487,7 +487,7 @@ if (!window.__appListenersAdded) {
 
 window.addEventListener('load', function () { _lb.done(); });
 
-document.body.addEventListener('htmx:beforeRequest', function (e) {
+document.addEventListener('htmx:beforeRequest', function (e) {
     _lb.start();
     
     var elt = e.detail.elt;
@@ -502,7 +502,7 @@ document.body.addEventListener('htmx:beforeRequest', function (e) {
     }
 });
 
-document.body.addEventListener('htmx:beforeSwap', function (evt) {
+document.addEventListener('htmx:beforeSwap', function (evt) {
     // If response status is 401/403 or contains login page identifiers, redirect whole window
     var resp = evt.detail.xhr.responseText || '';
     if (evt.detail.xhr.status === 401 || evt.detail.xhr.status === 403 || resp.indexOf('class="auth"') !== -1 || resp.indexOf('js/login.js') !== -1) {
@@ -511,7 +511,7 @@ document.body.addEventListener('htmx:beforeSwap', function (evt) {
     }
 });
 
-document.body.addEventListener('htmx:afterSwap', function (e) {
+document.addEventListener('htmx:afterSwap', function (e) {
     _lb.done();
     closeSidebar();
 });
@@ -538,7 +538,7 @@ document.getElementById('confirm-veil').addEventListener('click', function (e) {
     if (e.target === this) closeConfirm();
 });
 
-document.body.addEventListener('htmx:confirm', function(e) {
+document.addEventListener('htmx:confirm', function(e) {
     if(e.detail.elt.hasAttribute('data-confirm')) {
         e.preventDefault();
         showConfirm(e.detail.elt.getAttribute('data-confirm') || t('jsConfirmDefault'), function() {
@@ -559,12 +559,12 @@ document.addEventListener('keydown', function (e) {
     }
 });
 
-document.body.addEventListener('htmx:load', function(e) {
+document.addEventListener('htmx:load', function(e) {
     initUI(e.detail.elt);
     initBroadcastUI(e.detail.elt);
 });
 
-document.body.addEventListener('change', function (e) {
+document.addEventListener('change', function (e) {
     if (e.target && e.target.id === 'messageType') {
         window.toggleFields();
     } else if (e.target && e.target.id === 'btnmessage') {
@@ -572,7 +572,7 @@ document.body.addEventListener('change', function (e) {
     }
 });
 
-document.body.addEventListener('submit', function (e) {
+document.addEventListener('submit', function (e) {
     var form = e.target;
 	if (!form || (form.id !== 'broadcastForm' && form.id !== 'cancelBroadcastForm')) return;
 
@@ -645,7 +645,7 @@ document.body.addEventListener('submit', function (e) {
 }, true);
 
 // Collapsible Sidebar logic
-document.body.addEventListener('click', function(e) {
+document.addEventListener('click', function(e) {
     var groupBtn = e.target.closest('.nav-group-btn');
     if (groupBtn) {
         var group = groupBtn.closest('.nav-group');
