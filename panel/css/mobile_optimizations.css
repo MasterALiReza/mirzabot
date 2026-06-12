@@ -2020,30 +2020,241 @@
     }
 }
 
-/* --- MOBILE FIXES FOR USERS AND TRANSACTIONS --- */
+/* --- MOBILE FIXES FOR USERS, TRANSACTIONS AND ORDERS --- */
 @media (max-width: 768px) {
     /* Fix general flex wrapping issues */
-    .tbl-wrap td { flex-wrap: wrap !important; }
-    .tbl-wrap span { white-space: normal !important; }
-    .cell-mono { white-space: nowrap !important; }
+    .tbl-wrap td {
+        flex-wrap: wrap !important;
+    }
     
-    /* TRANSACTION FIXES */
-    .tbl-wrap.admin-payments-table tr { padding: 16px !important; border-radius: 16px !important; }
-    .tbl-wrap.admin-payments-table td[data-label="شناسه تراکنش"] { order: 1 !important; flex: 1 1 100% !important; padding-bottom: 12px !important; border-bottom: 1px dashed var(--bd) !important; margin-bottom: 12px !important; }
-    .tbl-wrap.admin-payments-table td[data-label="مبلغ"] { order: 2 !important; flex: 1 1 100% !important; border: 1px solid var(--bd) !important; border-radius: 12px !important; padding: 12px !important; margin-bottom: 8px !important; }
-    .tbl-wrap.admin-payments-table td[data-label="تاریخ"] { order: 3 !important; flex: 1 1 100% !important; border: 1px solid var(--bd) !important; border-radius: 12px !important; padding: 12px !important; margin-bottom: 8px !important; }
-    .tbl-wrap.admin-payments-table td[data-label="روش پرداخت"] { order: 4 !important; flex: 1 1 100% !important; border: 1px solid var(--bd) !important; border-radius: 12px !important; padding: 12px !important; margin-bottom: 8px !important; }
-    .tbl-wrap.admin-payments-table td[data-label="عملیات"] { order: 5 !important; flex: 1 1 100% !important; margin-top: 8px !important; padding-top: 12px !important; border-top: 1px dashed rgba(255, 255, 255, 0.08) !important; border-bottom: none !important; }
+    /* Force vertical stacking inside details boxes to prevent horizontal squishing */
+    .tbl-wrap td .mobile-flex-between,
+    .tbl-wrap td .desktop-vertical-stack,
+    .tbl-wrap td .dash-unified-content {
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+        gap: 6px !important;
+        width: 100% !important;
+        display: flex !important;
+    }
+    
+    /* Center text and icons horizontally on top line */
+    .tbl-wrap td .mobile-flex-between > div,
+    .tbl-wrap td .desktop-vertical-stack > div,
+    .tbl-wrap td .dash-unified-content > div {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 6px !important;
+        width: auto !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+    }
+    
+    .tbl-wrap td .mobile-label {
+        display: inline-block !important;
+        white-space: nowrap !important;
+        margin-top: 0 !important;
+        font-size: 0.78rem !important;
+    }
 
-    /* RECENT USERS (DASHBOARD) FIXES */
-    .tbl-wrap.dash-users td[data-label="نام"] { order: 1 !important; flex: 1 1 100% !important; border-bottom: 1px dashed var(--bd) !important; padding-bottom: 12px !important; margin-bottom: 8px !important; }
-    .tbl-wrap.dash-users td[data-label="موجودی"] { order: 2 !important; flex: 1 1 100% !important; border: 1px solid var(--bd) !important; border-radius: 12px !important; padding: 12px !important; margin-bottom: 8px !important; }
-    .tbl-wrap.dash-users td[data-label="تاریخ عضویت"] { order: 3 !important; flex: 1 1 100% !important; border: 1px solid var(--bd) !important; border-radius: 12px !important; padding: 12px !important; margin-bottom: 8px !important; }
+    /* Force details values (amounts, dates) to be clean, centered, and nowrap */
+    .tbl-wrap td .mobile-flex-between > span,
+    .tbl-wrap td .desktop-vertical-stack > span,
+    .tbl-wrap td .dash-unified-content > span,
+    .tbl-wrap td .mobile-flex-between > .cn,
+    .tbl-wrap td .desktop-vertical-stack > .cn,
+    .tbl-wrap td .dash-unified-content > .cn {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 6px !important;
+        white-space: nowrap !important;
+        font-size: 0.85rem !important;
+        width: 100% !important;
+        direction: rtl !important;
+    }
 
-    /* USERS LIST FIXES */
-    .tbl-wrap.dash-unified td[data-label="کاربر"] { order: 1 !important; flex: 1 1 100% !important; border-bottom: 1px dashed var(--bd) !important; padding-bottom: 12px !important; margin-bottom: 8px !important; }
-    .tbl-wrap.dash-unified td[data-label="جزئیات و مالی"] { order: 2 !important; flex: 1 1 100% !important; border: none !important; padding: 8px 0 !important; }
-    .tbl-wrap.dash-unified td[data-label="عملیات"] { order: 3 !important; flex: 1 1 100% !important; border-top: 1px dashed rgba(255, 255, 255, 0.08) !important; padding-top: 12px !important; margin-top: 8px !important; border-bottom: none !important; }
+    .tbl-wrap td span.cn span,
+    .tbl-wrap td .desktop-vertical-stack span span,
+    .tbl-wrap td .dash-unified-content span span {
+        white-space: nowrap !important;
+        display: inline-block !important;
+    }
+
+    .tbl-wrap td .icon-span {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex-shrink: 0 !important;
+    }
+
+    .cell-mono {
+        white-space: nowrap !important;
+    }
+    
+    /* TRANSACTION SPECIFIC ALIGNMENTS */
+    .tbl-wrap.admin-payments-table tr {
+        padding: 16px !important;
+        border-radius: 16px !important;
+    }
+    /* Transaction ID (Full Width) */
+    .tbl-wrap.admin-payments-table td:nth-child(3) {
+        order: 1 !important;
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        padding-bottom: 12px !important;
+        border-bottom: 1px dashed var(--bd) !important;
+        margin-bottom: 12px !important;
+    }
+    /* Amount & Date (50% side-by-side, vertical stacks) */
+    .tbl-wrap.admin-payments-table td:nth-child(4) {
+        order: 2 !important;
+        flex: 1 1 calc(50% - 4px) !important;
+        width: calc(50% - 4px) !important;
+        border: 1px solid var(--bd) !important;
+        border-radius: 12px !important;
+        padding: 12px !important;
+        margin-bottom: 8px !important;
+    }
+    .tbl-wrap.admin-payments-table td:nth-child(6) {
+        order: 3 !important;
+        flex: 1 1 calc(50% - 4px) !important;
+        width: calc(50% - 4px) !important;
+        border: 1px solid var(--bd) !important;
+        border-radius: 12px !important;
+        padding: 12px !important;
+        margin-bottom: 8px !important;
+    }
+    /* User & Method (50% side-by-side) */
+    .tbl-wrap.admin-payments-table td:nth-child(2) {
+        order: 4 !important;
+        flex: 1 1 calc(50% - 4px) !important;
+        width: calc(50% - 4px) !important;
+        border: 1px solid var(--bd) !important;
+        border-radius: 12px !important;
+        padding: 12px !important;
+        margin-bottom: 8px !important;
+        justify-content: center !important;
+    }
+    .tbl-wrap.admin-payments-table td:nth-child(5) {
+        order: 5 !important;
+        flex: 1 1 calc(50% - 4px) !important;
+        width: calc(50% - 4px) !important;
+        border: 1px solid var(--bd) !important;
+        border-radius: 12px !important;
+        padding: 12px !important;
+        margin-bottom: 8px !important;
+        justify-content: center !important;
+    }
+    /* Operations (Full Width) */
+    .tbl-wrap.admin-payments-table td:nth-child(8) {
+        order: 6 !important;
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        margin-top: 8px !important;
+        padding-top: 12px !important;
+        border-top: 1px dashed rgba(255, 255, 255, 0.08) !important;
+        border-bottom: none !important;
+    }
+
+    /* RECENT USERS (DASHBOARD) ALIGNMENTS */
+    /* Name (Full Width) */
+    .tbl-wrap.dash-users td:nth-child(1) {
+        order: 1 !important;
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        border-bottom: 1px dashed var(--bd) !important;
+        padding-bottom: 12px !important;
+        margin-bottom: 8px !important;
+    }
+    /* Balance & Register Date (50% side-by-side, vertical stacks) */
+    .tbl-wrap.dash-users td:nth-child(2) {
+        order: 2 !important;
+        flex: 1 1 calc(50% - 4px) !important;
+        width: calc(50% - 4px) !important;
+        border: 1px solid var(--bd) !important;
+        border-radius: 12px !important;
+        padding: 12px !important;
+        margin-bottom: 8px !important;
+    }
+    .tbl-wrap.dash-users td:nth-child(3) {
+        order: 3 !important;
+        flex: 1 1 calc(50% - 4px) !important;
+        width: calc(50% - 4px) !important;
+        border: 1px solid var(--bd) !important;
+        border-radius: 12px !important;
+        padding: 12px !important;
+        margin-bottom: 8px !important;
+    }
+
+    /* UNIFIED USERS LIST ALIGNMENTS (users.php) */
+    /* User Profile (Full Width) */
+    .tbl-wrap.dash-unified td:nth-child(1) {
+        order: 1 !important;
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        border-bottom: 1px dashed var(--bd) !important;
+        padding-bottom: 12px !important;
+        margin-bottom: 8px !important;
+    }
+    /* Details & Grid (Full Width) */
+    .tbl-wrap.dash-unified td:nth-child(2) {
+        order: 2 !important;
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        border: none !important;
+        padding: 8px 0 !important;
+    }
+    /* Operations (Full Width) */
+    .tbl-wrap.dash-unified td:nth-child(3) {
+        order: 3 !important;
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        border-top: 1px dashed rgba(255, 255, 255, 0.08) !important;
+        padding-top: 12px !important;
+        margin-top: 8px !important;
+        border-bottom: none !important;
+    }
+
+    /* ORDERS LIST ALIGNMENTS (invoice.php) */
+    /* User (Full Width) */
+    .tbl-wrap.dash-orders td:nth-child(1) {
+        order: 1 !important;
+        flex: 1 1 100% !important;
+        width: 100% !important;
+    }
+    /* Product Name (Full Width) */
+    .tbl-wrap.dash-orders td:nth-child(2) {
+        order: 2 !important;
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        border-bottom: 1px dashed var(--bd) !important;
+        padding-bottom: 8px !important;
+        margin-bottom: 8px !important;
+    }
+    /* Amount & Date (50% side-by-side, vertical stacks) */
+    .tbl-wrap.dash-orders td:nth-child(3) {
+        order: 3 !important;
+        flex: 1 1 calc(50% - 4px) !important;
+        width: calc(50% - 4px) !important;
+        border: 1px solid var(--bd) !important;
+        border-radius: 12px !important;
+        padding: 12px !important;
+        margin-bottom: 8px !important;
+    }
+    .tbl-wrap.dash-orders td:nth-child(4) {
+        order: 4 !important;
+        flex: 1 1 calc(50% - 4px) !important;
+        width: calc(50% - 4px) !important;
+        border: 1px solid var(--bd) !important;
+        border-radius: 12px !important;
+        padding: 12px !important;
+        margin-bottom: 8px !important;
+    }
 }
 
 
