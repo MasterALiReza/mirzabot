@@ -113,6 +113,34 @@ try {
             exit;
         }
         $message = $channel_link;
+        
+        // Test if the bot can actually copy this message using admin's chat id
+        $admin_info = db_fetch($pdo, "SELECT id_admin FROM admin WHERE username = ?", [$_SESSION['admin_user']]);
+        $test_chat_id = $admin_info['id_admin'] ?? null;
+        if ($test_chat_id) {
+            $from_chat_id = '';
+            $message_id = '';
+            if (preg_match('/t\.me\/c\/(\d+)\/(\d+)/', $link ?? $channel_link, $matches)) {
+                $from_chat_id = '-100' . $matches[1];
+                $message_id = $matches[2];
+            } elseif (preg_match('/t\.me\/([a-zA-Z0-9_]+)\/(\d+)/', $link ?? $channel_link, $matches)) {
+                $from_chat_id = '@' . $matches[1];
+                $message_id = $matches[2];
+            }
+            if ($from_chat_id && $message_id) {
+                require_once __DIR__ . '/../../botapi.php';
+                $test_res = telegram('copyMessage', [
+                    'chat_id' => $test_chat_id,
+                    'from_chat_id' => $from_chat_id,
+                    'message_id' => $message_id
+                ]);
+                if (isset($test_res['ok']) && !$test_res['ok']) {
+                    $err = $test_res['description'] ?? 'Unknown error';
+                    broadcast_feedback('warn', "خطا در دسترسی به پیام کانال: ربات قادر به کپی پیام نیست. مطمئن شوید ربات در کانال عضو است. خطای تلگرام: $err");
+                    exit;
+                }
+            }
+        }
     }
 
     $custom_btn_text_prod = trim($_POST['custom_btn_text_prod'] ?? '');

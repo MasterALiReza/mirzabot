@@ -54,11 +54,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($action === 'send_msg') {
         $message = trim($_POST['message'] ?? '');
         if ($message) {
-            telegram('SendMessage', [
+            $res = telegram('SendMessage', [
                 'chat_id' => $id,
                 'text' => $message,
             ]);
-            flash('success', "پیام شما به کاربر ارسال شد.");
+            if (isset($res['ok']) && $res['ok']) {
+                flash('success', "پیام شما به کاربر ارسال شد.");
+            } else {
+                $err = $res['description'] ?? 'خطای نامشخص تلگرام';
+                flash('error', "ارسال پیام ناموفق بود: $err");
+            }
         }
     } elseif ($action === 'set_test_limit') {
         $limit = (int) ($_POST['limit'] ?? 0);
