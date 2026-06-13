@@ -146,6 +146,21 @@ try {
 } catch (Exception $e) {
 }
 $products = db_fetchAll($pdo, "SELECT * FROM product ORDER BY id");
+
+// Auto-sync missing categories from product table to category table
+try {
+  $existingCategories = array_unique(array_filter(array_column($products, 'category')));
+  foreach ($existingCategories as $cat) {
+    $cat = trim($cat);
+    $checkStmt = $pdo->prepare("SELECT COUNT(*) FROM category WHERE remark = ?");
+    $checkStmt->execute([$cat]);
+    if ($checkStmt->fetchColumn() == 0) {
+      $insertStmt = $pdo->prepare("INSERT INTO category (remark) VALUES (?)");
+      $insertStmt->execute([$cat]);
+    }
+  }
+} catch (Exception $e) {}
+
 $categories_db = db_fetchAll($pdo, "SELECT * FROM category ORDER BY id DESC");
 
 $pageTitle = $textbotlang['panel']['productsTitle'];
