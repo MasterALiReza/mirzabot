@@ -530,19 +530,19 @@ body::after, body::before {
 
 /* Dark themes: modal slightly lighter than sidebar */
 [data-theme=navy] .modal {
-    background: #1E2E4A !important;
+    background: var(--sf) !important;
 }
 [data-theme=purple] .modal {
-    background: #251548 !important;
+    background: var(--sf) !important;
 }
 [data-theme=emerald] .modal {
-    background: #152F2A !important;
+    background: var(--sf) !important;
 }
 [data-theme=sunset] .modal {
-    background: #2C1816 !important;
+    background: var(--sf) !important;
 }
 [data-theme=slate] .modal {
-    background: #1C1C1C !important;
+    background: var(--sf) !important;
 }
 
 /* ========================================================================
