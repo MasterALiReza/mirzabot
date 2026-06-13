@@ -176,21 +176,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $params_affiliates = [];
     
     // File Uploads
-    if (isset($_FILES['custom_qr_background']) && $_FILES['custom_qr_background']['error'] === UPLOAD_ERR_OK) {
-        $tmpName = $_FILES['custom_qr_background']['tmp_name'];
-        if (mime_content_type($tmpName) === 'image/jpeg') {
-            move_uploaded_file($tmpName, __DIR__ . '/../custom.jpg');
-        } else {
-            $error = "فایل پس‌زمینه اصلی باید jpg باشد.";
+    if (isset($_FILES['custom_qr_background'])) {
+        if ($_FILES['custom_qr_background']['error'] === UPLOAD_ERR_OK) {
+            $tmpName = $_FILES['custom_qr_background']['tmp_name'];
+            $fileType = strtolower(pathinfo($_FILES['custom_qr_background']['name'], PATHINFO_EXTENSION));
+            if (in_array($fileType, ['jpg', 'jpeg'])) {
+                if (move_uploaded_file($tmpName, __DIR__ . '/../custom.jpg')) {
+                    $success = "تصویر پس‌زمینه اصلی (custom.jpg) با موفقیت به‌روزرسانی شد.<br>";
+                } else {
+                    $error = "خطا در ذخیره تصویر پس‌زمینه اصلی (احتمالاً مشکل سطح دسترسی).<br>";
+                }
+            } else {
+                $error = "فایل پس‌زمینه اصلی باید jpg باشد.<br>";
+            }
+        } elseif ($_FILES['custom_qr_background']['error'] !== UPLOAD_ERR_NO_FILE) {
+            $error = "خطا در آپلود پس‌زمینه اصلی (کد خطا: " . $_FILES['custom_qr_background']['error'] . "). حجم فایل ممکن است زیاد باشد.<br>";
         }
     }
     
-    if (isset($_FILES['images_qr_background']) && $_FILES['images_qr_background']['error'] === UPLOAD_ERR_OK) {
-        $tmpName = $_FILES['images_qr_background']['tmp_name'];
-        if (mime_content_type($tmpName) === 'image/jpeg') {
-            move_uploaded_file($tmpName, __DIR__ . '/../images.jpg');
-        } else {
-            $error = "فایل پس‌زمینه جایگزین باید jpg باشد.";
+    if (isset($_FILES['images_qr_background'])) {
+        if ($_FILES['images_qr_background']['error'] === UPLOAD_ERR_OK) {
+            $tmpName = $_FILES['images_qr_background']['tmp_name'];
+            $fileType = strtolower(pathinfo($_FILES['images_qr_background']['name'], PATHINFO_EXTENSION));
+            if (in_array($fileType, ['jpg', 'jpeg'])) {
+                if (move_uploaded_file($tmpName, __DIR__ . '/../images.jpg')) {
+                    $success .= "تصویر پس‌زمینه جایگزین (images.jpg) با موفقیت به‌روزرسانی شد.<br>";
+                } else {
+                    $error .= "خطا در ذخیره تصویر پس‌زمینه جایگزین (احتمالاً مشکل سطح دسترسی).<br>";
+                }
+            } else {
+                $error .= "فایل پس‌زمینه جایگزین باید jpg باشد.<br>";
+            }
+        } elseif ($_FILES['images_qr_background']['error'] !== UPLOAD_ERR_NO_FILE) {
+            $error .= "خطا در آپلود پس‌زمینه جایگزین (کد خطا: " . $_FILES['images_qr_background']['error'] . "). حجم فایل ممکن است زیاد باشد.<br>";
         }
     }
     
@@ -282,7 +300,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         db_query($pdo, "UPDATE setting SET " . implode(', ', $updates_setting), $params_setting);
     }
 
-    flash('success', $textbotlang['panel']['botSettingsSuccess'] ?? 'تنظیمات با موفقیت ذخیره شد.');
+    if (!empty($error)) {
+        flash('error', $error . '<br>سایر تنظیمات ذخیره شدند.');
+    } else {
+        $final_success = $textbotlang['panel']['botSettingsSuccess'] ?? 'تنظیمات با موفقیت ذخیره شد.';
+        if (!empty($success)) {
+            $final_success = $success . '<br>' . $final_success;
+        }
+        flash('success', $final_success);
+    }
+    
     $redirect_tab = $_POST['current_tab'] ?? 'general';
     $redirect_sec = $_POST['current_sec'] ?? '';
     header('Location: bot_settings.php?tab=' . urlencode($redirect_tab) . '&sec=' . urlencode($redirect_sec));
