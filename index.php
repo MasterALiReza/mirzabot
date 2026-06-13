@@ -227,11 +227,11 @@ if (strpos($text, "/start ") !== false && $user['step'] != "gettextSystemMessage
                 return;
             }
             $user = select("user", "*", "id", $from_id, "select");
-            update("user", "affiliates", $affiliatesid, "id", $from_id);
-            if (intval($user['affiliates']) != 0) {
+            if ($user && intval($user['affiliates']) != 0) {
                 sendmessage($from_id, $textbotlang['users']['affiliates']['affiliateedago'], null, 'html');
                 return;
             }
+            update("user", "affiliates", $affiliatesid, "id", $from_id);
             $useraffiliates = select("user", "*", 'id', $affiliatesid, "select");
             sendmessage($from_id, sprintf($textbotlang['hardcoded']['affiliateWelcomeInvited'], $useraffiliates['username']), $keyboard, 'html');
             sendmessage($affiliatesid, sprintf($textbotlang['hardcoded']['affiliateNewReferralJoined'], $username), $keyboard, 'html');
