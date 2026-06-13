@@ -226,6 +226,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $field = substr($key, 4);
             $updates_setting[] = "$field = ?";
             $params_setting[] = $val;
+            
+            // Sync test limit to all users if limit_usertest_all is updated
+            if ($field === 'limit_usertest_all') {
+                db_query($pdo, "UPDATE user SET limit_usertest = ?", [$val]);
+            }
         } elseif(strpos($key, 'pay_') === 0) {
             $field = substr($key, 4);
             if ($field === 'cardnumber') {
