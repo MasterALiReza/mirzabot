@@ -3488,10 +3488,7 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
         sendmessage($from_id, $textbotlang['Admin']['adminphp']['err_card_number_must'], $backuser, 'HTML');
         return;
     }
-    if (in_array($text, $listcard)) {
-        sendmessage($from_id, $textbotlang['Admin']['adminphp']['err_card'], $backuser, 'HTML');
-        return;
-    }
+
     sendmessage($from_id, $textbotlang['Admin']['SettingPayment']['getNameCard'], $backuser, 'HTML');
     update("user", "Processing_value", $text, "id", $from_id);
     step('getnamecard', $from_id);
