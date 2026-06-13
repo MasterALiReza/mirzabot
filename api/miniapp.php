@@ -894,7 +894,8 @@ switch ($data['actions']) {
         $stmt->bindParam(':id_user', $user_info['id']);
         $stmt->execute();
         $countinvoice = $stmt->rowCount();
-        if ($affiliatescommission['status_commission'] == "oncommission" && ($user_info['affiliates'] != null && intval($user_info['affiliates']) != 0)) {
+        // Only process affiliate rewards if the purchased product is NOT a test service
+        if ($product['name_product'] != $textbotlang['Admin']['adminphp']['db_test_service_name'] && $affiliatescommission['status_commission'] == "oncommission" && ($user_info['affiliates'] != null && intval($user_info['affiliates']) != 0)) {
             $first_buy_reward = intval($affiliatescommission['first_buy_reward'] ?? 0);
             $percentage = floatval($setting['affiliatespercentage'] ?? 0);
             

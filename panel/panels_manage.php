@@ -59,7 +59,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $status = trim($_POST['status'] ?? 'active');
     $agent = trim($_POST['agent'] ?? 'all');
     
-    $inboundid = trim($_POST['inboundid'] ?? '1');
+    $inboundid = trim($_POST['inboundid'] ?? '');
+    if (empty($inboundid) || $inboundid === '1') {
+        if ($type === 'WGDashboard') {
+            $inboundid = 'wg0';
+        } else {
+            $inboundid = '1';
+        }
+    }
     $sanaei_group = trim($_POST['sanaei_group'] ?? '');
     $inboundstatus = trim($_POST['inboundstatus'] ?? 'offinbounddisable');
     $inbound_deactive = trim($_POST['inbound_deactive'] ?? '0');
@@ -944,20 +951,45 @@ function togglePanelFields() {
     const inboundGroup = document.querySelector('.inboundid-group');
     const sanaeiGroup = document.querySelector('.sanaei-group');
     const sanaeiFetcher = document.getElementById('sanaeiInboundsFetcher');
+    
+    const usernameGroup = document.getElementById('panelUsername').closest('.field-group');
+    const passwordLabel = document.getElementById('panelPassword').previousElementSibling;
 
-    const typesWithInbound = ['MHSanaei-3.2', 'x-ui_single', 'alireza_single', 's_ui', 'marzneshin'];
+    if (panelType === 'WGDashboard' || panelType === 's_ui') {
+        usernameGroup.style.display = 'none';
+        if (document.getElementById('panelUsername').value === '') {
+            document.getElementById('panelUsername').value = 'null';
+        }
+        passwordLabel.innerText = 'توکن API پنل';
+    } else {
+        usernameGroup.style.display = 'block';
+        if (document.getElementById('panelUsername').value === 'null') {
+            document.getElementById('panelUsername').value = '';
+        }
+        passwordLabel.innerText = 'رمز عبور یا توکن API پنل';
+    }
+
+    const typesWithInbound = ['MHSanaei-3.2', 'x-ui_single', 'alireza_single', 's_ui', 'marzneshin', 'WGDashboard'];
     const typesWithFetcher = ['MHSanaei-3.2', 'x-ui_single', 'alireza_single', 's_ui'];
 
     if (typesWithInbound.includes(panelType)) {
-        inboundGroup.style.display = 'block';
+        if (inboundGroup) inboundGroup.style.display = 'block';
+        
+        // For WGDashboard, default to wg0 if empty
+        if (panelType === 'WGDashboard') {
+            const inboundIdInput = document.getElementById('panelInboundId');
+            if (inboundIdInput && (!inboundIdInput.value || inboundIdInput.value === '1')) {
+                inboundIdInput.value = 'wg0';
+            }
+        }
     } else {
-        inboundGroup.style.display = 'none';
+        if (inboundGroup) inboundGroup.style.display = 'none';
     }
 
     if (panelType === 'MHSanaei-3.2') {
-        sanaeiGroup.style.display = 'block';
+        if (sanaeiGroup) sanaeiGroup.style.display = 'block';
     } else {
-        sanaeiGroup.style.display = 'none';
+        if (sanaeiGroup) sanaeiGroup.style.display = 'none';
     }
 
     if (sanaeiFetcher) {

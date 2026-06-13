@@ -4042,7 +4042,8 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
     $stmt->bindParam(':id_user', $from_id);
     $stmt->execute();
     $countinvoice = $stmt->rowCount();
-    if ($affiliatescommission['status_commission'] == "oncommission" && ($user['affiliates'] != null && intval($user['affiliates']) != 0)) {
+    // Only process affiliate rewards if the purchased product is NOT a test service
+    if ($info_product['name_product'] != $textbotlang['Admin']['adminphp']['db_test_service_name'] && $affiliatescommission['status_commission'] == "oncommission" && ($user['affiliates'] != null && intval($user['affiliates']) != 0)) {
         $first_buy_reward = intval($affiliatescommission['first_buy_reward'] ?? 0);
         $percentage = floatval($setting['affiliatespercentage'] ?? 0);
         
