@@ -240,7 +240,270 @@ include __DIR__ . '/inc/layout_head.php';
     color: #fff !important;
     border-color: var(--ac);
 }
+
+/* ========================================================================= */
+/* VANGUARD HIGH-END UI ARCHITECTURE (ETHEREAL GLASS)                        */
+/* ========================================================================= */
+
+.vanguard-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 12px 0;
+}
+
+/* Double-Bezel Shell */
+.vanguard-shell {
+    background: rgba(255, 255, 255, 0.015);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 2rem;
+    padding: 6px;
+    transition: all 700ms cubic-bezier(0.32, 0.72, 0, 1);
+    animation: fadeUp 800ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+.vanguard-shell:hover {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transform: translateY(-2px);
+}
+
+/* Inner Core */
+.vanguard-core {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: calc(2rem - 6px);
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.03);
+    padding: 24px 32px;
+    display: grid;
+    grid-template-columns: 2fr 3fr 1.5fr;
+    gap: 24px;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+@media (max-width: 1024px) {
+    .vanguard-core {
+        grid-template-columns: 1fr 1fr;
+        padding: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .vanguard-shell {
+        border-radius: 1.5rem;
+        padding: 4px;
+    }
+    .vanguard-core {
+        grid-template-columns: 1fr;
+        border-radius: calc(1.5rem - 4px);
+        padding: 16px;
+        gap: 16px;
+    }
+}
+
+/* Typography & Layouts */
+.vanguard-user-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.vanguard-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: radial-gradient(circle at top left, rgba(var(--ac-rgb), 0.15), rgba(var(--ac-rgb), 0.02));
+    border: 1px solid rgba(var(--ac-rgb), 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ac);
+    flex-shrink: 0;
+    box-shadow: inset 0 2px 4px rgba(255,255,255,0.05);
+}
+
+.vanguard-name {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--text);
+    letter-spacing: -0.01em;
+}
+
+.vanguard-username {
+    color: var(--mute);
+    font-size: 0.85rem;
+    direction: ltr;
+    display: inline-block;
+    font-weight: 500;
+}
+
+.vanguard-id-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    padding: 4px 10px;
+    border-radius: 100px;
+    font-size: 0.75rem;
+    color: var(--mute);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.vanguard-id-pill:hover {
+    background: rgba(var(--ac-rgb), 0.1);
+    color: var(--ac);
+    border-color: rgba(var(--ac-rgb), 0.3);
+}
+
+/* Grid for Details */
+.vanguard-details-bento {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+@media (max-width: 1200px) {
+    .vanguard-details-bento {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.vanguard-bento-box {
+    background: rgba(255,255,255,0.01);
+    border: 1px solid rgba(255,255,255,0.03);
+    border-radius: 1rem;
+    padding: 16px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-align: center;
+    transition: all 400ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+.vanguard-bento-box:hover {
+    background: rgba(255,255,255,0.03);
+    transform: translateY(-2px);
+}
+
+.vanguard-bento-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--mute);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.vanguard-bento-value {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+}
+
+/* Button-in-Button Actions */
+.vanguard-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+}
+@media (max-width: 1024px) {
+    .vanguard-actions {
+        flex-direction: row;
+        align-items: center;
+        grid-column: span 2;
+        justify-content: flex-end;
+    }
+}
+@media (max-width: 768px) {
+    .vanguard-actions {
+        grid-column: span 1;
+        justify-content: space-between;
+    }
+}
+
+.btn-vanguard {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: var(--text);
+    border-radius: 100px;
+    padding: 6px 6px 6px 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 500ms cubic-bezier(0.32, 0.72, 0, 1);
+    cursor: pointer;
+}
+.btn-vanguard:active {
+    transform: scale(0.97);
+}
+
+.btn-vanguard .v-icon-wrap {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 400ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.btn-vanguard.v-primary:hover {
+    background: var(--ac);
+    border-color: var(--ac);
+    color: #fff;
+}
+.btn-vanguard.v-primary:hover .v-icon-wrap {
+    background: rgba(0,0,0,0.2);
+    transform: translateX(-4px) scale(1.05); /* LTR translate because RTL layout translates differently, let's test */
+}
+.btn-vanguard.v-danger:hover {
+    background: var(--no);
+    border-color: var(--no);
+    color: #fff;
+}
+.btn-vanguard.v-danger:hover .v-icon-wrap {
+    background: rgba(0,0,0,0.2);
+    transform: translateX(-4px) scale(1.05);
+}
+.btn-vanguard.v-success:hover {
+    background: var(--ok);
+    border-color: var(--ok);
+    color: #fff;
+}
+.btn-vanguard.v-success:hover .v-icon-wrap {
+    background: rgba(0,0,0,0.2);
+    transform: translateX(-4px) scale(1.05);
+}
+
+.vanguard-status-float {
+    position: absolute;
+    top: 24px;
+    left: 24px;
+}
+@media (max-width: 768px) {
+    .vanguard-status-float {
+        top: 16px;
+        left: 16px;
+    }
+}
+
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); filter: blur(4px); }
+    to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
 </style>
+
 
 <div class="tab-navigation fade-up">
     <a href="?tab=users" class="tab-item <?= $activeTab === 'users' ? 'active' : '' ?>">
@@ -304,147 +567,113 @@ include __DIR__ . '/inc/layout_head.php';
         </form>
     </div>
 
-    <div class="tbl-wrap dash-unified">
-        <table class="tbl-xl">
-            <thead>
-                <tr>
-                    <th style="min-width: 250px;"><?= $textbotlang['panel']['dashColUser'] ?? 'کاربر' ?></th>
-                    <th style="min-width: 320px;">جزئیات و مالی</th>
-                    <th style="text-align:center; min-width: 180px;"><?= $textbotlang['panel']['usersColStatusActions'] ?? 'عملیات' ?></th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if (empty($users)): ?>
-                    <tr>
-                        <td colspan="10">
-                            <div class="empty">
-                                <svg class="ill" viewBox="0 0 200 160" fill="none">
-                                    <circle cx="100" cy="60" r="40" fill="var(--sf3)" />
-                                    <circle cx="100" cy="47" r="18" fill="var(--bds)" />
-                                    <path d="M62 105 Q100 88 138 105" stroke="var(--bds)" stroke-width="8"
-                                        stroke-linecap="round" fill="none" />
-                                </svg>
-                                <p><?= $search ? $textbotlang['panel']['usersNoResultFound'] : $textbotlang['panel']['usersNoUserYet'] ?></p>
+    <div class="vanguard-list-container">
+        <?php if (empty($users)): ?>
+            <div class="empty" style="padding: 64px 20px;">
+                <svg class="ill" viewBox="0 0 200 160" fill="none">
+                    <circle cx="100" cy="60" r="40" fill="var(--sf3)" />
+                    <circle cx="100" cy="47" r="18" fill="var(--bds)" />
+                    <path d="M62 105 Q100 88 138 105" stroke="var(--bds)" stroke-width="8" stroke-linecap="round" fill="none" />
+                </svg>
+                <p style="font-size: 1.1rem; font-weight: 600; color: var(--mute);"><?= $search ? $textbotlang['panel']['usersNoResultFound'] : $textbotlang['panel']['usersNoUserYet'] ?></p>
+            </div>
+        <?php else:
+            $i = $offset + 1;
+            $delay = 0;
+            foreach ($users as $u):
+                $agent = $u['agent'] ?? 'f';
+                $isBlocked = ($u['User_Status'] ?? '') === 'block';
+                $name = $u['namecustom'] ?? '';
+                if ($name === 'none') $name = '';
+                $uname = $u['username'] ?? '';
+                if ($uname === 'none') $uname = '';
+                $delay += 50; // Staggered entrance
+                ?>
+                <div class="vanguard-shell" style="animation-delay: <?= $delay ?>ms;">
+                    <div class="vanguard-core">
+                        
+                        <!-- Status Badge (Absolute) -->
+                        <div class="vanguard-status-float">
+                            <?php if ($isBlocked): ?>
+                                <span class="status-pill danger" style="font-size:0.7rem; padding:4px 10px; border-radius:100px; box-shadow: 0 4px 12px rgba(239,68,68,0.2);">مسدود</span>
+                            <?php else: ?>
+                                <span class="status-pill <?= $agent === 'n2' ? 'warning' : ($agent === 'n' ? 'info' : 'success') ?>" style="font-size:0.7rem; padding:4px 10px; border-radius:100px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);"><?= user_role_label($agent) ?></span>
+                            <?php endif; ?>
+                        </div>
+
+                        <!-- 1. User Meta -->
+                        <div class="vanguard-user-meta">
+                            <div class="vanguard-avatar">
+                                <?= icon('user', 24) ?>
                             </div>
-                        </td>
-                    </tr>
-                <?php else:
-                    $i = $offset + 1;
-                    foreach ($users as $u):
-                        $agent = $u['agent'] ?? 'f';
-                        $isBlocked = ($u['User_Status'] ?? '') === 'block';
-                        $name = $u['namecustom'] ?? '';
-                        if ($name === 'none') $name = '';
-                        $uname = $u['username'] ?? '';
-                        if ($uname === 'none') $uname = '';
-                        ?>
-                        <tr style="border-bottom: 1px solid var(--bd); position:relative;">
-                            <td data-label="<?= $textbotlang['panel']['dashColUser'] ?? 'کاربر' ?>" class="no-label" style="vertical-align: top;">
-                                <?php if ($isBlocked): ?>
-                                    <span class="status-pill danger" style="position:absolute; top:12px; left:12px; font-size:0.7rem; padding:2px 8px;">مسدود</span>
-                                <?php else: ?>
-                                    <span class="status-pill <?= $agent === 'n2' ? 'warning' : ($agent === 'n' ? 'info' : 'success') ?>" style="position:absolute; top:12px; left:12px; font-size:0.7rem; padding:2px 8px;"><?= user_role_label($agent) ?></span>
+                            <div style="display:flex; flex-direction:column; gap:6px;">
+                                <div class="vanguard-name">
+                                    <?php if ($name): ?>
+                                        <?= htmlspecialchars(trunc($name, 20)) ?>
+                                    <?php elseif ($uname): ?>
+                                        <span style="direction:ltr; display:inline-block;">@<?= htmlspecialchars(trunc($uname, 20)) ?></span>
+                                    <?php else: ?>
+                                        کاربر بدون نام
+                                    <?php endif; ?>
+                                </div>
+                                <?php if ($uname && $name): ?>
+                                    <div class="vanguard-username">@<?= htmlspecialchars($uname) ?></div>
                                 <?php endif; ?>
-
-                                <div style="display:flex; flex-direction:column; gap:14px; padding-top:4px; align-items:flex-start; justify-content:flex-start; width:100%;">
-                                    <div style="display:flex; align-items:center; gap:12px; align-self:flex-start; text-align:right;">
-                                        <div class="avatar-icon" style="background: rgba(var(--ac-rgb), 0.1); color: var(--ac); width: 44px; height: 44px; border-radius: 50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                                            <?= icon('user', 24) ?>
-                                        </div>
-                                        <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-start;">
-                                            <span class="profile-name" style="font-weight:700; font-size:1rem; color:var(--text);">
-                                                <?php if ($name): ?>
-                                                    <?= htmlspecialchars(trunc($name, 20)) ?>
-                                                <?php elseif ($uname): ?>
-                                                    <span style="direction:ltr; display:inline-block;">@<?= htmlspecialchars(trunc($uname, 20)) ?></span>
-                                                <?php else: ?>
-                                                    کاربر بدون نام
-                                                <?php endif; ?>
-                                            </span>
-                                            <?php if ($uname && $name): ?>
-                                                <span class="cm" style="color:var(--ac); font-size:0.85rem; direction:ltr; display:inline-block; text-align:right; font-weight:600;">@<?= htmlspecialchars($uname) ?></span>
-                                            <?php endif; ?>
-                                        </div>
-                                    </div>
-
-                                    <div style="display:flex; align-items:center; gap:12px; align-self:flex-start; text-align:right;">
-                                        <div style="width: 44px; display:flex; justify-content:center; flex-shrink:0;">
-                                            <div onclick="navigator.clipboard.writeText('<?= htmlspecialchars($u['id']) ?>'); this.style.color='var(--ac)'; setTimeout(()=>this.style.color='var(--mute)', 1000);" style="background: var(--sf2); color: var(--mute); width: 44px; height: 44px; border-radius: 50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:1px solid var(--bd); transition: 0.2s; flex-shrink:0;" title="کپی شناسه">
-                                                <?= icon('copy', 16) ?>
-                                            </div>
-                                        </div>
-                                        <div style="display:flex; align-items:center; gap:6px; font-size:0.85rem;">
-                                            <span style="color:var(--mute); font-weight:600;">شناسه کاربر :</span>
-                                            <span class="cn" style="font-weight:600; font-size:0.95rem; color:var(--text);"><?= htmlspecialchars($u['id']) ?></span>
-                                        </div>
-                                    </div>
+                                <div style="margin-top:4px;">
+                                    <span class="vanguard-id-pill" onclick="navigator.clipboard.writeText('<?= htmlspecialchars($u['id']) ?>'); this.style.color='var(--ac)'; setTimeout(()=>this.style.color='var(--mute)', 1000);" title="کپی شناسه">
+                                        <?= icon('copy', 12) ?> <?= htmlspecialchars($u['id']) ?>
+                                    </span>
                                 </div>
-                            </td>
+                            </div>
+                        </div>
 
-                            <td data-label="جزئیات و مالی" class="no-label" style="vertical-align: top; padding-top:20px; padding-bottom: 8px;">
-                                <div class="users-details-grid">
-                                    
-                                    <div style="background: rgba(128,128,128,0.04); border: 1px solid var(--bd); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; align-items: center; justify-content: center; text-align: center;">
-                                        <div style="display:flex; align-items:center; justify-content:center; gap:6px; color:var(--mute); font-size: 0.8rem; font-weight:600;">
-                                            <?= icon('phone', 14) ?> اطلاعات تماس
-                                        </div>
-                                        <span class="cm cf" style="color:var(--text); font-size: 0.95rem; font-weight:700;"><?= (!empty($u['number']) && $u['number'] !== 'none') ? htmlspecialchars($u['number']) : '—' ?></span>
-                                    </div>
+                        <!-- 2. Details Bento Grid -->
+                        <div class="vanguard-details-bento">
+                            <div class="vanguard-bento-box">
+                                <span class="vanguard-bento-label"><?= icon('phone', 12) ?> تماس</span>
+                                <span class="vanguard-bento-value cm" style="font-size:0.9rem;"><?= (!empty($u['number']) && $u['number'] !== 'none') ? htmlspecialchars($u['number']) : '—' ?></span>
+                            </div>
+                            <div class="vanguard-bento-box">
+                                <span class="vanguard-bento-label"><?= icon('calendar', 12) ?> عضویت</span>
+                                <span class="vanguard-bento-value" style="font-size:0.85rem;"><?= safe_date($u['register'] ?? null) ?></span>
+                            </div>
+                            <div class="vanguard-bento-box" style="background: rgba(var(--ok-rgb), 0.03); border-color: rgba(var(--ok-rgb), 0.1);">
+                                <span class="vanguard-bento-label" style="color: var(--ok);"><?= icon('wallet', 12) ?> کیف پول</span>
+                                <span class="vanguard-bento-value cn" style="color: var(--ok); font-size: 1.1rem;"><?= number_format((int) ($u['Balance'] ?? 0)) ?> <span style="font-size:0.7rem;opacity:0.7">ت</span></span>
+                            </div>
+                            <div class="vanguard-bento-box" style="background: rgba(var(--warn-rgb), 0.03); border-color: rgba(var(--warn-rgb), 0.1);">
+                                <span class="vanguard-bento-label" style="color: var(--warn);"><?= icon('star', 12) ?> امتیاز</span>
+                                <span class="vanguard-bento-value cn" style="color: var(--warn); font-size: 1.1rem;"><?= (int) ($u['score'] ?? 0) ?></span>
+                            </div>
+                        </div>
 
-                                    <div style="background: rgba(128,128,128,0.04); border: 1px solid var(--bd); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; align-items: center; justify-content: center; text-align: center;">
-                                        <div style="display:flex; align-items:center; justify-content:center; gap:6px; color:var(--mute); font-size: 0.8rem; font-weight:600;">
-                                            <?= icon('calendar', 14) ?> تاریخ عضویت
-                                        </div>
-                                        <span class="cf" style="color:var(--text); font-size: 0.95rem; font-weight:700;"><?= safe_date($u['register'] ?? null) ?></span>
-                                    </div>
+                        <!-- 3. Actions -->
+                        <div class="vanguard-actions">
+                            <a href="user.php?id=<?= (int) $u['id'] ?>" class="btn-vanguard v-primary" title="<?= $textbotlang['panel']['usersViewBtn'] ?>">
+                                <span>ویرایش کاربر</span>
+                                <div class="v-icon-wrap"><?= icon('eye', 14) ?></div>
+                            </a>
+                            
+                            <?php if ($isBlocked): ?>
+                                <a href="user_action.php?action=unblock&id=<?= (int) $u['id'] ?>&_csrf=<?= csrf_token() ?>&back=users.php"
+                                    class="btn-vanguard v-success" title="<?= $textbotlang['panel']['usersUnblockBtn'] ?>"
+                                    data-confirm="<?= sprintf($textbotlang['panel']['usersConfirmUnblockUser'], $name, $u['id']) ?>">
+                                    <span>آزادسازی</span>
+                                    <div class="v-icon-wrap"><?= icon('check', 14) ?></div>
+                                </a>
+                            <?php else: ?>
+                                <a href="user_action.php?action=block&id=<?= (int) $u['id'] ?>&_csrf=<?= csrf_token() ?>&back=users.php"
+                                    class="btn-vanguard v-danger" title="<?= $textbotlang['panel']['usersBlockBtn'] ?>"
+                                    data-confirm="<?= sprintf($textbotlang['panel']['usersConfirmBlockUser'], $name, $u['id']) ?>">
+                                    <span>مسدود کردن</span>
+                                    <div class="v-icon-wrap"><?= icon('block', 14) ?></div>
+                                </a>
+                            <?php endif; ?>
+                        </div>
 
-                                    <div style="background: rgba(16,185,129,0.04); border: 1px solid var(--bd); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; align-items: center; justify-content: center; text-align: center;">
-                                        <div style="display:flex; align-items:center; justify-content:center; gap:6px; color:var(--mute); font-size: 0.8rem; font-weight:600;">
-                                            <?= icon('wallet', 14) ?> کیف پول کاربر
-                                        </div>
-                                        <span class="cn" style="font-weight:700; font-size:1.05rem; color:var(--ac);">
-                                            <?= number_format((int) ($u['Balance'] ?? 0)) ?> <span class="cf" style="font-size:0.75rem">ت</span>
-                                        </span>
-                                    </div>
-
-                                    <div style="background: rgba(245,158,11,0.04); border: 1px solid var(--bd); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; align-items: center; justify-content: center; text-align: center;">
-                                        <div style="display:flex; align-items:center; justify-content:center; gap:6px; color:var(--mute); font-size: 0.8rem; font-weight:600;">
-                                            <?= icon('star', 14) ?> امتیاز کاربر
-                                        </div>
-                                        <div style="display:flex; align-items:center; justify-content:center; gap:4px; font-weight:700; color:var(--warn); font-size:1.05rem;">
-                                            <span class="cn"><?= (int) ($u['score'] ?? 0) ?></span>
-                                        </div>
-                                    </div>
-
-                                </div>
-                            </td>
-
-                            <td data-label="عملیات" class="no-label" style="vertical-align: bottom; padding-bottom:16px;">
-                                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; width:100%; height:100%; margin-top:10px;">
-                                    <div style="display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap; width: 100%;">
-                                        <a href="user.php?id=<?= (int) $u['id'] ?>" class="btn btn-ghost btn-sm" style="padding:6px 16px; font-weight:600;" title="<?= $textbotlang['panel']['usersViewBtn'] ?>">
-                                            <?= icon('eye', 16) ?> ویرایش
-                                        </a>
-                                        <?php if ($isBlocked): ?>
-                                            <a href="user_action.php?action=unblock&id=<?= (int) $u['id'] ?>&_csrf=<?= csrf_token() ?>&back=users.php"
-                                                class="btn btn-ok btn-sm" style="padding:6px 16px; font-weight:600;" title="<?= $textbotlang['panel']['usersUnblockBtn'] ?>"
-                                                data-confirm="<?= sprintf($textbotlang['panel']['usersConfirmUnblockUser'], $name, $u['id']) ?>">
-                                                <?= icon('check', 16) ?> آزادسازی
-                                            </a>
-                                        <?php else: ?>
-                                            <a href="user_action.php?action=block&id=<?= (int) $u['id'] ?>&_csrf=<?= csrf_token() ?>&back=users.php"
-                                                class="btn btn-no btn-sm" style="padding:6px 16px; font-weight:600;" title="<?= $textbotlang['panel']['usersBlockBtn'] ?>"
-                                                data-confirm="<?= sprintf($textbotlang['panel']['usersConfirmBlockUser'], $name, $u['id']) ?>">
-                                                <?= icon('block', 16) ?> مسدود کردن
-                                            </a>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                    <?php endforeach; endif; ?>
-            </tbody>
-        </table>
+                    </div>
+                </div>
+            <?php endforeach; endif; ?>
     </div>
 
     <div class="tbl-foot">
