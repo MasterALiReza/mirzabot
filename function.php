@@ -524,14 +524,59 @@ function generateUUID()
 function rate_arze()
 {
     $arze_rate = [];
-    $requests_tron = json_decode(file_get_contents('https://api.diadata.org/v1/assetQuotation/Tron/0x0000000000000000000000000000000000000000'), true);
-    $html_read = file_get_contents("https://www.bon-bast.com/");
-    preg_match('/<span>\s*([\d,]+)\s*<\/span>/', $html_read, $matches);
-    if (!empty($matches[1])) {
-        $requestsusd = str_replace(',', '', $matches[1]);
+    $requests_tron = @json_decode(file_get_contents('https://api.diadata.org/v1/assetQuotation/Tron/0x0000000000000000000000000000000000000000'), true);
+    
+    // Default fallback rate to prevent crashes
+    $requestsusd = 60000;
+    
+    // First try AbanTether API
+    $abantether = @json_decode(file_get_contents('https://abantether.com/api/v1/coins/'), true);
+    $found = false;
+    if (is_array($abantether)) {
+        foreach($abantether as $coin) {
+            if (isset($coin['symbol']) && $coin['symbol'] === 'USDT') {
+                $requestsusd = intval($coin['priceSell']);
+                $found = true;
+                break;
+            }
+        }
     }
+    
+    // Fallback to Nobitex if AbanTether fails
+    if (!$found) {
+        $nobitex = @json_decode(file_get_contents('https://api.nobitex.ir/v2/orderbook/USDTIRT'), true);
+        if (isset($nobitex['lastTradePrice'])) {
+            $requestsusd = intval($nobitex['lastTradePrice']) / 10;
+            $found = true;
+        }
+    }
+    
+    // Old bon-bast logic as final fallback
+    if (!$found) {
+        $context = stream_context_create([
+            'http' => [
+                'header' => "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)\r\n"
+            ]
+        ]);
+        $html_read = @file_get_contents("https://www.bon-bast.com/", false, $context);
+        if ($html_read) {
+            preg_match('/<span>\s*([\d,]+)\s*<\/span>/', $html_read, $matches);
+            if (!empty($matches[1])) {
+                $requestsusd = str_replace(',', '', $matches[1]);
+            }
+        }
+    }
+    
     $arze_rate['USD'] = intval($requestsusd);
-    $arze_rate['TRX'] = intval($requests_tron['Price'] * $arze_rate['USD']);
+    if ($arze_rate['USD'] <= 0) {
+        $arze_rate['USD'] = 60000;
+    }
+    
+    $tron_price = isset($requests_tron['Price']) ? $requests_tron['Price'] : 0.12; // fallback to 0.12$
+    $arze_rate['TRX'] = intval($tron_price * $arze_rate['USD']);
+    if ($arze_rate['TRX'] <= 0) {
+        $arze_rate['TRX'] = intval(0.12 * $arze_rate['USD']);
+    }
 
     return $arze_rate;
 }
