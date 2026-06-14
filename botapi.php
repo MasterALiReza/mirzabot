@@ -122,8 +122,19 @@ function Editmessagetext($chat_id, $message_id, $text, $keyboard,$parse_mode = '
         'reply_markup' => $keyboard,
         'parse_mode' => $parse_mode,
     ]);
-    if (isset($res['ok']) && !$res['ok'] && strpos($res['description'], 'there is no text in the message to edit') !== false) {
-        return sendmessage($chat_id, $text, $keyboard, $parse_mode);
+    if (isset($res['ok']) && !$res['ok']) {
+        if (strpos($res['description'], 'there is no text in the message to edit') !== false || strpos($res['description'], 'message is not a text message') !== false) {
+            $res = telegram('editMessageCaption', [
+                'chat_id' => $chat_id,
+                'message_id' => $message_id,
+                'caption' => $text,
+                'reply_markup' => $keyboard,
+                'parse_mode' => $parse_mode,
+            ]);
+            if (isset($res['ok']) && !$res['ok'] && strpos($res['description'], 'message to edit not found') !== false) {
+                return sendmessage($chat_id, $text, $keyboard, $parse_mode);
+            }
+        }
     }
     return $res;
 }

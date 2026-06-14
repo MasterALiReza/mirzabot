@@ -1760,7 +1760,7 @@ function sendMessageService($panel_info, $config, $sub_link, $username_service, 
     } elseif ($panel_info['sublink'] == "onsublink") {
         $out_put_qrcode = $sub_link;
     } elseif ($panel_info['config'] == "onconfig") {
-        $out_put_qrcode = $config[0];
+        $out_put_qrcode = is_array($config) ? ($config[0] ?? "") : $config;
     }
     if ($STATUS_SEND_MESSAGE_PHOTO) {
         if ($panel_info['type'] == "WGDashboard") {
@@ -1775,18 +1775,22 @@ function sendMessageService($panel_info, $config, $sub_link, $username_service, 
             ]);
             unlink($urlimage);
         } else {
-            $urlimage = "$user_id$invoice_id.png";
-            $qrCode = createqrcode($out_put_qrcode);
-            file_put_contents($urlimage, $qrCode->getString());
-            addBackgroundImage($urlimage, $qrCode, $image);
-            telegram('sendphoto', [
-                'chat_id' => $user_id,
-                'photo' => new CURLFile($urlimage),
-                'reply_markup' => $reply_markup,
-                'caption' => $caption,
-                'parse_mode' => "HTML",
-            ]);
-            unlink($urlimage);
+            if (!empty($out_put_qrcode)) {
+                $urlimage = "$user_id$invoice_id.png";
+                $qrCode = createqrcode($out_put_qrcode);
+                file_put_contents($urlimage, $qrCode->getString());
+                addBackgroundImage($urlimage, $qrCode, $image);
+                telegram('sendphoto', [
+                    'chat_id' => $user_id,
+                    'photo' => new CURLFile($urlimage),
+                    'reply_markup' => $reply_markup,
+                    'caption' => $caption,
+                    'parse_mode' => "HTML",
+                ]);
+                unlink($urlimage);
+            } else {
+                sendmessage($user_id, $caption, $reply_markup, 'HTML');
+            }
         }
     } else {
         sendmessage($user_id, $caption, $reply_markup, 'HTML');
