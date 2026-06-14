@@ -311,10 +311,24 @@ class ManagePanel
                         'msg' => $download_config['error']
                     );
                 }
-                $download_config = json_decode($download_config['body'], true)['data'];
+                $body = $download_config['body'];
+                $decoded = json_decode($body, true);
+                if (is_array($decoded) && isset($decoded['status']) && $decoded['status'] === false) {
+                    return array(
+                        'status' => 'Unsuccessful',
+                        'msg' => $decoded['message'] ?? 'API error'
+                    );
+                }
+                if (is_array($decoded) && isset($decoded['data']['file'])) {
+                    $config_content = strval($decoded['data']['file']);
+                } elseif (is_array($decoded) && isset($decoded['data'])) {
+                    $config_content = strval($decoded['data']);
+                } else {
+                    $config_content = $body;
+                }
                 $Output['status'] = 'successful';
                 $Output['username'] = $usernameC;
-                $Output['subscription_url'] = strval($download_config['file']);
+                $Output['subscription_url'] = $config_content;
                 $Output['configs'] = [];
             }
         } elseif ($Get_Data_Panel['type'] == "s_ui") {
@@ -795,7 +809,21 @@ class ManagePanel
                         'msg' => $download_config['error']
                     );
                 }
-                $download_config = json_decode($download_config['body'], true)['data'];
+                $body = $download_config['body'];
+                $decoded = json_decode($body, true);
+                if (is_array($decoded) && isset($decoded['status']) && $decoded['status'] === false) {
+                    return array(
+                        'status' => 'Unsuccessful',
+                        'msg' => $decoded['message'] ?? 'API error'
+                    );
+                }
+                if (is_array($decoded) && isset($decoded['data']['file'])) {
+                    $config_content = strval($decoded['data']['file']);
+                } elseif (is_array($decoded) && isset($decoded['data'])) {
+                    $config_content = strval($decoded['data']);
+                } else {
+                    $config_content = $body;
+                }
                 $Output = array(
                     'status' => $status,
                     'username' => $UsernameData['name'],
@@ -804,7 +832,7 @@ class ManagePanel
                     'online_at' => null,
                     'used_traffic' => $data_useage,
                     'links' => [],
-                    'subscription_url' => strval($download_config['file']),
+                    'subscription_url' => $config_content,
                     'sub_updated_at' => null,
                     'sub_last_user_agent' => null,
                 );

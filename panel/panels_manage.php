@@ -995,6 +995,11 @@ function togglePanelFields() {
     if (sanaeiFetcher) {
         sanaeiFetcher.style.display = typesWithFetcher.includes(panelType) ? 'block' : 'none';
     }
+
+    const qrWgdContainer = document.getElementById('qrWgdContainer');
+    if (qrWgdContainer) {
+        qrWgdContainer.style.display = (panelType === 'WGDashboard') ? 'block' : 'none';
+    }
 }
 
 document.getElementById('panelType').addEventListener('change', togglePanelFields);
