@@ -2814,7 +2814,16 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
         }
         return;
     }
+    $debugLog = date('Y-m-d H:i:s') . " Confirm_pay_\n";
+    $debugLog .= "from_id=$from_id, chat_id=$chat_id, message_id=$message_id\n";
+    $debugLog .= "order_id=$order_id\n";
+    $debugLog .= "payment_Status=" . $Payment_report['payment_Status'] . "\n";
+    $debugLog .= "Payment_Method=" . $Payment_report['Payment_Method'] . "\n";
+    $debugLog .= "id_invoice=" . $Payment_report['id_invoice'] . "\n";
+    $debugLog .= "countpay=$countpay\n";
+    file_put_contents(__DIR__ . '/log.txt', $debugLog . "\n", FILE_APPEND);
     DirectPayment($order_id);
+
     $pricecashback = select("PaySetting", "ValuePay", "NamePay", "chashbackcart", "select")['ValuePay'];
     $Balance_id = select("user", "*", "id", $Payment_report['id_user'], "select");
     if ($pricecashback != "0") {
