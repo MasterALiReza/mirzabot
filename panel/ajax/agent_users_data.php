@@ -45,8 +45,8 @@ try {
         $search = trim($_GET['search'] ?? '');
 
         // Base WHERE clause — agent only sees their own invoices
-        $where  = '(i.id_user = :aid OR i.refral = :aid)';
-        $params = [':aid' => $agent_id];
+        $where  = '(i.id_user = :aid1 OR i.refral = :aid2)';
+        $params = [':aid1' => $agent_id, ':aid2' => $agent_id];
 
         if ($search !== '') {
             $where .= ' AND (i.username LIKE :s OR i.name_product LIKE :s OR i.Service_location LIKE :s)';
@@ -54,10 +54,6 @@ try {
         }
 
         // Total count
-        $total = (int) $pdo
-            ->prepare("SELECT COUNT(*) FROM invoice i WHERE {$where}")
-            ->execute($params) ? $pdo->prepare("SELECT COUNT(*) FROM invoice i WHERE {$where}")->execute($params) : 0;
-
         $stmtCount = $pdo->prepare("SELECT COUNT(*) as total FROM invoice i WHERE {$where}");
         $stmtCount->execute($params);
         $total      = (int) ($stmtCount->fetchColumn() ?: 0);
@@ -156,18 +152,18 @@ try {
     // ACTION: get_stats
     // ──────────────────────────────────────────────────────────────────────
     if ($action === 'get_stats') {
-        $p = [':aid' => $agent_id];
+        $p = [':aid1' => $agent_id, ':aid2' => $agent_id];
 
-        $s1 = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE id_user = :aid OR refral = :aid");
+        $s1 = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE id_user = :aid1 OR refral = :aid2");
         $s1->execute($p);
         $total_users = (int) $s1->fetchColumn();
 
-        $s2 = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE (id_user = :aid OR refral = :aid) AND Status = 'active'");
+        $s2 = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE (id_user = :aid1 OR refral = :aid2) AND Status = 'active'");
         $s2->execute($p);
         $active_users = (int) $s2->fetchColumn();
 
-        $s3 = $pdo->prepare("SELECT COALESCE(SUM(price_product), 0) FROM invoice WHERE refral = :aid");
-        $s3->execute($p);
+        $s3 = $pdo->prepare("SELECT COALESCE(SUM(price_product), 0) FROM invoice WHERE refral = :aid1");
+        $s3->execute([':aid1' => $agent_id]);
         $total_income = (float) $s3->fetchColumn();
 
         json_out([
