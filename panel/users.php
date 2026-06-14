@@ -255,18 +255,20 @@ include __DIR__ . '/inc/layout_head.php';
 /* Minimal SaaS List Layout */
 .vanguard-list-row {
     display: grid;
-    grid-template-columns: 2fr 1.5fr 1fr auto;
+    grid-template-columns: 2.2fr 1.2fr 1fr auto;
     gap: 16px;
     align-items: center;
-    background: var(--sf);
+    background: var(--sf2);
     border-bottom: 1px solid var(--bd);
     padding: 16px 20px;
-    transition: all 300ms ease;
+    transition: all 250ms ease;
     animation: fadeUp 600ms cubic-bezier(0.32, 0.72, 0, 1) both;
 }
 .vanguard-list-row:hover {
-    background: var(--sf2);
+    background: var(--sfh);
     border-color: var(--bds);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 .vanguard-list-row:first-child {
     border-top-left-radius: 12px;
@@ -309,12 +311,15 @@ include __DIR__ . '/inc/layout_head.php';
     display: flex;
     flex-direction: column;
     gap: 4px;
+    align-items: flex-start;
+    direction: rtl;
 }
 .v-list-name-row {
     display: flex;
     align-items: center;
     gap: 8px;
     flex-wrap: wrap;
+    direction: rtl;
 }
 .v-list-name {
     font-weight: 600;
@@ -327,6 +332,7 @@ include __DIR__ . '/inc/layout_head.php';
     gap: 10px;
     font-size: 0.8rem;
     color: var(--mute);
+    direction: rtl;
 }
 .v-list-uname {
     direction: ltr;
@@ -347,9 +353,14 @@ include __DIR__ . '/inc/layout_head.php';
     font-size: 0.9rem;
 }
 .v-list-label {
-    color: var(--mute);
+    color: var(--dim);
     display: flex;
     align-items: center;
+}
+.v-list-label svg {
+    stroke: currentColor;
+    color: var(--dim);
+    opacity: 0.75;
 }
 .v-list-value {
     color: var(--text);
@@ -369,19 +380,43 @@ include __DIR__ . '/inc/layout_head.php';
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--sf2);
-    border: 1px solid var(--bd);
-    color: var(--mute);
     transition: all 0.2s ease;
     cursor: pointer;
 }
 .v-action-btn:hover {
     transform: translateY(-2px);
-    color: #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
-.v-action-btn.primary:hover { background: var(--ac); border-color: var(--ac); }
-.v-action-btn.success:hover { background: var(--ok); border-color: var(--ok); }
-.v-action-btn.danger:hover  { background: var(--no); border-color: var(--no); }
+.v-action-btn.primary {
+    background: var(--acs);
+    border: 1px solid rgba(0, 173, 181, 0.2);
+    color: var(--ac);
+}
+.v-action-btn.primary:hover {
+    background: var(--ac);
+    border-color: var(--ac);
+    color: #fff !important;
+}
+.v-action-btn.success {
+    background: var(--oks);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+    color: var(--ok);
+}
+.v-action-btn.success:hover {
+    background: var(--ok);
+    border-color: var(--ok);
+    color: #fff !important;
+}
+.v-action-btn.danger {
+    background: var(--nos);
+    border: 1px solid rgba(248, 113, 113, 0.2);
+    color: var(--no);
+}
+.v-action-btn.danger:hover {
+    background: var(--no);
+    border-color: var(--no);
+    color: #fff !important;
+}
 
 /* Responsive */
 @media (max-width: 1024px) {
@@ -543,7 +578,7 @@ include __DIR__ . '/inc/layout_head.php';
                     <div class="v-list-col v-list-contact">
                         <div class="v-list-item">
                             <span class="v-list-label"><?= icon('phone', 12) ?></span>
-                            <span class="v-list-value cm" style="direction: ltr;"><?= (!empty($u['number']) && $u['number'] !== 'none') ? htmlspecialchars($u['number']) : '—' ?></span>
+                            <span class="v-list-value cm" style="direction: ltr;"><?= (!empty($u['number']) && $u['number'] !== 'none') ? htmlspecialchars($u['number']) : '<span style="color:var(--dim); opacity:0.6">—</span>' ?></span>
                         </div>
                         <div class="v-list-item">
                             <span class="v-list-label"><?= icon('calendar', 12) ?></span>
