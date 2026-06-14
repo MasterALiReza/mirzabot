@@ -2986,7 +2986,16 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
     $stmt->bind_param("sssssssssss", $from_id, $randomString, $username_ac, $date, $marzban_list_get['name_panel'], $info_product['name_product'], $info_product['price_product'], $marzban_list_get['val_usertest'], $marzban_list_get['time_usertest'], $Status, $notifctions);
     $stmt->execute();
     $stmt->close();
+    
+    $loading_msg = sendmessage($from_id, "⏳ در حال ارتباط با سرور و ساخت سرویس تست شما، لطفاً شکیبا باشید...", null, 'HTML');
+    $loading_msg_id = isset($loading_msg['result']['message_id']) ? $loading_msg['result']['message_id'] : null;
+
     $dataoutput = $ManagePanel->createUser($marzban_list_get['name_panel'], "usertest", $username_ac, $datac);
+
+    if ($loading_msg_id) {
+        deletemessage($from_id, $loading_msg_id);
+    }
+
     if ($dataoutput['username'] == null) {
         $dataoutput['msg'] = json_encode($dataoutput['msg']);
         sendmessage($from_id, $textbotlang['users']['usertest']['errorcreat'], $keyboard, 'html');
