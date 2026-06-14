@@ -1,5 +1,5 @@
 <?php
-header('Content-Type: text/html; charset=utf-8');
+// Note: Content-Type header is set by each page individually
 
 require __DIR__ . '/../../config.php';
 require __DIR__ . '/../../function.php';

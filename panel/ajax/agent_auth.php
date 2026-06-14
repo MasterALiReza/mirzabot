@@ -1,9 +1,11 @@
 <?php
+ob_start();
 session_start();
 require '../inc/config.php';
 require_once __DIR__ . '/../../botapi.php';
+ob_end_clean();
 
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
 
 if (!isset($_REQUEST['action'])) {
     echo json_encode(['status' => 'error', 'message' => 'درخواست نامعتبر']);

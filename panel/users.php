@@ -443,7 +443,7 @@ include __DIR__ . '/inc/layout_head.php';
     border: 1px solid var(--bd);
     color: var(--text);
     border-radius: 100px;
-    padding: 6px 6px 6px 20px;
+    padding: 6px 20px 6px 6px;
     font-size: 0.85rem;
     font-weight: 600;
     text-decoration: none;
@@ -472,7 +472,7 @@ include __DIR__ . '/inc/layout_head.php';
 }
 .btn-vanguard.v-primary:hover .v-icon-wrap {
     background: rgba(0,0,0,0.15);
-    transform: translateX(-4px) scale(1.05); /* LTR translate because RTL layout translates differently, let's test */
+    transform: translateX(4px) scale(1.05); /* LTR translate because RTL layout translates differently, let's test */
 }
 .btn-vanguard.v-danger:hover {
     background: var(--no);
@@ -481,7 +481,7 @@ include __DIR__ . '/inc/layout_head.php';
 }
 .btn-vanguard.v-danger:hover .v-icon-wrap {
     background: rgba(0,0,0,0.15);
-    transform: translateX(-4px) scale(1.05);
+    transform: translateX(4px) scale(1.05);
 }
 .btn-vanguard.v-success:hover {
     background: var(--ok);
@@ -490,7 +490,11 @@ include __DIR__ . '/inc/layout_head.php';
 }
 .btn-vanguard.v-success:hover .v-icon-wrap {
     background: rgba(0,0,0,0.15);
-    transform: translateX(-4px) scale(1.05);
+    transform: translateX(4px) scale(1.05);
+}
+
+.search-box input {
+    padding-inline-end: 14px !important;
 }
 
 @keyframes fadeUp {
@@ -644,23 +648,23 @@ include __DIR__ . '/inc/layout_head.php';
                         <!-- 3. Actions -->
                         <div class="vanguard-actions">
                             <a href="user.php?id=<?= (int) $u['id'] ?>" class="btn-vanguard v-primary" title="<?= $textbotlang['panel']['usersViewBtn'] ?>">
-                                <span>ویرایش کاربر</span>
                                 <div class="v-icon-wrap"><?= icon('eye', 14) ?></div>
+                                <span>ویرایش کاربر</span>
                             </a>
                             
                             <?php if ($isBlocked): ?>
                                 <a href="user_action.php?action=unblock&id=<?= (int) $u['id'] ?>&_csrf=<?= csrf_token() ?>&back=users.php"
                                     class="btn-vanguard v-success" title="<?= $textbotlang['panel']['usersUnblockBtn'] ?>"
                                     data-confirm="<?= sprintf($textbotlang['panel']['usersConfirmUnblockUser'], $name, $u['id']) ?>">
-                                    <span>آزادسازی</span>
                                     <div class="v-icon-wrap"><?= icon('check', 14) ?></div>
+                                    <span>آزادسازی</span>
                                 </a>
                             <?php else: ?>
                                 <a href="user_action.php?action=block&id=<?= (int) $u['id'] ?>&_csrf=<?= csrf_token() ?>&back=users.php"
                                     class="btn-vanguard v-danger" title="<?= $textbotlang['panel']['usersBlockBtn'] ?>"
                                     data-confirm="<?= sprintf($textbotlang['panel']['usersConfirmBlockUser'], $name, $u['id']) ?>">
-                                    <span>مسدود کردن</span>
                                     <div class="v-icon-wrap"><?= icon('block', 14) ?></div>
+                                    <span>مسدود کردن</span>
                                 </a>
                             <?php endif; ?>
                         </div>
