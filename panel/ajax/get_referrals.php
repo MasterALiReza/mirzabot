@@ -39,7 +39,7 @@ try {
                     $refName = $ref['namecustom'] ?? '';
                     if ($refName === 'none') $refName = '';
                     $refUname = $ref['username'] ?? '';
-                    if ($refUname === 'none') $refUname = '';
+                    if ($refUname === 'none' || $refUname === 'NOT_USERNAME') $refUname = '';
                     $refAgent = $ref['agent'] ?? 'f';
                     ?>
                     <tr style="border-bottom: 1px solid var(--bd);">

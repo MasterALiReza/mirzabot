@@ -4166,7 +4166,9 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
 
         // Fallback for marzban (version_panel=0) where links may be null:
         // fetch from subscription_url directly
-        if (empty($configs_to_send) && !empty($DataUserOut['subscription_url'])) {
+        if ($marzban_list_get['type'] == 'WGDashboard') {
+            $configs_to_send[] = $DataUserOut['subscription_url'];
+        } elseif (empty($configs_to_send) && !empty($DataUserOut['subscription_url'])) {
             try {
                 $sub_content = outputlink($DataUserOut['subscription_url']);
                 if (!empty($sub_content)) {
@@ -4208,6 +4210,18 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
                 if (mb_strlen($caption, 'UTF-8') > 1000) {
                     $caption_photo = "<b>{$protocol}</b> — کانفیگ شماره " . ($idx + 1);
                     $send_separate = true;
+                }
+
+                if (str_starts_with($conf, '[Interface]')) {
+                    $urlconf = "{$marzban_list_get['inboundid']}_{$invoice_id}.conf";
+                    file_put_contents($urlconf, $conf);
+                    telegram('senddocument', [
+                        'chat_id' => $from_id,
+                        'document' => new CURLFile($urlconf),
+                        'caption' => "<b>{$protocol}</b> — کانفیگ شماره " . ($idx + 1),
+                        'parse_mode' => 'HTML',
+                    ]);
+                    unlink($urlconf);
                 }
 
                 // Generate QR

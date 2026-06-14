@@ -544,7 +544,7 @@ include __DIR__ . '/inc/layout_head.php';
                             </select>
                         </div>
                         <div class="field-group">
-                            <label>نمایش کانفیگ‌ها</label>
+                            <label id="panelConfigLabel">نمایش کانفیگ‌ها</label>
                             <select name="config" id="panelConfig" class="input">
                                 <option value="onconfig">بله</option>
                                 <option value="offconfig">خیر</option>
@@ -999,6 +999,23 @@ function togglePanelFields() {
     const qrWgdContainer = document.getElementById('qrWgdContainer');
     if (qrWgdContainer) {
         qrWgdContainer.style.display = (panelType === 'WGDashboard') ? 'block' : 'none';
+    }
+
+    const panelSublink = document.getElementById('panelSublink');
+    if (panelSublink) {
+        const sublinkGroup = panelSublink.closest('.field-group');
+        if (sublinkGroup) {
+            sublinkGroup.style.display = (panelType === 'WGDashboard') ? 'none' : 'block';
+        }
+    }
+
+    const configLabel = document.getElementById('panelConfigLabel');
+    if (configLabel) {
+        if (panelType === 'WGDashboard') {
+            configLabel.innerText = 'ارسال فایل کانفیگ وایرگارد (.conf)';
+        } else {
+            configLabel.innerText = 'نمایش کانفیگ‌ها';
+        }
     }
 }
 

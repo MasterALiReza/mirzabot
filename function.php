@@ -1814,7 +1814,10 @@ function sendMessageService($panel_info, $config, $sub_link, $username_service, 
     if (!check_active_btn($setting['keyboardmain'], "text_help"))
         $reply_markup = null;
     $user_id = $user_id == null ? $from_id : $user_id;
-    $STATUS_SEND_MESSAGE_PHOTO = ($panel_info['config'] == "onconfig" && is_array($config) && count($config) != 1) ? false : true;
+    $STATUS_SEND_MESSAGE_PHOTO = true;
+    if ($panel_info['type'] != "WGDashboard" && $panel_info['config'] == "onconfig" && is_array($config) && count($config) != 1) {
+        $STATUS_SEND_MESSAGE_PHOTO = false;
+    }
     $out_put_qrcode = "";
     if ($panel_info['type'] == "Manualsale" || $panel_info['type'] == "ibsng" || $panel_info['type'] == "mikrotik") {
     }
@@ -2033,12 +2036,12 @@ function formatServiceDeliveryLinks($panel_info, $dataoutput)
     }
 
     // Fallbacks
-    if ($main === '' && $subscription_url !== '') {
-        if (($panel_info['type'] ?? '') == 'WGDashboard' && $config_mode == 'offconfig') {
-            $main = '';
-        } else {
+    if (($panel_info['type'] ?? '') == 'WGDashboard') {
+        if ($config_mode == 'onconfig') {
             $main = $subscription_url;
         }
+    } elseif ($main === '' && $subscription_url !== '') {
+        $main = $subscription_url;
     }
     if ($main === '' && !empty($configs) && !$inline_configs) {
         $main = implode("\n\n", $configs);

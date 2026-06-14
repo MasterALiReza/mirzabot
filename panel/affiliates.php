@@ -159,7 +159,7 @@ include __DIR__ . '/inc/layout_head.php';
                         $name = $ref['namecustom'] ?? '';
                         if ($name === 'none') $name = '';
                         $uname = $ref['username'] ?? '';
-                        if ($uname === 'none') $uname = '';
+                        if ($uname === 'none' || $uname === 'NOT_USERNAME') $uname = '';
                         ?>
                         <tr style="border-bottom: 1px solid var(--bd);" id="referrer-row-<?= $ref['id'] ?>">
                             <td style="text-align: center;">
@@ -305,5 +305,229 @@ function toggleReferrals(referrerId) {
     }
 }
 </script>
+
+<style>
+@media (max-width: 768px) {
+    /* 1. Statistics Cards Optimization */
+    .stats {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+    }
+    
+    /* 2. Toolbar layout for mobile */
+    .toolbar {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 12px !important;
+        padding: 16px 12px !important;
+    }
+    .toolbar > div {
+        width: 100% !important;
+        justify-content: space-between !important;
+        gap: 8px;
+    }
+    .toolbar-end {
+        width: 100% !important;
+    }
+    .search-box {
+        width: 100% !important;
+        min-width: 100% !important;
+    }
+
+    /* 3. Table styling as card list for mobile */
+    #affiliatesTbl thead {
+        display: none !important;
+    }
+    #affiliatesTbl, #affiliatesTbl tbody {
+        display: block !important;
+        width: 100% !important;
+    }
+    #affiliatesTbl tbody tr[id^="referrer-row-"] {
+        display: flex !important;
+        flex-direction: column !important;
+        background: var(--sf) !important;
+        border: 1px solid var(--bd) !important;
+        border-radius: 12px !important;
+        padding: 16px !important;
+        margin-bottom: 16px !important;
+        gap: 12px !important;
+        position: relative !important;
+        box-shadow: var(--sh) !important;
+        width: 100% !important;
+    }
+    
+    /* Toggler button absolute positioning inside card */
+    #affiliatesTbl tbody tr[id^="referrer-row-"] td:first-child {
+        display: block !important;
+        position: absolute !important;
+        top: 16px !important;
+        left: 16px !important;
+        border: none !important;
+        padding: 0 !important;
+        width: 32px !important;
+        height: 32px !important;
+        z-index: 10 !important;
+    }
+    #affiliatesTbl tbody tr[id^="referrer-row-"] td:first-child button {
+        width: 32px !important;
+        height: 32px !important;
+        background: var(--sf2) !important;
+        border: 1px solid var(--bd) !important;
+    }
+    
+    /* Style all other TDs to be flex rows with labels */
+    #affiliatesTbl tbody tr[id^="referrer-row-"] td:not(:first-child) {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 0 !important;
+        border-bottom: none !important;
+        text-align: right !important;
+        width: 100% !important;
+    }
+    
+    /* Inject the labels from data-label */
+    #affiliatesTbl tbody tr[id^="referrer-row-"] td:not(:first-child)::before {
+        content: attr(data-label) ": ";
+        font-weight: 700 !important;
+        color: var(--mute) !important;
+        font-size: 0.82rem !important;
+    }
+    
+    /* Particular style for Referrer (معرف) to align avatar and info nicely */
+    #affiliatesTbl tbody tr[id^="referrer-row-"] td[data-label="معرف"] {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 8px !important;
+        padding-bottom: 12px !important;
+        border-bottom: 1px solid var(--bd) !important;
+    }
+    #affiliatesTbl tbody tr[id^="referrer-row-"] td[data-label="معرف"]::before {
+        display: none !important;
+    }
+    #affiliatesTbl tbody tr[id^="referrer-row-"] td[data-label="معرف"] .dash-unified-content {
+        width: 100% !important;
+        padding-left: 40px !important; /* Make room for the absolute toggler on the left */
+    }
+    
+    /* Styling the Operations (عملیات) td */
+    #affiliatesTbl tbody tr[id^="referrer-row-"] td[data-label="عملیات"] {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 8px !important;
+        margin-top: 8px !important;
+        padding-top: 12px !important;
+        border-top: 1px solid var(--bd) !important;
+    }
+    #affiliatesTbl tbody tr[id^="referrer-row-"] td[data-label="عملیات"]::before {
+        display: none !important;
+    }
+    #affiliatesTbl tbody tr[id^="referrer-row-"] td[data-label="عملیات"] .btn {
+        width: 100% !important;
+        justify-content: center !important;
+    }
+    
+    /* 4. Sub-members (جزئیات) row on mobile */
+    #affiliatesTbl tbody tr[id^="details-"] {
+        display: block !important;
+        background: var(--sf2) !important;
+        margin-top: -8px !important;
+        margin-bottom: 20px !important;
+        border-radius: 12px !important;
+        border: 1px dashed var(--ac) !important;
+        padding: 12px 10px !important;
+        width: 100% !important;
+    }
+    #affiliatesTbl tbody tr[id^="details-"] td {
+        display: block !important;
+        padding: 0 !important;
+        width: 100% !important;
+        border: none !important;
+    }
+    
+    /* Nested table styles */
+    #affiliatesTbl tbody tr[id^="details-"] .dash-users {
+        margin: 0 !important;
+        padding: 4px !important;
+        border: none !important;
+        background: transparent !important;
+        box-shadow: none !important;
+    }
+    #affiliatesTbl tbody tr[id^="details-"] .dash-users h4 {
+        margin: 4px 4px 12px !important;
+    }
+    #affiliatesTbl tbody tr[id^="details-"] table {
+        min-width: 100% !important;
+        width: 100% !important;
+        display: block !important;
+    }
+    #affiliatesTbl tbody tr[id^="details-"] table thead {
+        display: none !important;
+    }
+    #affiliatesTbl tbody tr[id^="details-"] table tbody {
+        display: block !important;
+        width: 100% !important;
+    }
+    #affiliatesTbl tbody tr[id^="details-"] table tbody tr {
+        display: flex !important;
+        flex-direction: column !important;
+        background: var(--sf) !important;
+        border: 1px solid var(--bd) !important;
+        border-radius: 10px !important;
+        padding: 12px !important;
+        margin-bottom: 8px !important;
+        gap: 10px !important;
+        width: 100% !important;
+    }
+    #affiliatesTbl tbody tr[id^="details-"] table tbody tr:last-child {
+        margin-bottom: 0 !important;
+    }
+    
+    #affiliatesTbl tbody tr[id^="details-"] table tbody tr td {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 0 !important;
+        border-bottom: none !important;
+        text-align: right !important;
+        width: 100% !important;
+    }
+    #affiliatesTbl tbody tr[id^="details-"] table tbody tr td::before {
+        content: attr(data-label) ": ";
+        font-weight: 700 !important;
+        color: var(--mute) !important;
+        font-size: 0.78rem !important;
+    }
+    
+    /* Inner table user column */
+    #affiliatesTbl tbody tr[id^="details-"] table tbody tr td[data-label="کاربر"] {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 6px !important;
+        padding-bottom: 8px !important;
+        border-bottom: 1px solid var(--bd) !important;
+    }
+    #affiliatesTbl tbody tr[id^="details-"] table tbody tr td[data-label="کاربر"]::before {
+        display: none !important;
+    }
+    #affiliatesTbl tbody tr[id^="details-"] table tbody tr td[data-label="کاربر"] .dash-unified-content {
+        width: 100% !important;
+    }
+    
+    /* Inner table operations column */
+    #affiliatesTbl tbody tr[id^="details-"] table tbody tr td[data-label="عملیات"] {
+        margin-top: 4px !important;
+        padding-top: 8px !important;
+        border-top: 1px solid var(--bd) !important;
+    }
+    #affiliatesTbl tbody tr[id^="details-"] table tbody tr td[data-label="عملیات"]::before {
+        display: none !important;
+    }
+    #affiliatesTbl tbody tr[id^="details-"] table tbody tr td[data-label="عملیات"] .btn {
+        width: 100% !important;
+        justify-content: center !important;
+    }
+}
+</style>
 
 <?php include __DIR__ . '/inc/layout_foot.php'; ?>
