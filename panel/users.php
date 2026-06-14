@@ -252,66 +252,48 @@ include __DIR__ . '/inc/layout_head.php';
     padding: 12px 0;
 }
 
-/* Double-Bezel Shell */
-.vanguard-shell {
-    background: var(--sf);
-    border: 1px solid var(--bd);
-    border-radius: 2rem;
-    padding: 6px;
-    transition: all 700ms cubic-bezier(0.32, 0.72, 0, 1);
-    animation: fadeUp 800ms cubic-bezier(0.32, 0.72, 0, 1) both;
-}
-
-.vanguard-shell:hover {
-    border-color: var(--bds);
-    transform: translateY(-2px);
-    box-shadow: var(--shlg);
-}
-
-/* Inner Core */
-.vanguard-core {
-    background: var(--bg);
-    border-radius: calc(2rem - 6px);
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
-    padding: 24px 32px;
+/* Minimal SaaS List Layout */
+.vanguard-list-row {
     display: grid;
-    grid-template-columns: 2fr 3fr 1.5fr;
-    gap: 24px;
-    align-items: center;
-    position: relative;
-    overflow: hidden;
-}
-
-@media (max-width: 1024px) {
-    .vanguard-core {
-        grid-template-columns: 1fr 1fr;
-        padding: 20px;
-    }
-}
-
-@media (max-width: 768px) {
-    .vanguard-shell {
-        border-radius: 1.5rem;
-        padding: 4px;
-    }
-    .vanguard-core {
-        grid-template-columns: 1fr;
-        border-radius: calc(1.5rem - 4px);
-        padding: 16px;
-        gap: 16px;
-    }
-}
-
-/* Typography & Layouts */
-.vanguard-user-meta {
-    display: flex;
-    align-items: center;
+    grid-template-columns: 2fr 1.5fr 1fr auto;
     gap: 16px;
+    align-items: center;
+    background: var(--sf);
+    border-bottom: 1px solid var(--bd);
+    padding: 16px 20px;
+    transition: all 300ms ease;
+    animation: fadeUp 600ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+.vanguard-list-row:hover {
+    background: var(--sf2);
+    border-color: var(--bds);
+}
+.vanguard-list-row:first-child {
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+.vanguard-list-row:last-child {
+    border-bottom: none;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
 }
 
+/* Columns */
+.v-list-col {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.v-list-meta {
+    flex-direction: row;
+    align-items: center;
+    gap: 14px;
+}
+
+/* Avatar */
 .vanguard-avatar {
-    width: 56px;
-    height: 56px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     background: var(--acs);
     border: 1px solid var(--acg);
@@ -322,177 +304,113 @@ include __DIR__ . '/inc/layout_head.php';
     flex-shrink: 0;
 }
 
-.vanguard-name-row {
+/* Typography */
+.v-list-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.v-list-name-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.v-list-name {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--text);
+}
+.v-list-sub {
     display: flex;
     align-items: center;
     gap: 10px;
-    flex-wrap: wrap;
-}
-
-.vanguard-name {
-    font-weight: 700;
-    font-size: 1.1rem;
-    color: var(--text);
-    letter-spacing: -0.01em;
-}
-
-.vanguard-username {
+    font-size: 0.8rem;
     color: var(--mute);
-    font-size: 0.85rem;
+}
+.v-list-uname {
     direction: ltr;
-    display: inline-block;
+}
+.v-list-id {
+    cursor: pointer;
+    transition: color 0.2s;
+}
+.v-list-id:hover {
+    color: var(--ac);
+}
+
+/* Data Items */
+.v-list-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+}
+.v-list-label {
+    color: var(--mute);
+    display: flex;
+    align-items: center;
+}
+.v-list-value {
+    color: var(--text);
     font-weight: 500;
 }
 
-.vanguard-id-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: var(--sf2);
-    border: 1px solid var(--bd);
-    padding: 4px 10px;
-    border-radius: 100px;
-    font-size: 0.75rem;
-    color: var(--mute);
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-.vanguard-id-pill:hover {
-    background: var(--acs);
-    color: var(--ac);
-    border-color: var(--acg);
-}
-
-/* Grid for Details */
-.vanguard-details-bento {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-}
-
-@media (max-width: 1200px) {
-    .vanguard-details-bento {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-.vanguard-bento-box {
-    background: var(--sf2);
-    border: 1px solid var(--bd);
-    border-radius: 1rem;
-    padding: 18px 12px;
+/* Actions */
+.v-list-actions {
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+.v-action-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    text-align: center;
-    transition: all 400ms cubic-bezier(0.32, 0.72, 0, 1);
-}
-.vanguard-bento-box:hover {
-    background: var(--sf3);
-    border-color: var(--bds);
-    transform: translateY(-2px);
-}
-
-.vanguard-bento-label {
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    background: var(--sf2);
+    border: 1px solid var(--bd);
     color: var(--mute);
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 4px;
+    transition: all 0.2s ease;
+    cursor: pointer;
 }
+.v-action-btn:hover {
+    transform: translateY(-2px);
+    color: #fff;
+}
+.v-action-btn.primary:hover { background: var(--ac); border-color: var(--ac); }
+.v-action-btn.success:hover { background: var(--ok); border-color: var(--ok); }
+.v-action-btn.danger:hover  { background: var(--no); border-color: var(--no); }
 
-.vanguard-bento-value {
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: var(--text);
-}
-
-/* Button-in-Button Actions */
-.vanguard-actions {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 10px;
-}
+/* Responsive */
 @media (max-width: 1024px) {
-    .vanguard-actions {
-        flex-direction: row;
-        align-items: center;
-        grid-column: span 2;
-        justify-content: flex-end;
+    .vanguard-list-row {
+        grid-template-columns: 1.5fr 1fr auto;
+    }
+    .v-list-contact {
+        display: none;
     }
 }
 @media (max-width: 768px) {
-    .vanguard-actions {
-        grid-column: span 1;
-        justify-content: flex-start;
-        flex-wrap: wrap;
+    .vanguard-list-row {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        padding: 16px;
+        border-radius: 12px;
+        border: 1px solid var(--bd);
+        margin-bottom: 12px;
+    }
+    .vanguard-list-row:last-child {
+        border-bottom: 1px solid var(--bd);
+    }
+    .v-list-actions {
+        justify-content: flex-end;
+        border-top: 1px solid var(--bd);
+        padding-top: 12px;
+        margin-top: 4px;
     }
 }
-
-.btn-vanguard {
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-    background: var(--sf2);
-    border: 1px solid var(--bd);
-    color: var(--text);
-    border-radius: 100px;
-    padding: 6px 20px 6px 6px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    text-decoration: none;
-    transition: all 500ms cubic-bezier(0.32, 0.72, 0, 1);
-    cursor: pointer;
-}
-.btn-vanguard:active {
-    transform: scale(0.97);
-}
-
-.btn-vanguard .v-icon-wrap {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: var(--bd);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 400ms cubic-bezier(0.32, 0.72, 0, 1);
-}
-
-.btn-vanguard.v-primary:hover {
-    background: var(--ac);
-    border-color: var(--ac);
-    color: var(--btn-ac-text, #fff);
-}
-.btn-vanguard.v-primary:hover .v-icon-wrap {
-    background: rgba(0,0,0,0.15);
-    transform: translateX(-4px) scale(1.05); /* LTR translate because RTL layout translates differently, let's test */
-}
-.btn-vanguard.v-danger:hover {
-    background: var(--no);
-    border-color: var(--no);
-    color: var(--btn-no-text, #fff);
-}
-.btn-vanguard.v-danger:hover .v-icon-wrap {
-    background: rgba(0,0,0,0.15);
-    transform: translateX(-4px) scale(1.05);
-}
-.btn-vanguard.v-success:hover {
-    background: var(--ok);
-    border-color: var(--ok);
-    color: var(--btn-ok-text, #fff);
-}
-.btn-vanguard.v-success:hover .v-icon-wrap {
-    background: rgba(0,0,0,0.15);
-    transform: translateX(-4px) scale(1.05);
-}
-
 .search-box input {
     padding-inline-end: 14px !important;
 }
@@ -589,437 +507,82 @@ include __DIR__ . '/inc/layout_head.php';
                 if ($uname === 'none') $uname = '';
                 $delay += 50; // Staggered entrance
                 ?>
-                <div class="vanguard-shell" style="animation-delay: <?= $delay ?>ms;">
-                    <div class="vanguard-core">
-                        
-                        <!-- 1. User Meta -->
-                        <div class="vanguard-user-meta">
-                            <div class="vanguard-avatar">
-                                <?= icon('user', 24) ?>
-                            </div>
-                            <div style="display:flex; flex-direction:column; gap:6px;">
-                                <div class="vanguard-name-row">
-                                    <div class="vanguard-name">
-                                        <?php if ($name): ?>
-                                            <?= htmlspecialchars(trunc($name, 20)) ?>
-                                        <?php elseif ($uname): ?>
-                                            <span style="direction:ltr; display:inline-block;">@<?= htmlspecialchars(trunc($uname, 20)) ?></span>
-                                        <?php else: ?>
-                                            کاربر بدون نام
-                                        <?php endif; ?>
-                                    </div>
-                                    <?php if ($isBlocked): ?>
-                                        <span class="tag tag-no">مسدود</span>
-                                    <?php else: ?>
-                                        <span class="tag <?= $agent === 'n2' ? 'tag-warn' : ($agent === 'n' ? 'tag-info' : 'tag-ok') ?>"><?= user_role_label($agent) ?></span>
-                                    <?php endif; ?>
-                                </div>
-                                <?php if ($uname && $name): ?>
-                                    <div class="vanguard-username">@<?= htmlspecialchars($uname) ?></div>
+                <div class="vanguard-list-row" style="animation-delay: <?= $delay ?>ms;">
+                    <!-- 1. User Meta -->
+                    <div class="v-list-col v-list-meta">
+                        <div class="vanguard-avatar">
+                            <?= icon('user', 20) ?>
+                        </div>
+                        <div class="v-list-info">
+                            <div class="v-list-name-row">
+                                <?php if ($name): ?>
+                                    <span class="v-list-name"><?= htmlspecialchars(trunc($name, 20)) ?></span>
+                                <?php elseif ($uname): ?>
+                                    <span class="v-list-name" style="direction:ltr; display:inline-block;">@<?= htmlspecialchars(trunc($uname, 20)) ?></span>
+                                <?php else: ?>
+                                    <span class="v-list-name">کاربر بدون نام</span>
                                 <?php endif; ?>
-                                <div style="margin-top:4px;">
-                                    <span class="vanguard-id-pill" onclick="navigator.clipboard.writeText('<?= htmlspecialchars($u['id']) ?>'); this.style.color='var(--ac)'; setTimeout(()=>this.style.color='var(--mute)', 1000);" title="کپی شناسه">
-                                        <?= icon('copy', 12) ?> <?= htmlspecialchars($u['id']) ?>
-                                    </span>
-                                </div>
+                                
+                                <?php if ($isBlocked): ?>
+                                    <span class="tag tag-no" style="padding:2px 6px; font-size:0.65rem;">مسدود</span>
+                                <?php else: ?>
+                                    <span class="tag <?= $agent === 'n2' ? 'tag-warn' : ($agent === 'n' ? 'tag-info' : 'tag-ok') ?>" style="padding:2px 6px; font-size:0.65rem;"><?= user_role_label($agent) ?></span>
+                                <?php endif; ?>
+                            </div>
+                            <div class="v-list-sub">
+                                <?php if ($uname && $name): ?>
+                                    <span class="v-list-uname">@<?= htmlspecialchars($uname) ?></span>
+                                <?php endif; ?>
+                                <span class="v-list-id" onclick="navigator.clipboard.writeText('<?= htmlspecialchars($u['id']) ?>'); this.style.color='var(--ac)'; setTimeout(()=>this.style.color='var(--mute)', 1000);" title="کپی شناسه">
+                                    ID: <?= htmlspecialchars($u['id']) ?>
+                                </span>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- 2. Details Bento Grid -->
-                        <div class="vanguard-details-bento">
-                            <div class="vanguard-bento-box">
-                                <span class="vanguard-bento-label"><?= icon('phone', 12) ?> تماس</span>
-                                <span class="vanguard-bento-value cm" style="font-size:0.95rem;"><?= (!empty($u['number']) && $u['number'] !== 'none') ? htmlspecialchars($u['number']) : '—' ?></span>
-                            </div>
-                            <div class="vanguard-bento-box">
-                                <span class="vanguard-bento-label"><?= icon('calendar', 12) ?> عضویت</span>
-                                <span class="vanguard-bento-value" style="font-size:0.9rem;"><?= safe_date($u['register'] ?? null) ?></span>
-                            </div>
-                            <div class="vanguard-bento-box" style="background: var(--oks); border-color: rgba(34,197,94,0.2);">
-                                <span class="vanguard-bento-label" style="color: var(--ok);"><?= icon('wallet', 12) ?> کیف پول</span>
-                                <span class="vanguard-bento-value cn" style="color: var(--ok); font-size: 1.15rem;"><?= number_format((int) ($u['Balance'] ?? 0)) ?> <span style="font-size:0.7rem;opacity:0.7">ت</span></span>
-                            </div>
-                            <div class="vanguard-bento-box" style="background: var(--warns); border-color: rgba(251,183,64,0.2);">
-                                <span class="vanguard-bento-label" style="color: var(--warn);"><?= icon('star', 12) ?> امتیاز</span>
-                                <span class="vanguard-bento-value cn" style="color: var(--warn); font-size: 1.15rem;"><?= (int) ($u['score'] ?? 0) ?></span>
-                            </div>
+                    <!-- 2. Contact & Date -->
+                    <div class="v-list-col v-list-contact">
+                        <div class="v-list-item">
+                            <span class="v-list-label"><?= icon('phone', 12) ?></span>
+                            <span class="v-list-value cm" style="direction: ltr;"><?= (!empty($u['number']) && $u['number'] !== 'none') ? htmlspecialchars($u['number']) : '—' ?></span>
                         </div>
+                        <div class="v-list-item">
+                            <span class="v-list-label"><?= icon('calendar', 12) ?></span>
+                            <span class="v-list-value"><?= safe_date($u['register'] ?? null) ?></span>
+                        </div>
+                    </div>
 
-                        <!-- 3. Actions -->
-                        <div class="vanguard-actions">
-                            <a href="user.php?id=<?= (int) $u['id'] ?>" class="btn-vanguard v-primary" title="<?= $textbotlang['panel']['usersViewBtn'] ?>">
-                                <span>ویرایش کاربر</span>
-                                <div class="v-icon-wrap"><?= icon('eye', 14) ?></div>
+                    <!-- 3. Financial & Gamification -->
+                    <div class="v-list-col v-list-fin">
+                        <div class="v-list-item">
+                            <span class="v-list-label" style="color:var(--ok)"><?= icon('wallet', 12) ?></span>
+                            <span class="v-list-value cn" style="color:var(--ok); font-weight:600;"><?= number_format((int) ($u['Balance'] ?? 0)) ?> <small style="opacity:0.6; font-size:0.7em;">ت</small></span>
+                        </div>
+                        <div class="v-list-item">
+                            <span class="v-list-label" style="color:var(--warn)"><?= icon('star', 12) ?></span>
+                            <span class="v-list-value cn" style="color:var(--warn); font-weight:600;"><?= (int) ($u['score'] ?? 0) ?></span>
+                        </div>
+                    </div>
+
+                    <!-- 4. Actions -->
+                    <div class="v-list-actions">
+                        <a href="user.php?id=<?= (int) $u['id'] ?>" class="v-action-btn primary" title="<?= $textbotlang['panel']['usersViewBtn'] ?>">
+                            <?= icon('eye', 16) ?>
+                        </a>
+                        
+                        <?php if ($isBlocked): ?>
+                            <a href="user_action.php?action=unblock&id=<?= (int) $u['id'] ?>&_csrf=<?= csrf_token() ?>&back=users.php"
+                                class="v-action-btn success" title="<?= $textbotlang['panel']['usersUnblockBtn'] ?>"
+                                data-confirm="<?= sprintf($textbotlang['panel']['usersConfirmUnblockUser'], $name, $u['id']) ?>">
+                                <?= icon('check', 16) ?>
                             </a>
-                            
-                            <?php if ($isBlocked): ?>
-                                <a href="user_action.php?action=unblock&id=<?= (int) $u['id'] ?>&_csrf=<?= csrf_token() ?>&back=users.php"
-                                    class="btn-vanguard v-success" title="<?= $textbotlang['panel']['usersUnblockBtn'] ?>"
-                                    data-confirm="<?= sprintf($textbotlang['panel']['usersConfirmUnblockUser'], $name, $u['id']) ?>">
-                                    <span>آزادسازی</span>
-                                    <div class="v-icon-wrap"><?= icon('check', 14) ?></div>
-                                </a>
-                            <?php else: ?>
-                                <a href="user_action.php?action=block&id=<?= (int) $u['id'] ?>&_csrf=<?= csrf_token() ?>&back=users.php"
-                                    class="btn-vanguard v-danger" title="<?= $textbotlang['panel']['usersBlockBtn'] ?>"
-                                    data-confirm="<?= sprintf($textbotlang['panel']['usersConfirmBlockUser'], $name, $u['id']) ?>">
-                                    <span>مسدود کردن</span>
-                                    <div class="v-icon-wrap"><?= icon('block', 14) ?></div>
-                                </a>
-                            <?php endif; ?>
-                        </div>
-
-                    </div>
-                </div>
-            <?php endforeach; endif; ?>
-    </div>
-
-    <div class="tbl-foot">
-        <span><?= number_format($total) ?> <?= $textbotlang['panel']['usersPaginationTotalUsers'] ?> <?= $page ?> <?= $textbotlang['panel']['usersPaginationOf'] ?> <?= $totalPages ?></span>
-        <div class="pager">
-            <?php
-            $qs = fn($p) => '?tab=users&q=' . urlencode($search)
-                . '&status=' . urlencode($status)
-                . '&role=' . urlencode($role)
-                . '&page=' . $p;
-            ?>
-            <a class="<?= $page <= 1 ? 'dis' : '' ?>" href="<?= $qs(max(1, $page - 1)) ?>">‹</a>
-            <?php for ($p = max(1, $page - 2); $p <= min($totalPages, $page + 2); $p++): ?>
-                <a class="<?= $p === $page ? 'cur' : '' ?>" href="<?= $qs($p) ?>"><?= $p ?></a>
-            <?php endfor; ?>
-            <a class="<?= $page >= $totalPages ? 'dis' : '' ?>" href="<?= $qs(min($totalPages, $page + 1)) ?>">›</a>
-        </div>
-    </div>
-</div>
-<?php endif; ?>
-
-<?php if ($activeTab === 'admins' && $isSuperAdmin): ?>
-<!-- ================= ADMINS TAB ================= -->
-<div class="stats fade-up" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:20px;">
-    <div class="dash-card">
-        <div class="dash-card-header">
-            <div class="icon-glow bg-emerald"><?= icon('shield', 20) ?></div>
-            <div class="dash-card-title">مدیران کل</div>
-        </div>
-        <div class="dash-card-footer">
-            <div class="dash-card-pill"><span class="status-pill success">Administrator</span></div>
-            <div class="dash-card-value"><?= $roleCount['administrator'] ?? 0 ?></div>
-        </div>
-    </div>
-    <div class="dash-card">
-        <div class="dash-card-header">
-            <div class="icon-glow bg-blue"><?= icon('tag', 20) ?></div>
-            <div class="dash-card-title">فروشندگان</div>
-        </div>
-        <div class="dash-card-footer">
-            <div class="dash-card-pill"><span class="status-pill info">Seller</span></div>
-            <div class="dash-card-value"><?= $roleCount['Seller'] ?? 0 ?></div>
-        </div>
-    </div>
-    <div class="dash-card">
-        <div class="dash-card-header">
-            <div class="icon-glow bg-amber"><?= icon('life', 20) ?></div>
-            <div class="dash-card-title">پشتیبان‌ها</div>
-        </div>
-        <div class="dash-card-footer">
-            <div class="dash-card-pill"><span class="status-pill warning">Support</span></div>
-            <div class="dash-card-value"><?= $roleCount['support'] ?? 0 ?></div>
-        </div>
-    </div>
-</div>
-
-<div class="card fade-up">
-    <div class="toolbar">
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-            <div class="toolbar-title">لیست ادمین‌ها</div>
-            <button class="btn btn-primary btn-sm" onclick="openAdminModal()">
-                <?= icon('plus', 14) ?> افزودن ادمین
-            </button>
-        </div>
-        <form method="GET" class="toolbar-end">
-            <input type="hidden" name="tab" value="admins">
-            <div class="search-box" style="min-width:260px">
-                <?= icon('search', 15) ?>
-                <input type="text" name="q" placeholder="جستجو در شناسه، نام..."
-                    value="<?= htmlspecialchars($search) ?>" autocomplete="off">
-                <button type="button" class="search-clear" onclick="window.location='users.php?tab=admins'">✕</button>
-                <button type="submit" class="search-btn">جستجو</button>
-            </div>
-            <?php if ($search): ?>
-                <a href="users.php?tab=admins" class="btn-link" style="font-size:.78rem;white-space:nowrap">پاک کردن فیلتر</a>
-            <?php endif; ?>
-        </form>
-    </div>
-
-    <div class="tbl-wrap dash-unified">
-        <table class="tbl-xl" id="adminsTbl">
-            <thead>
-                <tr>
-                    <th><?= $textbotlang['panel']['dashColUser'] ?? 'کاربر' ?></th>
-                    <th>دسترسی و وضعیت</th>
-                    <th>عملیات</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if (empty($admins)): ?>
-                    <tr>
-                        <td colspan="6">
-                            <div class="empty" style="padding:48px 20px">
-                                <svg class="ill" viewBox="0 0 200 160" fill="none">
-                                    <circle cx="100" cy="60" r="40" fill="var(--surface-3)" />
-                                    <circle cx="100" cy="47" r="18" fill="var(--border-strong)" />
-                                    <path d="M62 105 Q100 88 138 105" stroke="var(--border-strong)" stroke-width="8" stroke-linecap="round" fill="none" />
-                                </svg>
-                                <p>ادمینی یافت نشد.</p>
-                                <button class="btn btn-primary" style="margin-top:12px" onclick="openAdminModal()">
-                                    <?= icon('plus', 14) ?> افزودن اولین ادمین
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                <?php else:
-                    $i = 1;
-                    foreach ($admins as $ad):
-                        $rc  = $getRoleConf($ad['rule']);
-                        $isMe = ($ad['id_admin'] === $currentUserData['id_admin']);
-                ?>
-                    <tr style="border-bottom: 1px solid var(--bd);">
-                        <td data-label="<?= $textbotlang['panel']['dashColUser'] ?? 'کاربر' ?>" class="no-label">
-                            <div class="user-profile-cell" style="display:flex; justify-content:space-between; align-items:center; width:100%; flex-wrap:wrap; gap:8px;">
-                                <div class="user-avatar-info" style="display:flex; align-items:center; gap:8px;">
-                                    <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,<?= $rc['color'] ?>33,<?= $rc['color'] ?>11);border:1px solid <?= $rc['color'] ?>44;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:<?= $rc['color'] ?>">
-                                        <?= icon($rc['icon'], 15) ?>
-                                    </div>
-                                    <div>
-                                        <div class="profile-name" style="font-weight:600; font-size:0.95rem;">
-                                            <?= htmlspecialchars($ad['username']) ?>
-                                        </div>
-                                        <?php if ($isMe): ?>
-                                            <div style="font-size:.68rem;color:var(--ac);margin-top:2px">● حساب جاری</div>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
-                                <div class="profile-id-box" style="display:flex; align-items:center; gap:6px; font-size: 0.8rem; color: var(--mute); background:rgba(var(--glass-base-rgb),0.5); padding:4px 8px; border-radius:8px;">
-                                    <?= icon('id-card', 14) ?>
-                                    <span class="cf">شناسه کاربر :</span>
-                                    <span class="cm" style="font-weight:600; font-size:0.85rem; direction:ltr; display:inline-block;"><?= htmlspecialchars($ad['id_admin']) ?></span>
-                                </div>
-                            </div>
-                        </td>
-                        <td data-label="دسترسی و وضعیت">
-                            <div class="dash-unified-content">
-                                <span class="mobile-label">دسترسی و وضعیت:</span>
-                                <div style="display:flex; align-items:center; gap:8px;">
-                                    <span class="status-pill <?= $rc['color'] === '#22c55e' ? 'success' : ($rc['color'] === '#f59e0b' ? 'warning' : 'info') ?>"><?= $rc['label'] ?></span>
-                                    <?php if ($isMe): ?>
-                                        <span class="status-pill success" style="opacity:0.8; padding: 3px 8px;">آنلاین</span>
-                                    <?php else: ?>
-                                        <span class="status-pill neutral" style="opacity:0.8; padding: 3px 8px;">فعال</span>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-                        </td>
-                        <td data-label="عملیات">
-                            <div class="dash-unified-content">
-                                <span class="mobile-label">عملیات:</span>
-                                <div style="display:flex;gap:4px">
-                                    <button class="btn btn-ghost btn-sm btn-icon" title="ویرایش"
-                                        onclick='openEditModal(<?= htmlspecialchars(json_encode([
-                                            "id"       => $ad['id_admin'],
-                                            "username" => $ad['username'],
-                                            "rule"     => $ad['rule'],
-                                        ]), ENT_QUOTES) ?>)'>
-                                        <?= icon('edit', 14) ?>
-                                    </button>
-                                    <?php if (!$isMe): ?>
-                                    <button class="btn btn-no btn-sm btn-icon" title="حذف"
-                                        onclick="deleteAdmin('<?= htmlspecialchars($ad['id_admin']) ?>', '<?= htmlspecialchars($ad['username']) ?>')">
-                                        <?= icon('trash', 14) ?>
-                                    </button>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                <?php endforeach; endif; ?>
-            </tbody>
-        </table>
-    </div>
-</div>
-
-<!-- =================== ADD MODAL =================== -->
-<div class="modal-veil" id="addModal">
-    <div class="modal" style="max-width:480px">
-        <div class="modal-head">
-            <h3><?= icon('plus', 16) ?> افزودن ادمین جدید</h3>
-            <button class="modal-x" onclick="closeModal('addModal')"><?= icon('close', 14) ?></button>
-        </div>
-        <form method="POST" action="">
-            <div class="modal-body">
-                <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
-                <input type="hidden" name="action" value="add">
-                <div class="form-grid">
-                    <div class="field full">
-                        <label>شناسه عددی کاربر (Telegram ID) <span style="color:var(--accent)">*</span></label>
-                        <div class="input-with-icon">
-                            <?= icon('hash', 18) ?>
-                            <input type="number" name="id_admin" id="add-id" class="input" placeholder="مثال: 12345678" required>
-                        </div>
-                        <small style="color:var(--mute);margin-top:4px;display:block">شناسه عددی یکتای کاربر در ربات (جهت یکپارچگی ادمین پنل با ربات)</small>
-                    </div>
-                    <div class="field">
-                        <label>نام کاربری پنل <span style="color:var(--accent)">*</span></label>
-                        <input type="text" name="username" id="add-username" class="input"
-                            placeholder="مثال: admin1" required>
-                    </div>
-                    <div class="field">
-                        <label>رمز عبور <span style="color:var(--accent)">*</span></label>
-                        <input type="password" name="password" id="add-password" class="input"
-                            placeholder="حداقل ۶ کاراکتر" required minlength="6">
-                    </div>
-                    <div class="field full">
-                        <label>سطح دسترسی</label>
-                        <select name="rule" id="add-rule" class="select" required onchange="updateRoleDesc('add')">
-                            <option value="administrator">مدیر کل (Administrator)</option>
-                            <option value="Seller">فروشنده (Seller)</option>
-                            <option value="support">پشتیبان (Support)</option>
-                        </select>
-                        <div id="add-role-desc" style="margin-top:8px;padding:10px 12px;border-radius:8px;background:var(--surface-2);border:1px solid var(--border);font-size:.78rem;color:var(--mute)">
-                            دسترسی کامل به تمام بخش‌های سیستم
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-foot">
-                <button type="submit" class="btn btn-primary"><?= icon('plus', 13) ?> افزودن ادمین</button>
-                <button type="button" class="btn btn-ghost" onclick="closeModal('addModal')">انصراف</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- =================== EDIT MODAL =================== -->
-<div class="modal-veil" id="editModal">
-    <div class="modal" style="max-width:480px">
-        <div class="modal-head">
-            <h3><?= icon('edit', 16) ?> ویرایش ادمین</h3>
-            <button class="modal-x" onclick="closeModal('editModal')"><?= icon('close', 14) ?></button>
-        </div>
-        <form method="POST" action="">
-            <div class="modal-body">
-                <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
-                <input type="hidden" name="action" value="edit">
-                <input type="hidden" name="id_admin" id="edit-id">
-
-                <!-- Admin Info Card -->
-                <div id="edit-info-card" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:10px;background:var(--surface-2);border:1px solid var(--border);margin-bottom:16px">
-                    <div id="edit-avatar" style="width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:700;flex-shrink:0;color:#fff;background:linear-gradient(135deg,#3b82f6,#6366f1)">A</div>
-                    <div>
-                        <div id="edit-display-name" style="font-weight:600;font-size:.9rem"></div>
-                        <div id="edit-display-id" style="font-size:.75rem;color:var(--mute);margin-top:2px"></div>
+                        <?php else: ?>
+                            <a href="user_action.php?action=block&id=<?= (int) $u['id'] ?>&_csrf=<?= csrf_token() ?>&back=users.php"
+                                class="v-action-btn danger" title="<?= $textbotlang['panel']['usersBlockBtn'] ?>"
+                                data-confirm="<?= sprintf($textbotlang['panel']['usersConfirmBlockUser'], $name, $u['id']) ?>">
+                                <?= icon('block', 16) ?>
+                            </a>
+                        <?php endif; ?>
                     </div>
                 </div>
 
-                <div class="form-grid">
-                    <div class="field full">
-                        <label>شناسه کاربر</label>
-                        <input type="text" id="edit-id-show" class="input" disabled
-                            style="opacity:.6;cursor:not-allowed;background:var(--surface-2)">
-                    </div>
-                    <div class="field">
-                        <label>نام کاربری پنل <span style="color:var(--accent)">*</span></label>
-                        <input type="text" name="username" id="edit-username" class="input" required>
-                    </div>
-                    <div class="field">
-                        <label>رمز عبور جدید</label>
-                        <input type="password" name="password" id="edit-password" class="input"
-                            placeholder="خالی = بدون تغییر" minlength="6">
-                        <small style="color:var(--mute);margin-top:4px;display:block">برای تغییر رمز پر کنید</small>
-                    </div>
-                    <div class="field full">
-                        <label>سطح دسترسی</label>
-                        <select name="rule" id="edit-rule" class="select" onchange="updateRoleDesc('edit')">
-                            <option value="administrator">مدیر کل (Administrator)</option>
-                            <option value="Seller">فروشنده (Seller)</option>
-                            <option value="support">پشتیبان (Support)</option>
-                        </select>
-                        <div id="edit-role-desc" style="margin-top:8px;padding:10px 12px;border-radius:8px;background:var(--surface-2);border:1px solid var(--border);font-size:.78rem;color:var(--mute)"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-foot">
-                <button type="submit" class="btn btn-primary"><?= icon('check', 13) ?> ذخیره تغییرات</button>
-                <button type="button" class="btn btn-ghost" onclick="closeModal('editModal')">انصراف</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Delete hidden form -->
-<form method="POST" action="" id="delete-form" style="display:none">
-    <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
-    <input type="hidden" name="action" value="delete">
-    <input type="hidden" name="id_admin" id="d-id">
-</form>
-
-<script>
-const roleDescriptions = {
-    administrator: 'دسترسی کامل به تمام بخش‌های سیستم، مدیریت کاربران، تنظیمات و پنل‌ها',
-    Seller:        'دسترسی به بخش فروش، مدیریت سفارشات و صدور فاکتور — بدون دسترسی به تنظیمات کلی',
-    support:       'مشاهده اطلاعات کاربران و ارسال پیام — بدون دسترسی به مالی یا تنظیمات'
-};
-
-const avatarColors = {
-    administrator: 'linear-gradient(135deg,#22c55e,#16a34a)',
-    Seller:        'linear-gradient(135deg,#3b82f6,#6366f1)',
-    support:       'linear-gradient(135deg,#f59e0b,#d97706)'
-};
-
-function updateRoleDesc(prefix) {
-    const rule = document.getElementById(prefix + '-rule').value;
-    const desc = document.getElementById(prefix + '-role-desc');
-    if (desc) desc.innerText = roleDescriptions[rule] || '';
-}
-
-function openAdminModal() {
-    document.getElementById('add-id').value       = '';
-    document.getElementById('add-username').value  = '';
-    document.getElementById('add-password').value  = '';
-    document.getElementById('add-rule').value      = 'administrator';
-    updateRoleDesc('add');
-    openModal('addModal');
-}
-
-function openEditModal(data) {
-    document.getElementById('edit-id').value       = data.id;
-    document.getElementById('edit-id-show').value  = data.id;
-    document.getElementById('edit-username').value = data.username;
-    document.getElementById('edit-password').value = '';
-    document.getElementById('edit-rule').value     = data.rule;
-
-    const initials = (data.username || '?').charAt(0).toUpperCase();
-    document.getElementById('edit-avatar').innerText   = initials;
-    document.getElementById('edit-avatar').style.background = avatarColors[data.rule] || 'linear-gradient(135deg,#6b7280,#4b5563)';
-    document.getElementById('edit-display-name').innerText  = data.username;
-    document.getElementById('edit-display-id').innerText    = 'ID: ' + data.id;
-
-    updateRoleDesc('edit');
-    openModal('editModal');
-}
-
-function deleteAdmin(id, name) {
-    if (confirm('آیا از حذف ادمین «' + name + '» اطمینان دارید؟\nاین عمل قابل بازگشت نیست.')) {
-        document.getElementById('d-id').value = id;
-        document.getElementById('delete-form').submit();
-    }
-}
-
-// Init role desc on page load if modal exists
-if (document.getElementById('add-rule')) {
-    updateRoleDesc('add');
-}
-</script>
-<?php endif; ?>
-
-<script src="js/users.js"></script>
-<?php include __DIR__ . '/inc/layout_foot.php'; ?>
