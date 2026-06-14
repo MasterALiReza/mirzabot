@@ -2797,7 +2797,13 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
             'cache_time' => 5,
         ));
         $textconfrom = sprintf($textbotlang['Admin']['adminphp']['ok_user_admin_payment'], $Balance_id['id'], $Payment_report['id_order'], $Balance_id['username'], $Balance_id['Balance'], $format_price_cart);
-        Editmessagetext($chat_id, $message_id, $textconfrom, $Confirm_pay);
+        telegram('editMessageCaption', [
+            'chat_id' => $chat_id,
+            'message_id' => $message_id,
+            'caption' => $textconfrom,
+            'reply_markup' => $Confirm_pay,
+            'parse_mode' => 'HTML'
+        ]);
         return;
     }
     DirectPayment($order_id);
@@ -2832,7 +2838,13 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
     ]);
     $Balance_id = select("user", "*", "id", $Payment_report['id_user'], "select");
     $textconfrom = sprintf($textbotlang['Admin']['adminphp']['ok_user_admin_payment'], $Balance_id['id'], $order_id, $Balance_id['username'], $Balance_id['Balance'], $format_price_cart);
-    Editmessagetext($chat_id, $message_id, $textconfrom, $Confirm_pay);
+    telegram('editMessageCaption', [
+        'chat_id' => $chat_id,
+        'message_id' => $message_id,
+        'caption' => $textconfrom,
+        'reply_markup' => $Confirm_pay,
+        'parse_mode' => 'HTML'
+    ]);
 } elseif (preg_match('/reject_pay_(\w+)/', $datain, $datagetr) && ($adminrulecheck['rule'] == "administrator" || $adminrulecheck['rule'] == "Seller")) {
     $id_order = $datagetr[1];
     $Payment_report = select("Payment_report", "*", "id_order", $id_order, "select");
@@ -2860,7 +2872,11 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
 
     sendmessage($from_id, $textbotlang['Admin']['Payment']['reasonRejecting'], $backadmin, 'HTML');
     step('reject-dec', $from_id);
-    Editmessagetext($chat_id, $message_id, $text_inline, null);
+    telegram('editMessageReplyMarkup', [
+        'chat_id' => $chat_id,
+        'message_id' => $message_id,
+        'reply_markup' => null
+    ]);
 } elseif ($user['step'] == "reject-dec") {
     $Payment_report = select("Payment_report", "*", "id_order", $user['Processing_value_one'], "select");
     update("Payment_report", "dec_not_confirmed", $text, "id_order", $user['Processing_value_one']);
