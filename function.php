@@ -1907,6 +1907,7 @@ function parseConfigs($input)
 
 function formatServiceDeliveryLinks($panel_info, $dataoutput)
 {
+    global $setting;
     $configs = array();
     if (isset($dataoutput['configs']) && is_array($dataoutput['configs'])) {
         foreach ($dataoutput['configs'] as $link) {
@@ -1920,6 +1921,8 @@ function formatServiceDeliveryLinks($panel_info, $dataoutput)
     $subscription_url = trim((string)($dataoutput['subscription_url'] ?? ''));
     $sublink_mode = $panel_info['sublink'] ?? '';
     $config_mode = $panel_info['config'] ?? '';
+    
+    $inline_configs = ($setting['status_keyboard_config'] ?? '0') == '1' && $config_mode == 'onconfig';
 
     $main = '';
     $extra = '';
@@ -1928,16 +1931,20 @@ function formatServiceDeliveryLinks($panel_info, $dataoutput)
         $main = $subscription_url;
     } elseif ($sublink_mode == 'bothsubandconfig') {
         $main = $subscription_url;
-        if (!empty($configs)) {
+        if (!empty($configs) && !$inline_configs) {
             $main .= "\n\n" . implode("\n\n", $configs);
         }
     }
 
     if ($config_mode == 'onconfig' && !empty($configs)) {
         if ($main === '') {
-            $main = implode("\n\n", $configs);
+            if (!$inline_configs) {
+                $main = implode("\n\n", $configs);
+            }
         } else {
-            $extra = "\n" . implode("\n", $configs);
+            if (!$inline_configs) {
+                $extra = "\n" . implode("\n", $configs);
+            }
         }
     }
 
@@ -1945,7 +1952,7 @@ function formatServiceDeliveryLinks($panel_info, $dataoutput)
     if ($main === '' && $subscription_url !== '') {
         $main = $subscription_url;
     }
-    if ($main === '' && !empty($configs)) {
+    if ($main === '' && !empty($configs) && !$inline_configs) {
         $main = implode("\n\n", $configs);
     }
 
