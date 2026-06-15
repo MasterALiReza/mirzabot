@@ -213,11 +213,11 @@ include __DIR__ . '/inc/layout_head.php';
         <table class="tbl-lg" id="affiliatesTbl">
             <thead>
                 <tr>
-                    <th style="width: 40px;"></th>
-                    <th style="text-align: right;">معرف</th>
-                    <th style="text-align: right;">تعداد زیرمجموعه‌ها</th>
-                    <th style="text-align: right;">موجودی کیف پول</th>
-                    <th style="text-align: center;">عملیات</th>
+                    <th style="width: 48px; min-width: 48px; text-align: center; padding: 14px 8px;"></th>
+                    <th style="text-align: right; padding: 14px 8px;">معرف</th>
+                    <th style="text-align: right; padding: 14px 8px;">تعداد زیرمجموعه‌ها</th>
+                    <th style="text-align: right; padding: 14px 8px;">موجودی کیف پول</th>
+                    <th style="text-align: center; padding: 14px 8px;">عملیات</th>
                 </tr>
             </thead>
             <tbody>
@@ -242,7 +242,7 @@ include __DIR__ . '/inc/layout_head.php';
                         if ($uname === 'none' || $uname === 'NOT_USERNAME') $uname = '';
                         ?>
                         <tr style="border-bottom: 1px solid var(--bd);" id="referrer-row-<?= $ref['id'] ?>">
-                            <td style="text-align: center;">
+                            <td style="width: 48px; min-width: 48px; text-align: center; padding: 14px 8px; vertical-align: middle;">
                                 <button class="btn btn-ghost btn-icon toggler" 
                                         onclick="toggleReferrals(<?= $ref['id'] ?>)" 
                                         style="width: 28px; height: 28px; border-radius: 6px; padding: 0; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;" 
@@ -250,13 +250,13 @@ include __DIR__ . '/inc/layout_head.php';
                                     <?= icon('plus', 14) ?>
                                 </button>
                             </td>
-                            <td data-label="معرف" style="text-align: right;">
-                                <div class="dash-unified-content" style="align-items: center; display: flex; gap: 8px;">
-                                    <div class="profile-avatar" style="width: 38px; height: 38px; font-size: 16px; font-weight: bold; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--sf3); border: 1px solid var(--bd);">
+                            <td data-label="معرف" style="text-align: right; padding: 14px 8px; vertical-align: middle;">
+                                <div class="dash-unified-content" style="align-items: center; display: flex; gap: 10px; direction: rtl; justify-content: flex-start; width: 100%; min-width: 0;">
+                                    <div class="profile-avatar" style="width: 38px; height: 38px; font-size: 16px; font-weight: bold; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--sf3); border: 1px solid var(--bd); flex-shrink: 0;">
                                         <?= mb_substr($name ?: ($uname ?: $ref['id']), 0, 1) ?>
                                     </div>
-                                    <div style="display: flex; flex-direction: column; gap: 2px;">
-                                        <a href="user.php?id=<?= (int)$ref['id'] ?>" class="cm" style="color: var(--text); font-weight: 600; text-decoration: none;">
+                                    <div style="min-width: 0; display: flex; flex-direction: column; gap: 2px; text-align: right; overflow: hidden;">
+                                        <a href="user.php?id=<?= (int)$ref['id'] ?>" class="cm" style="color: var(--text); font-weight: 600; text-decoration: none; max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-block;">
                                             <?= htmlspecialchars($name ?: ($uname ? '@' . $uname : 'کاربر بی‌نام')) ?>
                                         </a>
                                         <div class="profile-id-box" style="font-size: 0.75rem; color: var(--mute); margin: 0; display: flex; align-items: center; gap: 2px;">
@@ -266,19 +266,19 @@ include __DIR__ . '/inc/layout_head.php';
                                     </div>
                                 </div>
                             </td>
-                            <td data-label="تعداد زیرمجموعه‌ها" style="text-align: right;">
+                            <td data-label="تعداد زیرمجموعه‌ها" style="text-align: right; padding: 14px 8px; vertical-align: middle;">
                                 <span class="cn" style="font-weight: 700; font-size: 1.05rem;">
                                     <?= number_format((int)$ref['affiliatescount']) ?>
                                     <span class="cf" style="font-size: 0.8rem; color: var(--mute);">نفر</span>
                                 </span>
                             </td>
-                            <td data-label="موجودی کیف پول" style="text-align: right;">
+                            <td data-label="موجودی کیف پول" style="text-align: right; padding: 14px 8px; vertical-align: middle;">
                                 <span class="cn" style="font-weight: 600; font-size: 1rem; color: var(--ac);">
                                     <?= number_format((int)($ref['Balance'] ?? 0)) ?>
                                     <span class="cf" style="font-size: 0.75rem; color: var(--mute);">تومان</span>
                                 </span>
                             </td>
-                            <td data-label="عملیات" style="text-align: center;">
+                            <td data-label="عملیات" style="text-align: center; padding: 14px 8px; vertical-align: middle;">
                                 <div style="display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap;">
                                     <button class="btn btn-ghost btn-sm" 
                                             onclick="toggleReferrals(<?= $ref['id'] ?>)" 
@@ -486,8 +486,18 @@ function toggleReferrals(referrerId) {
         display: none !important;
     }
     #affiliatesTbl tbody tr[id^="referrer-row-"] td[data-label="معرف"] .dash-unified-content {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        text-align: right !important;
+        gap: 10px !important;
         width: 100% !important;
-        padding-left: 40px !important; /* Make room for the absolute toggler on the left */
+        padding-left: 48px !important; /* Make room for the absolute toggler on the left */
+        padding-right: 0 !important;
+    }
+    #affiliatesTbl tbody tr[id^="referrer-row-"] td[data-label="معرف"] .dash-unified-content a.cm {
+        max-width: 140px !important;
     }
     
     /* Styling the Operations (عملیات) td */
@@ -591,7 +601,16 @@ function toggleReferrals(referrerId) {
         display: none !important;
     }
     #affiliatesTbl tbody tr[id^="details-"] table tbody tr td[data-label="کاربر"] .dash-unified-content {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        text-align: right !important;
+        gap: 10px !important;
         width: 100% !important;
+    }
+    #affiliatesTbl tbody tr[id^="details-"] table tbody tr td[data-label="کاربر"] .dash-unified-content a.cm {
+        max-width: 140px !important;
     }
     
     /* Inner table operations column */
