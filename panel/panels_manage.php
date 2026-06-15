@@ -1210,6 +1210,25 @@ function closeTestConnModal() {
             resultDiv.innerHTML = '⚠️ خطای شبکه - ارتباط با سرور برقرار نشد.';
         });
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form[action="panels_manage.php"]');
+        if (form) {
+            const requiredElements = form.querySelectorAll('input[required], select[required], textarea[required]');
+            requiredElements.forEach(function(element) {
+                element.addEventListener('invalid', function() {
+                    const tabPane = this.closest('.tab-content');
+                    if (tabPane && !tabPane.classList.contains('active')) {
+                        const tabId = tabPane.id;
+                        const tabBtn = document.querySelector('.tab-btn[onclick="switchTab(\'' + tabId + '\')"]');
+                        if (tabBtn) {
+                            tabBtn.click();
+                        }
+                    }
+                });
+            });
+        }
+    });
 </script>
 
 <?php include __DIR__ . '/inc/layout_foot.php'; ?>
