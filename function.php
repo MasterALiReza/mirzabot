@@ -2208,7 +2208,7 @@ function generateUserBanner($user_id) {
             $qr_img = @imagecreatefromstring($qr_data);
             if ($qr_img) {
                 $qr_x = ($img_width - $qr_size) / 2;
-                $qr_y = ($img_height - $qr_size) / 2;
+                $qr_y = (($img_height - $qr_size) / 2) + ($img_height * 0.05);
                 
                 if ($qr_y < 0) $qr_y = 10;
                 if ($qr_x < 0) $qr_x = 10;
