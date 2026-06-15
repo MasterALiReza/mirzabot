@@ -2194,22 +2194,26 @@ function generateUserBanner($user_id) {
     }
 
     if ($img) {
+        $img_width = imagesx($img);
+        $img_height = imagesy($img);
+        
+        // QR size: 38% of image width (about 390px on 1024px canvas)
+        $qr_size = (int)round($img_width * 0.38);
+        if ($qr_size < 150) $qr_size = 150;
+        
         // Generate QR Code from qrserver
-        $qr_url = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=" . urlencode($ref_link);
+        $qr_url = "https://api.qrserver.com/v1/create-qr-code/?size=" . $qr_size . "x" . $qr_size . "&data=" . urlencode($ref_link);
         $qr_data = $fetch_url($qr_url);
         if ($qr_data) {
             $qr_img = @imagecreatefromstring($qr_data);
             if ($qr_img) {
-                $img_width = imagesx($img);
-                $img_height = imagesy($img);
-                
-                $qr_x = ($img_width - 300) / 2;
-                $qr_y = ($img_height - 300) / 2;
+                $qr_x = ($img_width - $qr_size) / 2;
+                $qr_y = (($img_height - $qr_size) / 2) + ($img_height * 0.1);
                 
                 if ($qr_y < 0) $qr_y = 10;
                 if ($qr_x < 0) $qr_x = 10;
                 
-                imagecopy($img, $qr_img, $qr_x, $qr_y, 0, 0, 300, 300);
+                imagecopy($img, $qr_img, $qr_x, $qr_y, 0, 0, $qr_size, $qr_size);
                 imagedestroy($qr_img);
             }
         }
