@@ -6105,33 +6105,18 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
 } elseif ($datain == "affiliate_banner") {
     sendmessage($from_id, "⏳ در حال ساخت بنر اختصاصی شما... لطفا کمی صبر کنید.", null, 'HTML');
     
-    // Call banner generator API
-    $banner_url = str_replace("index.php", "", $setting['URL_Bot']) . "api/banner_generator.php?user_id=" . $from_id;
+    $banner_path = generateUserBanner($from_id);
     
-    // Non-blocking request or fast cURL
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $banner_url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-    $response = curl_exec($ch);
-    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-
-    if ($http_code == 200 && $response) {
-        $data = json_decode($response, true);
-        if (isset($data['success']) && $data['success']) {
-            $text_banner = "🚀 با استفاده از این بنر و لینک اختصاصی خود دوستانتان را دعوت کنید و تا ۵۰٪ پورسانت دریافت کنید!\n\nلینک شما:\n🔗 https://t.me/$usernamebot?start=$from_id";
-            telegram('sendPhoto', [
-                'chat_id' => $from_id,
-                'photo' => new CURLFile($data['banner_path']),
-                'caption' => $text_banner,
-                'parse_mode' => 'HTML'
-            ]);
-        } else {
-            sendmessage($from_id, "❌ خطا در ساخت بنر: " . ($data['error'] ?? 'خطای نامشخص'), null, 'HTML');
-        }
+    if ($banner_path) {
+        $text_banner = "🚀 با استفاده از این بنر و لینک اختصاصی خود دوستانتان را دعوت کنید و تا ۵۰٪ پورسانت دریافت کنید!\n\nلینک شما:\n🔗 https://t.me/$usernamebot?start=$from_id";
+        telegram('sendPhoto', [
+            'chat_id' => $from_id,
+            'photo' => new CURLFile($banner_path),
+            'caption' => $text_banner,
+            'parse_mode' => 'HTML'
+        ]);
     } else {
-        sendmessage($from_id, "❌ ارتباط با سرور ساخت بنر برقرار نشد.", null, 'HTML');
+        sendmessage($from_id, "❌ خطا در ساخت بنر. لطفا بررسی کنید که افزونه PHP GD روی سرور فعال باشد و پوشه assets دسترسی نوشتن داشته باشد.", null, 'HTML');
     }
 } elseif (preg_match('/Extra_volumes_(\w+)_(.*)/', $datain, $dataget)) {
     $usernamepanel = $dataget[1];

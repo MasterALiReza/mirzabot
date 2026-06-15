@@ -748,6 +748,12 @@ input:checked + .arvan-slider:before {
                                             <div class="field" style="display: flex; flex-direction: column; gap: 6px;">
                                                 <label class="field" style="font-weight: 600; color: var(--text2); font-size: 0.78rem;"><?= htmlspecialchars($f['label']) ?></label>
                                                 <input type="<?= $f['type'] ?>" name="<?= $f['name'] ?>" class="arvan-input" accept="image/*,video/*">
+                                                <?php if ($f['name'] === 'banner_base_file' && file_exists(__DIR__ . '/../assets/banner_base.jpg')): ?>
+                                                    <div style="font-size: 0.75rem; color: var(--emerald); margin-top: 4px; display: flex; align-items: center; gap: 4px;">
+                                                        <span>✅ تصویر پایه بنر با موفقیت آپلود شده و فعال است.</span>
+                                                        <a href="../assets/banner_base.jpg" target="_blank" style="color: var(--blue); text-decoration: underline;">مشاهده تصویر فعلی</a>
+                                                    </div>
+                                                <?php endif; ?>
                                             </div>
                                         <?php endif; ?>
                                     <?php endforeach; ?>
