@@ -10516,7 +10516,7 @@ if ($datain == "settimecornday" && $adminrulecheck['rule'] == "administrator") {
     $keyboardDiscountaffiliates = json_encode([
         'inline_keyboard' => [
             [
-                ['text' => $marzbanporsant_one_buy['porsant_one_buy'], 'callback_data' => $marzbanporsant_one_buy['porsant_one_buy']],
+                ['text' => $marzbanporsant_one_buy['porsant_one_buy'] == 'on_buy_porsant' ? '🟢 فقط برای خرید اول' : '🔴 برای همه خریدها', 'callback_data' => $marzbanporsant_one_buy['porsant_one_buy']],
             ],
         ]
     ]);
@@ -10527,7 +10527,7 @@ if ($datain == "settimecornday" && $adminrulecheck['rule'] == "administrator") {
     $keyboardDiscountaffiliates = json_encode([
         'inline_keyboard' => [
             [
-                ['text' => $marzbanporsant_one_buy['porsant_one_buy'], 'callback_data' => $marzbanporsant_one_buy['porsant_one_buy']],
+                ['text' => $marzbanporsant_one_buy['porsant_one_buy'] == 'on_buy_porsant' ? '🟢 فقط برای خرید اول' : '🔴 برای همه خریدها', 'callback_data' => $marzbanporsant_one_buy['porsant_one_buy']],
             ],
         ]
     ]);
@@ -10538,7 +10538,7 @@ if ($datain == "settimecornday" && $adminrulecheck['rule'] == "administrator") {
     $keyboardDiscountaffiliates = json_encode([
         'inline_keyboard' => [
             [
-                ['text' => $marzbanporsant_one_buy['porsant_one_buy'], 'callback_data' => $marzbanporsant_one_buy['porsant_one_buy']],
+                ['text' => $marzbanporsant_one_buy['porsant_one_buy'] == 'on_buy_porsant' ? '🟢 فقط برای خرید اول' : '🔴 برای همه خریدها', 'callback_data' => $marzbanporsant_one_buy['porsant_one_buy']],
             ],
         ]
     ]);

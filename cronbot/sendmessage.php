@@ -162,35 +162,35 @@ $keyboardbuy = json_encode([
 $keyboardstart = json_encode([
         'inline_keyboard' => [
             [
-                ['text' => $textbotlang['keyboard']['start'], 'callback_data' => 'start'],
+                ['text' => $textbotlang['keyboard']['start'], 'callback_data' => 'start_broadcast'],
             ],
         ]
     ]);
 $keyboardusertest = json_encode([
         'inline_keyboard' => [
             [
-                ['text' => $textbotlang['textbot']['userTest'], 'callback_data' => 'usertestbtn'],
+                ['text' => $textbotlang['textbot']['userTest'], 'callback_data' => 'usertestbtn_broadcast'],
             ],
         ]
     ]);
 $keyboardhelpbtn = json_encode([
         'inline_keyboard' => [
             [
-                ['text' => $textbotlang['textbot']['help'], 'callback_data' => 'helpbtn'],
+                ['text' => $textbotlang['textbot']['help'], 'callback_data' => 'helpbtn_broadcast'],
             ],
         ]
     ]);
 $keyboardaffiliates = json_encode([
         'inline_keyboard' => [
             [
-                ['text' => $textbotlang['textbot']['affiliates'], 'callback_data' => 'affiliatesbtn'],
+                ['text' => $textbotlang['textbot']['affiliates'], 'callback_data' => 'affiliatesbtn_broadcast'],
             ],
         ]
     ]);
 $keyboardaddbalance = json_encode([
         'inline_keyboard' => [
             [
-                ['text' => $textbotlang['textbot']['addBalance'], 'callback_data' => 'Add_Balance'],
+                ['text' => $textbotlang['textbot']['addBalance'], 'callback_data' => 'Add_Balance_broadcast'],
             ],
         ]
     ]);
@@ -231,7 +231,7 @@ if (isset($info['btnmessage']) && $info['btnmessage'] !== "none") {
         $custom_keyboard = json_encode([
             'inline_keyboard' => [
                 [
-                    ['text' => $info['custom_btn_text_prod'], 'callback_data' => $info['custom_btn_callback']],
+                    ['text' => $info['custom_btn_text_prod'], 'callback_data' => $info['custom_btn_callback'] . '_broadcast'],
                 ],
             ]
         ]);

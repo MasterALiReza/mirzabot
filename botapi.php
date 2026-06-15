@@ -115,6 +115,9 @@ function senddocumentsid($chat_id,$documentid,$caption){
     ]);
 }
 function Editmessagetext($chat_id, $message_id, $text, $keyboard,$parse_mode = 'HTML'){
+    if (!empty($GLOBALS['is_from_broadcast'])) {
+        return sendmessage($chat_id, $text, $keyboard, $parse_mode);
+    }
     $res = telegram('editmessagetext', [
         'chat_id' => $chat_id,
         'message_id' => $message_id,
@@ -139,6 +142,9 @@ function Editmessagetext($chat_id, $message_id, $text, $keyboard,$parse_mode = '
     return $res;
 }
  function deletemessage($chat_id, $message_id){
+  if (!empty($GLOBALS['is_from_broadcast'])) {
+      return;
+  }
   telegram('deletemessage', [
 'chat_id' => $chat_id, 
 'message_id' => $message_id,
@@ -280,10 +286,16 @@ $videoid = $video ? $video["file_id"] : 0;
 $forward_from_id = $update["message"]["reply_to_message"]["forward_from"]["id"] ?? 0;
 $datain = $update["callback_query"]["data"] ?? '';
 $is_from_broadcast = false;
-if ($datain === "buy_broadcast") {
-    $datain = "buy";
-    $is_from_broadcast = true;
+if ($datain !== '') {
+    if ($datain === "buy_broadcast") {
+        $datain = "buy";
+        $is_from_broadcast = true;
+    } elseif (substr($datain, -10) === "_broadcast") {
+        $datain = substr($datain, 0, -10);
+        $is_from_broadcast = true;
+    }
 }
+$GLOBALS['is_from_broadcast'] = $is_from_broadcast;
 $last_name = $update['message']['from']['last_name']  ?? $update["callback_query"]["from"]["last_name"] ?? $update["inline_query"]['from']['last_name'] ?? '';
 $first_name = $update['message']['from']['first_name']  ?? $update["callback_query"]["from"]["first_name"] ?? $update["inline_query"]['from']['first_name'] ?? '';
 $username = $update['message']['from']['username'] ?? $update['callback_query']['from']['username'] ?? $update["callback_query"]["from"]["username"] ?? 'NOT_USERNAME';

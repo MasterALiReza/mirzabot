@@ -890,7 +890,7 @@ switch ($data['actions']) {
             }
         }
         $affiliatescommission = select("affiliates", "*", null, null, "select");
-        $stmt = $pdo->prepare("SELECT * FROM invoice WHERE name_product != '{$textbotlang['Admin']['adminphp']['db_test_service_name']}'  AND id_user = :id_user");
+        $stmt = $pdo->prepare("SELECT * FROM invoice WHERE name_product != '{$textbotlang['Admin']['adminphp']['db_test_service_name']}'  AND id_user = :id_user AND Status != 'Unpaid'");
         $stmt->bindParam(':id_user', $user_info['id']);
         $stmt->execute();
         $countinvoice = $stmt->rowCount();
@@ -904,7 +904,7 @@ switch ($data['actions']) {
 
             if ($countinvoice == 1 && $first_buy_reward > 0) {
                 $reward_amount = $first_buy_reward;
-            } else if ($percentage > 0) {
+            } else if ($percentage > 0 && ($countinvoice == 1 || $affiliatescommission['porsant_one_buy'] != 'on_buy_porsant')) {
                 $reward_amount = ($product['price_product'] * $percentage) / 100;
                 $is_percentage = true;
             }

@@ -923,7 +923,7 @@ function DirectPayment($order_id, $image = 'images.jpg')
 
             if ($countinvoice == 0 && $first_buy_reward > 0) {
                 $reward_amount = $first_buy_reward;
-            } else if ($percentage > 0) {
+            } else if ($percentage > 0 && ($countinvoice == 0 || $affiliatescommission['porsant_one_buy'] != 'on_buy_porsant')) {
                 $reward_amount = ($Payment_report['price'] * $percentage) / 100;
                 $is_percentage = true;
             }

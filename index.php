@@ -227,7 +227,10 @@ if (strpos($text, "/start ") !== false && $user['step'] != "gettextSystemMessage
                 return;
             }
             $user = select("user", "*", "id", $from_id, "select");
-            if ($user && intval($user['affiliates']) != 0) {
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE id_user = :id_user");
+            $stmt->execute([':id_user' => $from_id]);
+            $has_invoices = $stmt->fetchColumn() > 0;
+            if ($user && (intval($user['affiliates']) != 0 || $has_invoices || (time() - intval($user['register']) > 300))) {
                 sendmessage($from_id, $textbotlang['users']['affiliates']['affiliateedago'], null, 'html');
                 return;
             }
@@ -320,6 +323,7 @@ if ($user['joinchannel'] != "active") {
                 'show_alert' => true,
                 'cache_time' => 5,
             ]);
+            /*
             $partsaffiliates = explode("_", $user['Processing_value_four']);
             if ($partsaffiliates[0] == "affiliates") {
                 $affiliatesid = $partsaffiliates[1];
@@ -346,6 +350,7 @@ if ($user['joinchannel'] != "active") {
                 update("user", "Processing_value_four", "none", "id", $from_id);
                 update("user", "affiliatescount", $addcountaffiliates, "id", $affiliatesid);
             }
+            */
             return;
         }
         if (count($channels) != 0 && !in_array($from_id, $admin_ids)) {
@@ -4063,7 +4068,7 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
 
         if ($countinvoice == 1 && $first_buy_reward > 0) {
             $reward_amount = $first_buy_reward;
-        } else if ($percentage > 0) {
+        } else if ($percentage > 0 && ($countinvoice == 1 || $affiliatescommission['porsant_one_buy'] != 'on_buy_porsant')) {
             $reward_amount = ($priceproduct * $percentage) / 100;
             $is_percentage = true;
         }
