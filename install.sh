@@ -1682,7 +1682,7 @@ function export_database() {
     fi
     BACKUP_FILE="/root/${DB_NAME}_backup.sql"
     echo -e "\033[33mCreating backup at $BACKUP_FILE...\033[0m"
-    if ! mysqldump -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" > "$BACKUP_FILE"; then
+    if ! mysqldump --no-tablespaces -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" > "$BACKUP_FILE"; then
         echo -e "\033[31m[ERROR]\033[0m Failed to create database backup."
         return 1
     fi
@@ -1748,7 +1748,7 @@ function auto_backup() {
         cat <<EOF > "$BACKUP_SCRIPT"
 #!/bin/bash
 BACKUP_FILE="/root/\${DB_NAME}_\$(date +\"%Y%m%d_%H%M%S\").sql"
-docker exec $MYSQL_CONTAINER mysqldump -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" > "\$BACKUP_FILE"
+docker exec $MYSQL_CONTAINER mysqldump --no-tablespaces -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" > "\$BACKUP_FILE"
 if [ \$? -eq 0 ]; then
     curl -F document=@"\$BACKUP_FILE" "https://api.telegram.org/bot$TELEGRAM_TOKEN/sendDocument" -F chat_id="$TELEGRAM_CHAT_ID"
     rm "\$BACKUP_FILE"
@@ -1768,7 +1768,7 @@ EOF
         cat <<EOF > "$BACKUP_SCRIPT"
 #!/bin/bash
 BACKUP_FILE="/root/\${DB_NAME}_\$(date +\"%Y%m%d_%H%M%S\").sql"
-mysqldump -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" > "\$BACKUP_FILE"
+mysqldump --no-tablespaces -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" > "\$BACKUP_FILE"
 if [ \$? -eq 0 ]; then
     curl -F document=@"\$BACKUP_FILE" "https://api.telegram.org/bot$TELEGRAM_TOKEN/sendDocument" -F chat_id="$TELEGRAM_CHAT_ID"
     rm "\$BACKUP_FILE"
