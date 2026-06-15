@@ -733,7 +733,7 @@ if (in_array($text, $textadmin, true) || $datain == "admin") {
     $namecustoms = "none";
     $type = "marzban";
     $conecton = "offconecton";
-    $inboundid = 1;
+    $inboundid = ($userdata['type'] == 'WGDashboard') ? 'wg0' : 1;
     $agent = "all";
     $time = "1";
     $valume = "100";

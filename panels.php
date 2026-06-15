@@ -1229,10 +1229,15 @@ class ManagePanel
             );
         } elseif ($Get_Data_Panel['type'] == "WGDashboard") {
             $UsernameData = remove_userwg($Get_Data_Panel['name_panel'], $username);
-            if (!$UsernameData['status']) {
+            if (isset($UsernameData['status']) && ($UsernameData['status'] === false || $UsernameData['status'] != 200)) {
                 $Output = array(
                     'status' => 'Unsuccessful',
-                    'msg' => $UsernameData['msg']
+                    'msg' => $UsernameData['msg'] ?? ($UsernameData['status'] ? 'error code : ' . $UsernameData['status'] : 'Unknown error')
+                );
+            } elseif (!empty($UsernameData['error'])) {
+                $Output = array(
+                    'status' => 'Unsuccessful',
+                    'msg' => $UsernameData['error']
                 );
             } else {
                 $Output = array(
@@ -1499,18 +1504,18 @@ class ManagePanel
             );
             $configs = array_merge($configs, $config);
             $modify = updatepear($Get_Data_Panel['name_panel'], $configs);
-            if (!empty($modify['error'])) {
+            if (isset($modify['status']) && ($modify['status'] === false || $modify['status'] != 200)) {
+                return array(
+                    'status' => false,
+                    'msg' => $modify['msg'] ?? ($modify['status'] ? 'error code : ' . $modify['status'] : 'Unknown error')
+                );
+            } elseif (!empty($modify['error'])) {
                 return array(
                     'status' => false,
                     'msg' => $modify['error']
                 );
-            } elseif (!empty($modify['status']) && $modify['status'] != 200) {
-                return array(
-                    'status' => false,
-                    'msg' => 'error code : ' . $modify['status']
-                );
             }
-            $modify = json_decode($modify['body'], true);
+            $modify = json_decode($modify['body'] ?? '', true);
             return array(
                 'status' => true,
                 'data' => $modify
@@ -1759,10 +1764,10 @@ class ManagePanel
             allowAccessPeers($panel['name_panel'], $username);
             $datauser = get_userwg($username, $panel['name_panel']);
             $reset = ResetUserDataUsagewg($datauser['id'], $panel['name_panel']);
-            if (!empty($reset['status']) && $reset['status'] != 200) {
+            if (isset($reset['status']) && ($reset['status'] === false || $reset['status'] != 200)) {
                 return array(
                     'status' => false,
-                    'msg' => 'error code : ' . $reset['status']
+                    'msg' => $reset['msg'] ?? ($reset['status'] ? 'error code : ' . $reset['status'] : 'Unknown error')
                 );
             } elseif (!empty($reset['error'])) {
                 return array(
