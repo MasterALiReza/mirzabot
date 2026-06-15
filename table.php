@@ -50,7 +50,10 @@ try {
             status_cron VARCHAR(20)  NULL DEFAULT '1',
             expire VARCHAR(100) NULL ,
             token VARCHAR(100) NULL,
-            lang VARCHAR(5) NULL  DEFAULT 'fa'
+            lang VARCHAR(5) NULL  DEFAULT 'fa',
+            has_purchased BOOLEAN DEFAULT FALSE,
+            active_referrals_count INT DEFAULT 0,
+            affiliate_balance BIGINT DEFAULT 0
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci");
         $stmt->execute();
     } else {
@@ -82,6 +85,9 @@ try {
         addFieldToTable($tableName, 'codeInvitation', null);
         addFieldToTable($tableName, 'pricediscount', "0");
         addFieldToTable($tableName, 'hide_mini_app_instruction', '0', "VARCHAR(20)");
+        addFieldToTable($tableName, 'has_purchased', '0', "BOOLEAN");
+        addFieldToTable($tableName, 'active_referrals_count', '0', "INT");
+        addFieldToTable($tableName, 'affiliate_balance', '0', "BIGINT");
     }
 } catch (PDOException $e) {
     file_put_contents('error_log user', $e->getMessage());
@@ -853,6 +859,10 @@ try {
         price_Discount varchar(200)  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci  NULL,
         porsant_one_buy varchar(100),
         first_buy_reward varchar(200) NULL DEFAULT '0',
+        silver_threshold INT NULL DEFAULT 10,
+        silver_percentage INT NULL DEFAULT 15,
+        gold_threshold INT NULL DEFAULT 50,
+        gold_percentage INT NULL DEFAULT 20,
         id_media varchar(300) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci  NULL)
         ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci");
         if (!$result) {
@@ -892,6 +902,26 @@ try {
         if (mysqli_num_rows($Check_filde) != 1) {
             $connect->query("ALTER TABLE affiliates ADD media_type VARCHAR(100) NULL DEFAULT 'photo'");
             echo "The media_type field was added ✅";
+        }
+        $Check_filde = $connect->query("SHOW COLUMNS FROM affiliates LIKE 'silver_threshold'");
+        if (mysqli_num_rows($Check_filde) != 1) {
+            $connect->query("ALTER TABLE affiliates ADD silver_threshold INT NULL DEFAULT 10");
+            echo "The silver_threshold field was added ✅";
+        }
+        $Check_filde = $connect->query("SHOW COLUMNS FROM affiliates LIKE 'silver_percentage'");
+        if (mysqli_num_rows($Check_filde) != 1) {
+            $connect->query("ALTER TABLE affiliates ADD silver_percentage INT NULL DEFAULT 15");
+            echo "The silver_percentage field was added ✅";
+        }
+        $Check_filde = $connect->query("SHOW COLUMNS FROM affiliates LIKE 'gold_threshold'");
+        if (mysqli_num_rows($Check_filde) != 1) {
+            $connect->query("ALTER TABLE affiliates ADD gold_threshold INT NULL DEFAULT 50");
+            echo "The gold_threshold field was added ✅";
+        }
+        $Check_filde = $connect->query("SHOW COLUMNS FROM affiliates LIKE 'gold_percentage'");
+        if (mysqli_num_rows($Check_filde) != 1) {
+            $connect->query("ALTER TABLE affiliates ADD gold_percentage INT NULL DEFAULT 20");
+            echo "The gold_percentage field was added ✅";
         }
     }
 } catch (Exception $e) {
@@ -1303,6 +1333,30 @@ try {
         )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci");
         if (!$result) {
             echo "table broadcast_history " . mysqli_error($connect);
+        }
+    }
+} catch (Exception $e) {
+    file_put_contents('error_log', $e->getMessage());
+}
+
+try {
+    $result = $connect->query("SHOW TABLES LIKE 'withdrawal_requests'");
+    $table_exists = ($result->num_rows > 0);
+
+    if (!$table_exists) {
+        $result = $connect->query("CREATE TABLE withdrawal_requests (
+        id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        user_id BIGINT NOT NULL,
+        amount BIGINT NOT NULL,
+        card_number VARCHAR(20) NOT NULL,
+        shaba VARCHAR(30) NULL,
+        card_name VARCHAR(150) NOT NULL,
+        status VARCHAR(20) DEFAULT 'pending',
+        time VARCHAR(50) NOT NULL,
+        admin_note TEXT NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        if (!$result) {
+            echo "table withdrawal_requests " . mysqli_error($connect);
         }
     }
 } catch (Exception $e) {

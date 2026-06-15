@@ -797,6 +797,9 @@ function DirectPayment($order_id, $image = 'images.jpg')
     $porsantreport = select("topicid", "idreport", "report", "porsantreport", "select")['idreport'];
     $setting = select("setting", "*");
     $Payment_report = select("Payment_report", "*", "id_order", $order_id, "select");
+    if (!$Payment_report || $Payment_report['payment_Status'] === 'paid' || $Payment_report['payment_Status'] === 'reject' || $Payment_report['payment_Status'] === 'expire') {
+        return false;
+    }
     $format_price_cart = number_format($Payment_report['price']);
     $Balance_id = select("user", "*", "id", $Payment_report['id_user'], "select");
     $steppay = explode("|", $Payment_report['id_invoice']);
@@ -914,41 +917,21 @@ function DirectPayment($order_id, $image = 'images.jpg')
         $stmt->bindParam(':id_user', $Balance_id['id']);
         $stmt->execute();
         $countinvoice = $stmt->rowCount();
-        if ($get_invoice['name_product'] != $textbotlang['Admin']['adminphp']['db_test_service_name'] && $affiliatescommission['status_commission'] == "oncommission" && ($Balance_id['affiliates'] != null && intval($Balance_id['affiliates']) != 0)) {
-            $first_buy_reward = intval($affiliatescommission['first_buy_reward'] ?? 0);
-            $percentage = floatval($setting['affiliatespercentage'] ?? 0);
+        if ($get_invoice['name_product'] != $textbotlang['Admin']['adminphp']['db_test_service_name']) {
+            $reward_amount = awardAffiliateCommission($Balance_id['id'], $Payment_report['price'], ($countinvoice == 0));
             
-            $reward_amount = 0;
-            $is_percentage = false;
-
-            if ($countinvoice == 0 && $first_buy_reward > 0) {
-                $reward_amount = $first_buy_reward;
-            } else if ($percentage > 0 && ($countinvoice == 0 || $affiliatescommission['porsant_one_buy'] != 'on_buy_porsant')) {
-                $reward_amount = ($Payment_report['price'] * $percentage) / 100;
-                $is_percentage = true;
-            }
-
             if ($reward_amount > 0) {
-                $user_Balance = select("user", "*", "id", $Balance_id['affiliates'], "select");
                 if (intval($setting['scorestatus']) == 1 and !in_array($Balance_id['affiliates'], $admin_ids)) {
                     sendmessage($Balance_id['affiliates'], $textbotlang['extracted']['index_php']['earned2Points'], null, 'html');
-                    $scorenew = $user_Balance['score'] + 2;
+                    $user_Balance = select("user", "*", "id", $Balance_id['affiliates'], "select");
+                    $scorenew = intval($user_Balance['score']) + 2;
                     update("user", "score", $scorenew, "id", $Balance_id['affiliates']);
-                }
-                $Balance_prim = $user_Balance['Balance'] + $reward_amount;
-                $dateacc = date('Y/m/d H:i:s');
-                update("user", "Balance", $Balance_prim, "id", $Balance_id['affiliates']);
-                $result_formatted = number_format($reward_amount);
-                
-                if (!$is_percentage) {
-                    $textadd = sprintf($textbotlang['hardcoded']['affiliateCommissionPaidUserFn'], $result_formatted);
-                    $textreportport = sprintf($textbotlang['hardcoded']['affiliateCommissionPaidLogFn'], $result_formatted, $Balance_id['affiliates'], $Balance_id['id'], $dateacc);
-                } else {
-                    $textadd = sprintf($textbotlang['hardcoded']['affiliateCommissionPaidUserFn2'], $result_formatted);
-                    $textreportport = sprintf($textbotlang['hardcoded']['affiliateCommissionPaidLogFn2'], $result_formatted, $Balance_id['affiliates'], $Balance_id['id'], $dateacc);
                 }
 
                 if (strlen($setting['Channel_Report']) > 0) {
+                    $result_formatted = number_format($reward_amount);
+                    $dateacc = date('Y/m/d H:i:s');
+                    $textreportport = sprintf($textbotlang['hardcoded']['affiliateCommissionPaidLogFn'], $result_formatted, $Balance_id['affiliates'], $Balance_id['id'], $dateacc);
                     telegram('sendmessage', [
                         'chat_id' => $setting['Channel_Report'],
                         'message_thread_id' => $porsantreport,
@@ -956,7 +939,6 @@ function DirectPayment($order_id, $image = 'images.jpg')
                         'parse_mode' => "HTML"
                     ]);
                 }
-                sendmessage($Balance_id['affiliates'], $textadd, null, 'HTML');
             }
         }
         if ($marzban_list_get['MethodUsername'] == $textbotlang['keyboard']['customTextSequential'] || $marzban_list_get['MethodUsername'] == $textbotlang['keyboard']['usernameSequential'] || $marzban_list_get['MethodUsername'] == $textbotlang['keyboard']['numericIdSequential'] || $marzban_list_get['MethodUsername'] == $textbotlang['keyboard']['agentCustomTextSequential']) {
@@ -1010,6 +992,7 @@ function DirectPayment($order_id, $image = 'images.jpg')
             $textconfrom = sprintf($textbotlang['hardcoded']['paymentConfirmedNewService'], $safe_username_ac, $safe_location, $Balance_id['id'], $Payment_report['id_order'], $Balance_id['username'], $Balance_id['Balance'], $format_price_cart, $safe_dec);
             Editmessagetext($chat_id, $message_id, $textconfrom, $Confirm_pay);
         }
+        update("Payment_report", "payment_Status", "paid", "id_order", $Payment_report['id_order']);
         return true;
     } elseif ($steppay[0] == "getextenduser") {
         $balanceformatsell = number_format(select("user", "Balance", "id", $Balance_id['id'], "select")['Balance'], 0);
@@ -1138,6 +1121,7 @@ function DirectPayment($order_id, $image = 'images.jpg')
             $textconfrom = sprintf($textbotlang['hardcoded']['paymentConfirmedRenew'], $safe_usernamepanel, $safe_name_product, $safe_location, $Balance_id['id'], $Payment_report['id_order'], $Balance_id['username'], $Balance_id['Balance'], $format_price_cart, $safe_dec);
             Editmessagetext($chat_id, $message_id, $textconfrom, $Confirm_pay);
         }
+        update("Payment_report", "payment_Status", "paid", "id_order", $Payment_report['id_order']);
         return true;
     } elseif ($steppay[0] == "getextravolumeuser") {
         $steppay = explode("%", $steppay[1]);
@@ -1213,6 +1197,7 @@ function DirectPayment($order_id, $image = 'images.jpg')
                 'parse_mode' => "HTML"
             ]);
         }
+        update("Payment_report", "payment_Status", "paid", "id_order", $Payment_report['id_order']);
         return true;
     } elseif ($steppay[0] == "getextratimeuser") {
         $steppay = explode("%", $steppay[1]);
@@ -1289,6 +1274,7 @@ function DirectPayment($order_id, $image = 'images.jpg')
                 'text' => $text_report,
             ]);
         }
+        update("Payment_report", "payment_Status", "paid", "id_order", $Payment_report['id_order']);
         return true;
     } else {
         $Balance_confrim = intval($Balance_id['Balance']) + intval($Payment_report['price']);
@@ -2050,3 +2036,100 @@ function formatServiceDeliveryLinks($panel_info, $dataoutput)
     return array('main' => $main, 'extra' => $extra, 'configs' => $configs);
 }
 
+function awardAffiliateCommission($user_id, $price, $is_first_buy) {
+    global $pdo;
+
+    // Fetch user details
+    $stmt = $pdo->prepare("SELECT affiliates FROM user WHERE id = :user_id");
+    $stmt->execute([':user_id' => $user_id]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$user || empty($user['affiliates']) || $user['affiliates'] == '0' || $user['affiliates'] == 'none') {
+        return false; // No referrer
+    }
+    
+    $referrer_id = $user['affiliates'];
+
+    // Fetch referrer details
+    $stmt = $pdo->prepare("SELECT active_referrals_count FROM user WHERE id = :ref_id");
+    $stmt->execute([':ref_id' => $referrer_id]);
+    $referrer = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$referrer) {
+        return false;
+    }
+
+    // Process new referral logic if it's the first purchase
+    if ($is_first_buy) {
+        // Mark user as having purchased and increment referrer's active count
+        $stmt = $pdo->prepare("UPDATE user SET has_purchased = 1 WHERE id = :user_id AND has_purchased = 0");
+        $stmt->execute([':user_id' => $user_id]);
+        if ($stmt->rowCount() > 0) {
+            $pdo->prepare("UPDATE user SET active_referrals_count = active_referrals_count + 1 WHERE id = :ref_id")
+                ->execute([':ref_id' => $referrer_id]);
+            // Refresh referrer active count
+            $referrer['active_referrals_count']++;
+        }
+    }
+
+    // Fetch global affiliates settings
+    $stmt = $pdo->prepare("SELECT affiliatesstatus, affiliatespercentage FROM setting LIMIT 1");
+    $stmt->execute();
+    $setting = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($setting['affiliatesstatus'] != 'onaffiliates') {
+        return false; // Affiliate system is off
+    }
+
+    // Fetch tier settings
+    $stmt = $pdo->prepare("SELECT status_commission, porsant_one_buy, first_buy_reward, silver_threshold, silver_percentage, gold_threshold, gold_percentage FROM affiliates LIMIT 1");
+    $stmt->execute();
+    $affSettings = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($affSettings['status_commission'] != 'oncommission') {
+        return false; // Commission is off
+    }
+
+    // Check one_buy limit
+    if ($affSettings['porsant_one_buy'] == 'on_buy_porsant' && !$is_first_buy) {
+        return false; // Only pays on first buy
+    }
+
+    // Check flat reward first
+    $flat_reward = intval($affSettings['first_buy_reward']);
+    if ($is_first_buy && $flat_reward > 0) {
+        $rewardAmount = $flat_reward;
+    } else {
+        // Calculate Tiered Percentage
+        $active_count = intval($referrer['active_referrals_count']);
+        $percentage = floatval($setting['affiliatespercentage']); // Bronze (default)
+        
+        if ($active_count >= intval($affSettings['gold_threshold'])) {
+            $percentage = floatval($affSettings['gold_percentage']);
+        } elseif ($active_count >= intval($affSettings['silver_threshold'])) {
+            $percentage = floatval($affSettings['silver_percentage']);
+        }
+        
+        $rewardAmount = ($price * $percentage) / 100;
+    }
+
+    if ($rewardAmount > 0) {
+        $stmt = $pdo->prepare("UPDATE user SET affiliate_balance = affiliate_balance + :reward WHERE id = :ref_id");
+        $stmt->execute([':reward' => $rewardAmount, ':ref_id' => $referrer_id]);
+        
+        if (function_exists('telegram')) {
+            global $textbotlang;
+            // Send notification to referrer
+            $text = "🎉 تبریک!\n\nزیرمجموعه شما یک خرید موفق انجام داد و مبلغ *" . number_format($rewardAmount) . "* تومان به موجودی کیف پول بازاریابی شما اضافه شد.";
+            telegram("sendMessage", [
+                'chat_id' => $referrer_id,
+                'text' => $text,
+                'parse_mode' => "Markdown"
+            ]);
+        }
+
+        return $rewardAmount;
+    }
+    
+    return false;
+}

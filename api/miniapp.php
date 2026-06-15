@@ -895,42 +895,21 @@ switch ($data['actions']) {
         $stmt->execute();
         $countinvoice = $stmt->rowCount();
         // Only process affiliate rewards if the purchased product is NOT a test service
-        if ($product['name_product'] != $textbotlang['Admin']['adminphp']['db_test_service_name'] && $affiliatescommission['status_commission'] == "oncommission" && ($user_info['affiliates'] != null && intval($user_info['affiliates']) != 0)) {
-            $first_buy_reward = intval($affiliatescommission['first_buy_reward'] ?? 0);
-            $percentage = floatval($setting['affiliatespercentage'] ?? 0);
+        if ($product['name_product'] != $textbotlang['Admin']['adminphp']['db_test_service_name']) {
+            $reward_amount = awardAffiliateCommission($user_info['id'], $product['price_product'], ($countinvoice == 1));
             
-            $reward_amount = 0;
-            $is_percentage = false;
-
-            if ($countinvoice == 1 && $first_buy_reward > 0) {
-                $reward_amount = $first_buy_reward;
-            } else if ($percentage > 0 && ($countinvoice == 1 || $affiliatescommission['porsant_one_buy'] != 'on_buy_porsant')) {
-                $reward_amount = ($product['price_product'] * $percentage) / 100;
-                $is_percentage = true;
-            }
-
             if ($reward_amount > 0) {
-                $user_Balance = select("user", "*", "id", $user_info['affiliates'], "select");
-                $Balance_prim = $user_Balance['Balance'] + $reward_amount;
                 if (intval($setting['scorestatus']) == 1) {
-                    $score_msg = !$is_percentage ? $textbotlang['hardcoded']['pointsEarned2'] : $textbotlang['hardcoded']['pointsEarned2b'];
-                    sendmessage($user_info['affiliates'], $score_msg, null, 'html');
-                    $scorenew = $user_Balance['score'] + 2;
+                    sendmessage($user_info['affiliates'], $textbotlang['hardcoded']['pointsEarned2'], null, 'html');
+                    $user_Balance = select("user", "*", "id", $user_info['affiliates'], "select");
+                    $scorenew = intval($user_Balance['score']) + 2;
                     update("user", "score", $scorenew, "id", $user_info['affiliates']);
-                }
-                update("user", "Balance", $Balance_prim, "id", $user_info['affiliates']);
-                $result_formatted = number_format($reward_amount);
-                $dateacc = date('Y/m/d H:i:s');
-                
-                if (!$is_percentage) {
-                    $textadd = sprintf($textbotlang['hardcoded']['affiliateCommissionPaidUserMiniapp'], $result_formatted);
-                    $textreportport = sprintf($textbotlang['hardcoded']['affiliateCommissionPaidLogMiniapp'], $result_formatted, $user_info['affiliates'], $user_info['id'], $dateacc);
-                } else {
-                    $textadd = sprintf($textbotlang['hardcoded']['affiliateCommissionPaidUserMiniapp2'], $result_formatted);
-                    $textreportport = sprintf($textbotlang['hardcoded']['affiliateCommissionPaidLogMiniapp2'], $result_formatted, $user_info['affiliates'], $user_info['id'], $dateacc);
                 }
 
                 if (strlen($setting['Channel_Report']) > 0) {
+                    $result_formatted = number_format($reward_amount);
+                    $dateacc = date('Y/m/d H:i:s');
+                    $textreportport = sprintf($textbotlang['hardcoded']['affiliateCommissionPaidLogMiniapp'], $result_formatted, $user_info['affiliates'], $user_info['id'], $dateacc);
                     telegram('sendmessage', [
                         'chat_id' => $setting['Channel_Report'],
                         'message_thread_id' => $porsantreport,
@@ -938,7 +917,6 @@ switch ($data['actions']) {
                         'parse_mode' => "HTML"
                     ]);
                 }
-                sendmessage($user_info['affiliates'], $textadd, null, 'HTML');
             }
         }
         if (intval($setting['scorestatus']) == 1) {

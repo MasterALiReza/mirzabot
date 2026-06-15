@@ -23,6 +23,41 @@ try {
     }
 } catch (Exception $e) {}
 
+// Handle withdrawal actions
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && isset($_POST['withdrawal_id'])) {
+    csrf_check_post();
+    $action = $_POST['action'];
+    $w_id = (int)$_POST['withdrawal_id'];
+    
+    try {
+        $w_req = db_fetch($pdo, "SELECT * FROM withdrawal_requests WHERE id = ?", [$w_id]);
+        if ($w_req && $w_req['status'] === 'pending') {
+            if ($action === 'approve') {
+                db_query($pdo, "UPDATE withdrawal_requests SET status = 'approved' WHERE id = ?", [$w_id]);
+                // Send telegram message to user
+                $msg = "✅ درخواست تسویه حساب شما به مبلغ " . number_format($w_req['amount']) . " تومان تایید و پرداخت شد.";
+                file_get_contents("https://api.telegram.org/bot{$APIKEY}/sendMessage?chat_id={$w_req['user_id']}&text=" . urlencode($msg));
+                $_SESSION['msg'] = 'درخواست تایید شد.';
+            } elseif ($action === 'reject') {
+                // Refund to affiliate balance
+                db_query($pdo, "UPDATE user SET affiliate_balance = affiliate_balance + ? WHERE id = ?", [$w_req['amount'], $w_req['user_id']]);
+                db_query($pdo, "UPDATE withdrawal_requests SET status = 'rejected' WHERE id = ?", [$w_id]);
+                $msg = "❌ درخواست تسویه حساب شما به مبلغ " . number_format($w_req['amount']) . " تومان رد شد و مبلغ به کیف پول پورسانت شما بازگشت داده شد.";
+                file_get_contents("https://api.telegram.org/bot{$APIKEY}/sendMessage?chat_id={$w_req['user_id']}&text=" . urlencode($msg));
+                $_SESSION['err'] = 'درخواست رد شد.';
+            }
+        }
+    } catch (Exception $e) {}
+    header("Location: affiliates.php");
+    exit;
+}
+
+// Fetch pending withdrawals
+$pending_withdrawals = [];
+try {
+    $pending_withdrawals = db_fetchAll($pdo, "SELECT * FROM withdrawal_requests WHERE status = 'pending' ORDER BY created_at ASC");
+} catch (Exception $e) {}
+
 // Search and pagination logic
 $search = trim($_GET['q'] ?? '');
 $page = max(1, (int)($_GET['page'] ?? 1));
@@ -108,6 +143,51 @@ include __DIR__ . '/inc/layout_head.php';
 </div>
 
 <!-- Main Section -->
+<?php if (!empty($pending_withdrawals)): ?>
+<div class="card fade-up" style="margin-bottom: 20px; border-left: 4px solid var(--amber);">
+    <div class="toolbar">
+        <div class="toolbar-title" style="color: var(--amber);">درخواست‌های تسویه حساب پورسانت (در انتظار تایید)</div>
+    </div>
+    <div class="tbl-wrap dash-unified">
+        <table class="tbl-lg">
+            <thead>
+                <tr>
+                    <th style="text-align: right;">آیدی کاربر</th>
+                    <th style="text-align: right;">مبلغ درخواستی (تومان)</th>
+                    <th style="text-align: right;">شماره کارت</th>
+                    <th style="text-align: right;">تاریخ درخواست</th>
+                    <th style="text-align: center;">عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($pending_withdrawals as $w): ?>
+                <tr>
+                    <td><?= htmlspecialchars($w['user_id']) ?></td>
+                    <td style="color: var(--emerald); font-weight: bold;"><?= number_format($w['amount']) ?></td>
+                    <td style="font-family: monospace; letter-spacing: 1px;"><?= htmlspecialchars($w['card_number']) ?></td>
+                    <td style="color: var(--mute);"><?= htmlspecialchars($w['created_at']) ?></td>
+                    <td style="text-align: center;">
+                        <form method="POST" style="display:inline-block;" onsubmit="return confirm('آیا از تایید این درخواست و واریز مبلغ اطمینان دارید؟');">
+                            <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
+                            <input type="hidden" name="action" value="approve">
+                            <input type="hidden" name="withdrawal_id" value="<?= $w['id'] ?>">
+                            <button type="submit" class="btn btn-sm" style="background: rgba(16,185,129,0.1); color: var(--emerald);">تایید و پرداخت شد</button>
+                        </form>
+                        <form method="POST" style="display:inline-block; margin-right: 5px;" onsubmit="return confirm('آیا از رد این درخواست اطمینان دارید؟ مبلغ به حساب کاربر برگشت داده می‌شود.');">
+                            <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
+                            <input type="hidden" name="action" value="reject">
+                            <input type="hidden" name="withdrawal_id" value="<?= $w['id'] ?>">
+                            <button type="submit" class="btn btn-sm btn-ghost" style="color: var(--rose);">رد درخواست</button>
+                        </form>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+<?php endif; ?>
+
 <div class="card fade-up">
     <div class="toolbar">
         <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap">

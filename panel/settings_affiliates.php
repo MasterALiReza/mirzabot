@@ -83,7 +83,16 @@ $schema = [
                 ['name' => 'aff_first_buy_reward', 'label' => 'مبلغ پاداش اولین خرید (تومان - ۰ برای غیرفعال)', 'type' => 'number', 'val' => $affiliate_settings['first_buy_reward'] ?? '0'],
             ],
             'پورسانت خریدهای بعدی' => [
-                ['name' => 'set_affiliatespercentage', 'label' => 'درصد پورسانت از هر خرید', 'type' => 'number', 'val' => $row['affiliatespercentage'] ?? '0'],
+                ['name' => 'set_affiliatespercentage', 'label' => 'درصد پورسانت (برنزی/پیش‌فرض)', 'type' => 'number', 'val' => $row['affiliatespercentage'] ?? '0'],
+            ],
+            'سطوح بازاریابی' => [
+                ['name' => 'aff_silver_threshold', 'label' => 'حداقل خرید زیرمجموعه برای سطح نقره‌ای', 'type' => 'number', 'val' => $affiliate_settings['silver_threshold'] ?? '10'],
+                ['name' => 'aff_silver_percentage', 'label' => 'درصد پورسانت سطح نقره‌ای', 'type' => 'number', 'val' => $affiliate_settings['silver_percentage'] ?? '15'],
+                ['name' => 'aff_gold_threshold', 'label' => 'حداقل خرید زیرمجموعه برای سطح طلایی', 'type' => 'number', 'val' => $affiliate_settings['gold_threshold'] ?? '50'],
+                ['name' => 'aff_gold_percentage', 'label' => 'درصد پورسانت سطح طلایی', 'type' => 'number', 'val' => $affiliate_settings['gold_percentage'] ?? '25'],
+            ],
+            'بنر اختصاصی زیرمجموعه‌گیری' => [
+                ['name' => 'banner_base_file', 'label' => 'آپلود تصویر پایه بنر (jpg)', 'type' => 'file', 'description' => 'یک تصویر JPG آپلود کنید تا ربات لینک زیرمجموعه‌گیری و کیوآر کد را روی آن درج کند.'],
             ],
             'تخفیف و رسانه' => [
                 ['name' => 'aff_Discount', 'label' => 'کد تخفیف به معرف', 'type' => 'select', 'options' => ['onDiscountaffiliates' => 'فعال', 'offDiscountaffiliates' => 'غیرفعال'], 'val' => $affiliate_settings['Discount'] ?? ''],
@@ -151,6 +160,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $photos = $res['result']['photo'];
                 $_POST['aff_id_media'] = end($photos)['file_id'];
             }
+        }
+    }
+
+    if (isset($_FILES['banner_base_file']) && $_FILES['banner_base_file']['error'] === UPLOAD_ERR_OK) {
+        $assets_dir = __DIR__ . '/../assets';
+        if (!is_dir($assets_dir)) {
+            mkdir($assets_dir, 0777, true);
+        }
+        $dest_path = $assets_dir . '/banner_base.jpg';
+        // Basic validation for image
+        $mime = mime_content_type($_FILES['banner_base_file']['tmp_name']);
+        if (strpos($mime, 'image/') === 0) {
+            move_uploaded_file($_FILES['banner_base_file']['tmp_name'], $dest_path);
         }
     }
 

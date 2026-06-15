@@ -420,6 +420,74 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
     sendmessage($from_id, $textbotlang['users']['text_start'], $keyboard, 'html');
     update("user", "number", $user_phone, "id", $from_id);
     step('home', $from_id);
+} elseif ($user['step'] == 'get_card_number_withdraw') {
+    if (!$text || strlen(preg_replace('/[^0-9]/', '', $text)) != 16) {
+        sendmessage($from_id, "❌ شماره کارت باید دقیقا 16 رقم باشد. لطفا دوباره ارسال کنید:", $backuser, 'HTML');
+        return;
+    }
+    
+    $stmt = $pdo->prepare("SELECT affiliate_balance FROM user WHERE id = :id");
+    $stmt->execute([':id' => $from_id]);
+    $affiliate_balance = $stmt->fetchColumn() ?: 0;
+
+    if ($affiliate_balance < 50000) {
+        sendmessage($from_id, "❌ موجودی شما کافی نیست. (حداقل 50,000 تومان)", $keyboard, 'HTML');
+        step('none', $from_id);
+        return;
+    }
+
+    $card_number = preg_replace('/[^0-9]/', '', $text);
+    
+    // Atomic deduction: set affiliate_balance to 0 only if it currently equals the expected balance
+    $stmt = $pdo->prepare("UPDATE user SET affiliate_balance = 0 WHERE id = :id AND affiliate_balance = :bal AND affiliate_balance >= 50000");
+    $stmt->execute([':id' => $from_id, ':bal' => $affiliate_balance]);
+    
+    if ($stmt->rowCount() > 0) {
+        $stmt = $pdo->prepare("INSERT INTO withdrawal_requests (user_id, amount, card_number, status, created_at) VALUES (:u, :a, :c, 'pending', :t)");
+        $stmt->execute([
+            ':u' => $from_id,
+            ':a' => $affiliate_balance,
+            ':c' => $card_number,
+            ':t' => date('Y-m-d H:i:s')
+        ]);
+
+        sendmessage($from_id, "✅ درخواست تسویه شما با مبلغ " . number_format($affiliate_balance) . " تومان به شماره کارت $card_number ثبت شد و پس از بررسی به حساب شما واریز خواهد شد.", $keyboard, 'HTML');
+        
+        if (strlen($setting['Channel_Report']) > 0) {
+            $admin_msg = "💳 <b>درخواست تسویه جدید</b>\n\n👤 کاربر: <a href='tg://user?id=$from_id'>$from_id</a>\n💰 مبلغ: " . number_format($affiliate_balance) . " تومان\n💳 کارت: <code>$card_number</code>\n\nبرای بررسی به پنل مدیریت مراجعه کنید.";
+            telegram('sendmessage', [
+                'chat_id' => $setting['Channel_Report'],
+                'text' => $admin_msg,
+                'parse_mode' => "HTML"
+            ]);
+        }
+    } else {
+        sendmessage($from_id, "❌ خطا در پردازش درخواست. احتمالا موجودی شما تغییر کرده است.", $keyboard, 'HTML');
+    }
+    step('none', $from_id);
+
+} elseif ($user['step'] == 'get_transfer_amount') {
+    if (!$text || !is_numeric($text) || intval($text) <= 0) {
+        sendmessage($from_id, "❌ مبلغ نامعتبر است. لطفا یک عدد معتبر ارسال کنید:", $backuser, 'HTML');
+        return;
+    }
+    $amount = intval($text);
+    
+    // Atomic transfer
+    $stmt = $pdo->prepare("UPDATE user SET affiliate_balance = affiliate_balance - :amount, Balance = Balance + :amount WHERE id = :id AND affiliate_balance >= :amount");
+    $stmt->execute([':amount' => $amount, ':id' => $from_id]);
+    
+    if ($stmt->rowCount() > 0) {
+        // Fetch new wallet balance to display to user
+        $stmt = $pdo->prepare("SELECT Balance FROM user WHERE id = :id");
+        $stmt->execute([':id' => $from_id]);
+        $new_wallet = $stmt->fetchColumn() ?: 0;
+        
+        sendmessage($from_id, "✅ مبلغ " . number_format($amount) . " تومان با موفقیت به کیف پول ربات شما منتقل شد.\nموجودی جدید کیف پول: " . number_format($new_wallet) . " تومان", $keyboard, 'HTML');
+    } else {
+        sendmessage($from_id, "❌ خطای امنیتی یا عدم موجودی کافی برای انتقال.", $keyboard, 'HTML');
+    }
+    step('none', $from_id);
 } elseif ($text == $textbotlang['textbot']['purchasedServices'] || $datain == "backorder" || $text == "/services") {
     $stmt = $pdo->prepare("SELECT DISTINCT i.Service_location FROM invoice i INNER JOIN marzban_panel p ON i.Service_location = p.name_panel WHERE i.id_user = :id_user AND (i.status = 'active' OR i.status = 'end_of_time'  OR i.status = 'end_of_volume' OR i.status = 'sendedwarn' OR i.Status = 'send_on_hold')");
     $stmt->bindParam(':id_user', $from_id);
@@ -4059,41 +4127,21 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
     $stmt->execute();
     $countinvoice = $stmt->rowCount();
     // Only process affiliate rewards if the purchased product is NOT a test service
-    if ($info_product['name_product'] != $textbotlang['Admin']['adminphp']['db_test_service_name'] && $affiliatescommission['status_commission'] == "oncommission" && ($user['affiliates'] != null && intval($user['affiliates']) != 0)) {
-        $first_buy_reward = intval($affiliatescommission['first_buy_reward'] ?? 0);
-        $percentage = floatval($setting['affiliatespercentage'] ?? 0);
+    if ($info_product['name_product'] != $textbotlang['Admin']['adminphp']['db_test_service_name']) {
+        $reward_amount = awardAffiliateCommission($from_id, $priceproduct, ($countinvoice == 1));
         
-        $reward_amount = 0;
-        $is_percentage = false;
-
-        if ($countinvoice == 1 && $first_buy_reward > 0) {
-            $reward_amount = $first_buy_reward;
-        } else if ($percentage > 0 && ($countinvoice == 1 || $affiliatescommission['porsant_one_buy'] != 'on_buy_porsant')) {
-            $reward_amount = ($priceproduct * $percentage) / 100;
-            $is_percentage = true;
-        }
-
         if ($reward_amount > 0) {
-            $user_Balance = select("user", "*", "id", $user['affiliates'], "select");
-            $Balance_prim = $user_Balance['Balance'] + $reward_amount;
             if (intval($setting['scorestatus']) == 1 and !in_array($user['affiliates'], $admin_ids)) {
                 sendmessage($user['affiliates'], $textbotlang['extracted']['index_php']['earned2Points'], null, 'html');
-                $scorenew = $user_Balance['score'] + 2;
+                $user_Balance = select("user", "*", "id", $user['affiliates'], "select");
+                $scorenew = intval($user_Balance['score']) + 2;
                 update("user", "score", $scorenew, "id", $user['affiliates']);
             }
-            update("user", "Balance", $Balance_prim, "id", $user['affiliates']);
-            $result_formatted = number_format($reward_amount);
-            $dateacc = date('Y/m/d H:i:s');
             
-            if (!$is_percentage) {
-                $textadd = sprintf($textbotlang['hardcoded']['affiliateCommissionPaidUser'], $result_formatted);
-                $textreportport = sprintf($textbotlang['hardcoded']['affiliateCommissionPaidLog'], $result_formatted, $user['affiliates'], $from_id, $dateacc);
-            } else {
-                $textadd = sprintf($textbotlang['hardcoded']['affiliateCommissionPaidUser2'], $result_formatted);
-                $textreportport = sprintf($textbotlang['hardcoded']['affiliateCommissionPaidLog2'], $result_formatted, $user['affiliates'], $from_id, $dateacc);
-            }
-
             if (strlen($setting['Channel_Report']) > 0) {
+                $result_formatted = number_format($reward_amount);
+                $dateacc = date('Y/m/d H:i:s');
+                $textreportport = sprintf($textbotlang['hardcoded']['affiliateCommissionPaidLog'], $result_formatted, $user['affiliates'], $from_id, $dateacc);
                 telegram('sendmessage', [
                     'chat_id' => $setting['Channel_Report'],
                     'message_thread_id' => $porsantreport,
@@ -4101,7 +4149,6 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
                     'parse_mode' => "HTML"
                 ]);
             }
-            sendmessage($user['affiliates'], $textadd, null, 'HTML');
         }
     }
     if (intval($setting['scorestatus']) == 1 and !in_array($from_id, $admin_ids)) {
@@ -5926,30 +5973,66 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
         }
     }
     $affiliatescommission = select("affiliates", "*", null, null, "select");
-    $sqlPanel = sprintf("SELECT COUNT(*) AS orders, SUM(price_product) AS total_price\n                 FROM invoice \n                 WHERE Status IN ('active', 'end_of_time', 'sendedwarn', 'send_on_hold') \n                 AND refral = '%s'\n                 AND name_product != '{$textbotlang['Admin']['adminphp']['db_test_service_name']}'", $from_id);
+    $sqlPanel = sprintf("SELECT COUNT(*) AS orders, SUM(price_product) AS total_price
+                 FROM invoice 
+                 WHERE Status IN ('active', 'end_of_time', 'sendedwarn', 'send_on_hold') 
+                 AND refral = '%s'
+                 AND name_product != '{$textbotlang['Admin']['adminphp']['db_test_service_name']}'", $from_id);
     $stmt = $pdo->prepare($sqlPanel);
     $stmt->execute();
     $inforefral = $stmt->fetch(PDO::FETCH_ASSOC);
-    $inforefral['total_price'] = ($inforefral['total_price'] * $setting['affiliatespercentage']) / 100;
+
+    // Fetch accurate affiliate data from user table
+    $stmt = $pdo->prepare("SELECT affiliate_balance, active_referrals_count FROM user WHERE id = :id");
+    $stmt->execute([':id' => $from_id]);
+    $affUser = $stmt->fetch(PDO::FETCH_ASSOC);
+    $affiliate_balance = $affUser['affiliate_balance'] ?? 0;
+    $active_referrals_count = $affUser['active_referrals_count'] ?? 0;
+
+    $tier_name = "برنزی 🥉";
+    $Percent_porsant = $setting['affiliatespercentage'];
+    if ($active_referrals_count >= intval($affiliatescommission['gold_threshold'])) {
+        $Percent_porsant = $affiliatescommission['gold_percentage'];
+        $tier_name = "طلایی 🥇";
+    } elseif ($active_referrals_count >= intval($affiliatescommission['silver_threshold'])) {
+        $Percent_porsant = $affiliatescommission['silver_percentage'];
+        $tier_name = "نقره‌ای 🥈";
+    }
+
     $keyboard_share = json_encode([
         'inline_keyboard' => [
             [
                 ['text' => $textbotlang['keyboard']['receiveMembershipGift'], 'callback_data' => "get_gift_start"],
                 ['text' => $textbotlang['keyboard']['shareLink'], 'url' => "https://t.me/share/url?url=https://t.me/$usernamebot?start=$from_id"],
             ],
+            [
+                ['text' => "📥 درخواست تسویه", 'callback_data' => "affiliate_withdraw"],
+                ['text' => "🔄 انتقال به کیف پول", 'callback_data' => "affiliate_transfer"],
+            ],
+            [
+                ['text' => "🖼 دریافت بنر اختصاصی من", 'callback_data' => "affiliate_banner"],
+            ]
         ]
     ]);
     $text_start = "";
     $text_porsant = "";
-    $Percent_porsant = $setting['affiliatespercentage'];
     $sum_order = number_format($inforefral['total_price'], 0);
+    $aff_balance_str = number_format($affiliate_balance, 0);
+
     if ($affiliatescommission['Discount'] == "onDiscountaffiliates") {
         $text_start = sprintf($textbotlang['hardcoded']['membershipGiftInfo'], $affiliatescommission['price_Discount']);
     }
     if ($affiliatescommission['status_commission'] == "oncommission") {
         $text_porsant = sprintf($textbotlang['hardcoded']['purchaseCommissionInfo'], $Percent_porsant);
     }
+    
+    // Override template slightly to inject new stats
     $textaffiliates = sprintf($textbotlang['hardcoded']['affiliateWelcomeGiftInfo'], $text_start, $text_porsant, $user['affiliatescount'], $inforefral['orders'], $sum_order);
+    
+    $textaffiliates .= "\n\n📊 **اطلاعات اختصاصی شما:**\n";
+    $textaffiliates .= "👥 زیرمجموعه‌های فعال: {$active_referrals_count} نفر\n";
+    $textaffiliates .= "💎 رتبه بازاریابی شما: {$tier_name} (پورسانت {$Percent_porsant}٪)\n";
+    $textaffiliates .= "💰 موجودی قابل برداشت: {$aff_balance_str} تومان\n";
 
     sendmessage($from_id, $textaffiliates, $keyboard_share, 'HTML');
 } elseif ($datain == "get_gift_start") {
@@ -5991,6 +6074,64 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
             'text' => $report_join_gift,
             'parse_mode' => "HTML"
         ]);
+    }
+} elseif ($datain == "affiliate_withdraw") {
+    $stmt = $pdo->prepare("SELECT affiliate_balance FROM user WHERE id = :id");
+    $stmt->execute([':id' => $from_id]);
+    $affiliate_balance = $stmt->fetchColumn() ?: 0;
+
+    if ($affiliate_balance < 50000) {
+        sendmessage($from_id, "❌ موجودی شما برای تسویه کافی نیست. (حداقل 50,000 تومان)", null, 'HTML');
+        return;
+    }
+    update("user", "step", "get_card_number_withdraw", "id", $from_id);
+    sendmessage($from_id, "💳 لطفا شماره کارت 16 رقمی خود را جهت واریز وجه ارسال کنید:\n\nبرای انصراف /start را ارسال کنید.", $backuser, 'HTML');
+
+} elseif ($datain == "affiliate_transfer") {
+    $stmt = $pdo->prepare("SELECT affiliate_balance FROM user WHERE id = :id");
+    $stmt->execute([':id' => $from_id]);
+    $affiliate_balance = $stmt->fetchColumn() ?: 0;
+
+    if ($affiliate_balance <= 0) {
+        sendmessage($from_id, "❌ موجودی بازاریابی شما صفر است.", null, 'HTML');
+        return;
+    }
+    update("user", "step", "get_transfer_amount", "id", $from_id);
+    $msg = "💰 موجودی قابل انتقال: " . number_format($affiliate_balance) . " تومان\n\n";
+    $msg .= "لطفا مبلغی که قصد انتقال به کیف پول ربات را دارید به تومان وارد کنید (فقط عدد انگلیسی):\n\n";
+    $msg .= "برای انصراف /start را ارسال کنید.";
+    sendmessage($from_id, $msg, $backuser, 'HTML');
+
+} elseif ($datain == "affiliate_banner") {
+    sendmessage($from_id, "⏳ در حال ساخت بنر اختصاصی شما... لطفا کمی صبر کنید.", null, 'HTML');
+    
+    // Call banner generator API
+    $banner_url = str_replace("index.php", "", $setting['URL_Bot']) . "api/banner_generator.php?user_id=" . $from_id;
+    
+    // Non-blocking request or fast cURL
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $banner_url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+    $response = curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($http_code == 200 && $response) {
+        $data = json_decode($response, true);
+        if (isset($data['success']) && $data['success']) {
+            $text_banner = "🚀 با استفاده از این بنر و لینک اختصاصی خود دوستانتان را دعوت کنید و تا ۵۰٪ پورسانت دریافت کنید!\n\nلینک شما:\n🔗 https://t.me/$usernamebot?start=$from_id";
+            telegram('sendPhoto', [
+                'chat_id' => $from_id,
+                'photo' => new CURLFile($data['banner_path']),
+                'caption' => $text_banner,
+                'parse_mode' => 'HTML'
+            ]);
+        } else {
+            sendmessage($from_id, "❌ خطا در ساخت بنر: " . ($data['error'] ?? 'خطای نامشخص'), null, 'HTML');
+        }
+    } else {
+        sendmessage($from_id, "❌ ارتباط با سرور ساخت بنر برقرار نشد.", null, 'HTML');
     }
 } elseif (preg_match('/Extra_volumes_(\w+)_(.*)/', $datain, $dataget)) {
     $usernamepanel = $dataget[1];
