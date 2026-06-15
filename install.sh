@@ -13,6 +13,11 @@ function self_update_script() {
     echo -e "\e[33mChecking for updates...\033[0m"
     wget -q -O "$TEMP_FILE" "$URL"
     if [ -s "$TEMP_FILE" ]; then
+        if ! bash -n "$TEMP_FILE"; then
+            echo -e "\e[91mError: Downloaded update file has syntax errors. Aborting update.\033[0m"
+            rm -f "$TEMP_FILE"
+            return 1
+        fi
         if [ -f "$MASTER_PATH" ]; then
             LOCAL_HASH=$(md5sum "$MASTER_PATH" | awk '{print $1}')
         else
@@ -114,29 +119,38 @@ function show_logo() {
 # Display Menu
 function show_menu() {
     show_logo
-    echo -e "\033[1;36m1)\033[0m Install Mirza Bot"
-    echo -e "\033[1;36m2)\033[0m Update Mirza Bot"
-    echo -e "\033[1;36m3)\033[0m Remove Mirza Bot"
-    # echo -e "\033[1;36m4)\033[0m Export Database"
-    # echo -e "\033[1;36m5)\033[0m Import Database"
-    # echo -e "\033[1;36m6)\033[0m Configure Automated Backup"
-    # echo -e "\033[1;36m7)\033[0m Renew SSL Certificates"
-    # echo -e "\033[1;36m8)\033[0m Change Domain"
-    # echo -e "\033[1;36m9)\033[0m Additional Bot Management"
-    echo -e "\033[1;36m10)\033[0m Migrate Free Old Version  to Free New Version (Beta)"
+    if [ -f "/var/www/html/mirzaprobotconfig/config.php" ]; then
+        echo -e "\033[1;36m1)\033[0m Reinstall/Fix Mirza Bot"
+        echo -e "\033[1;36m2)\033[0m Update Mirza Bot"
+        echo -e "\033[1;36m3)\033[0m Remove Mirza Bot"
+        echo -e "\033[1;36m4)\033[0m Export Database"
+        echo -e "\033[1;36m5)\033[0m Import Database"
+        echo -e "\033[1;36m6)\033[0m Configure Automated Backup"
+        echo -e "\033[1;36m7)\033[0m Renew SSL Certificates"
+        echo -e "\033[1;36m8)\033[0m Change Domain"
+    else
+        echo -e "\033[1;36m1)\033[0m Install Mirza Bot"
+        echo -e "\e[90m2) Update Mirza Bot (Not Installed)\033[0m"
+        echo -e "\e[90m3) Remove Mirza Bot (Not Installed)\033[0m"
+        echo -e "\e[90m4) Export Database (Not Installed)\033[0m"
+        echo -e "\e[90m5) Import Database (Not Installed)\033[0m"
+        echo -e "\e[90m6) Configure Automated Backup (Not Installed)\033[0m"
+        echo -e "\e[90m7) Renew SSL Certificates (Not Installed)\033[0m"
+        echo -e "\e[90m8) Change Domain (Not Installed)\033[0m"
+    fi
+    echo -e "\033[1;36m10)\033[0m Migrate Free Old Version to Free New Version (Beta)"
     echo -e "\033[1;36m11)\033[0m Exit"
     echo ""
-    read -p "Select an option [1-10]: " option
+    read -p "Select an option [1-11]: " option
     case $option in
         1) install_bot ;;
-        2) update_bot ;;
-        3) remove_bot ;;
-        # 4) export_database ;;
-        # 5) import_database ;;
-        # 6) auto_backup ;;
-        # 7) renew_ssl ;;
-        # 8) change_domain ;;
-        # 9) manage_additional_bots ;;
+        2) [ -f "/var/www/html/mirzaprobotconfig/config.php" ] && update_bot || { echo -e "\033[31mBot is not installed.\033[0m"; sleep 2; show_menu; } ;;
+        3) [ -f "/var/www/html/mirzaprobotconfig/config.php" ] && remove_bot || { echo -e "\033[31mBot is not installed.\033[0m"; sleep 2; show_menu; } ;;
+        4) [ -f "/var/www/html/mirzaprobotconfig/config.php" ] && export_database || { echo -e "\033[31mBot is not installed.\033[0m"; sleep 2; show_menu; } ;;
+        5) [ -f "/var/www/html/mirzaprobotconfig/config.php" ] && import_database || { echo -e "\033[31mBot is not installed.\033[0m"; sleep 2; show_menu; } ;;
+        6) [ -f "/var/www/html/mirzaprobotconfig/config.php" ] && auto_backup || { echo -e "\033[31mBot is not installed.\033[0m"; sleep 2; show_menu; } ;;
+        7) [ -f "/var/www/html/mirzaprobotconfig/config.php" ] && renew_ssl || { echo -e "\033[31mBot is not installed.\033[0m"; sleep 2; show_menu; } ;;
+        8) [ -f "/var/www/html/mirzaprobotconfig/config.php" ] && change_domain || { echo -e "\033[31mBot is not installed.\033[0m"; sleep 2; show_menu; } ;;
         10) migrate_to_pro ;;
         11)
             echo -e "\033[32mExiting...\033[0m"
@@ -148,6 +162,20 @@ function show_menu() {
             ;;
     esac
 }
+
+function renew_ssl() {
+    echo -e "\033[36mRenewing SSL Certificates...\033[0m"
+    sudo certbot renew --quiet
+    if [ $? -eq 0 ]; then
+        echo -e "\033[32mSSL Certificates renewed successfully.\033[0m"
+        sudo systemctl reload apache2
+    else
+        echo -e "\033[31mFailed to renew SSL Certificates.\033[0m"
+    fi
+    sleep 2
+    show_menu
+}
+
 # Check if Marzban is installed
 function check_marzban_installed() {
     if [ -f "/opt/marzban/docker-compose.yml" ]; then
@@ -229,6 +257,12 @@ EOF
 }
 # Install Function for Mirza Pro
 function install_bot() {
+    # Check OS
+    if ! grep -qi "ubuntu" /etc/os-release 2>/dev/null; then
+        echo -e "\033[33mWarning: This script is heavily optimized for Ubuntu. Your OS may not be fully supported and installation may fail.\033[0m"
+        sleep 2
+    fi
+
     echo -e "\e[32mInstalling Mirza Pro script ... \033[0m\n"
     # Check if Marzban is installed and redirect to appropriate function
     if check_marzban_installed; then
@@ -461,21 +495,10 @@ function install_bot() {
         sleep 1
         passs=$(cat /root/confmirza/dbrootmirza.txt | grep '$pass' | cut -d"'" -f2)
         userrr=$(cat /root/confmirza/dbrootmirza.txt | grep '$user' | cut -d"'" -f2)
-        sudo mysql -u $userrr -p$passs -e "alter user '$userrr'@'localhost' identified with mysql_native_password by '$passs';FLUSH PRIVILEGES;" || {
+        sudo mysql -u $userrr -p$passs -e "alter user '$userrr'@'localhost' identified by '$passs';FLUSH PRIVILEGES;" || {
             echo -e "\e[91mError: Failed to alter MySQL user. Attempting recovery...\033[0m"
-            # Enable skip-grant-tables at the end of the file
-            sudo sed -i '$ a skip-grant-tables' /etc/mysql/mysql.conf.d/mysqld.cnf
-            sudo systemctl restart mysql
-            # Access MySQL to reset the root user
-            sudo mysql <<EOF
-DROP USER IF EXISTS 'root'@'localhost';
-CREATE USER 'root'@'localhost' IDENTIFIED BY '${passs}';
-GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' WITH GRANT OPTION;
-FLUSH PRIVILEGES;
-EOF
-            # Disable skip-grant-tables
-            sudo sed -i '/skip-grant-tables/d' /etc/mysql/mysql.conf.d/mysqld.cnf
-            sudo systemctl restart mysql
+            # Direct root reset via ALTER USER (safe)
+            sudo mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '${passs}'; FLUSH PRIVILEGES;"
             # Retry MySQL login with the new credentials
             echo "SELECT 1" | mysql -u$userrr -p$passs 2>/dev/null || {
                 echo -e "\e[91mError: Recovery failed. MySQL login still not working.\033[0m"
@@ -530,10 +553,7 @@ EOF
         echo -e "\e[91mError: Failed to install python3-certbot-apache.\033[0m"
         exit 1
     }
-    sudo certbot --apache --agree-tos --preferred-challenges http -d $DOMAIN_NAME || {
-        echo -e "\e[91mError: Failed to configure SSL with Certbot.\033[0m"
-        exit 1
-    }
+    # Removed redundant certbot --apache call since standalone already obtained the cert
     echo " "
     echo -e "\033[33mEnable apache2\033[0m"
     wait
@@ -604,11 +624,10 @@ EOF
     sudo rm -f /etc/apache2/sites-enabled/000-default-le-ssl.conf
     sudo rm -f /etc/apache2/sites-enabled/default-ssl.conf
 
-    # 3. Remove original files in sites-available (Optional but requested)
-    # This ensures they can never be enabled again by mistake
-    sudo rm -f /etc/apache2/sites-available/000-default.conf
-    sudo rm -f /etc/apache2/sites-available/000-default-le-ssl.conf
-    sudo rm -f /etc/apache2/sites-available/default-ssl.conf
+    # 3. We skip removing original files in sites-available to prevent breaking other apps.
+    # sudo rm -f /etc/apache2/sites-available/000-default.conf
+    # sudo rm -f /etc/apache2/sites-available/000-default-le-ssl.conf
+    # sudo rm -f /etc/apache2/sites-available/default-ssl.conf
     sleep 3 
 
     # Enable SSL module
@@ -678,9 +697,9 @@ EOF
             # Create Database
             mysql -u root -p$ROOT_PASSWORD -e "CREATE DATABASE IF NOT EXISTS $dbname;"
             # Create User (Remote Access) with restricted privileges
-            mysql -u root -p$ROOT_PASSWORD -e "CREATE USER IF NOT EXISTS '$dbuser'@'%' IDENTIFIED WITH mysql_native_password BY '$dbpass'; GRANT ALL PRIVILEGES ON $dbname.* TO '$dbuser'@'%'; FLUSH PRIVILEGES;"
+            mysql -u root -p$ROOT_PASSWORD -e "CREATE USER IF NOT EXISTS '$dbuser'@'%' IDENTIFIED BY '$dbpass'; GRANT ALL PRIVILEGES ON $dbname.* TO '$dbuser'@'%'; FLUSH PRIVILEGES;"
             # Create User (Local Access) with restricted privileges
-            mysql -u root -p$ROOT_PASSWORD -e "CREATE USER IF NOT EXISTS '$dbuser'@'localhost' IDENTIFIED WITH mysql_native_password BY '$dbpass'; GRANT ALL PRIVILEGES ON $dbname.* TO '$dbuser'@'localhost'; FLUSH PRIVILEGES;" || {
+            mysql -u root -p$ROOT_PASSWORD -e "CREATE USER IF NOT EXISTS '$dbuser'@'localhost' IDENTIFIED BY '$dbpass'; GRANT ALL PRIVILEGES ON $dbname.* TO '$dbuser'@'localhost'; FLUSH PRIVILEGES;" || {
                 echo -e "\e[91mError: Failed to create database or user.\033[0m"
                 exit 1
             }
@@ -768,482 +787,482 @@ EOF
     # Trigger self-update to ensure next run uses latest
     self_update_script
 }
-# function install_bot_with_marzban() {
-#     # Display warning and confirmation
-#     echo -e "\033[41m[IMPORTANT WARNING]\033[0m \033[1;33mMarzban panel is detected on your server. Please make sure to backup the Marzban database before installing Mirza Bot.\033[0m"
-#     read -p "Are you sure you want to install Mirza Bot alongside Marzban? (y/n): " confirm
-#     if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
-#         echo -e "\e[91mInstallation aborted by user.\033[0m"
-#         exit 0
-#     fi
-#     # Check database type
-#     echo -e "\e[32mChecking Marzban database type...\033[0m"
-#     DB_TYPE=$(detect_database_type)
-#     if [ "$DB_TYPE" != "mysql" ]; then
-#         echo -e "\e[91mError: Your database is $DB_TYPE. To install Mirza Bot, you must use MySQL.\033[0m"
-#         echo -e "\e[93mPlease configure Marzban to use MySQL and try again.\033[0m"
-#         exit 1
-#     fi
-#     echo -e "\e[92mMySQL detected. Proceeding with installation...\033[0m"
-#     # Check if port 80 is free before proceeding
-#     echo -e "\e[32mChecking port availability...\033[0m"
-#     if sudo ss -tuln | grep -q ":80 "; then
-#         echo -e "\e[91mError: Port 80 is already in use. Please free port 80 and run the script again.\033[0m"
-#         exit 1
-#     fi
-#     if sudo ss -tuln | grep -q ":88 "; then
-#         echo -e "\e[91mError: Port 88 is already in use. Please free port 88 and run the script again.\033[0m"
-#         exit 1
-#     fi
-#     echo -e "\e[92mPorts 80 and 88 are free. Proceeding with installation...\033[0m"
-#     # Try normal update/upgrade first
-#     if ! (sudo apt update && sudo apt upgrade -y); then
-#         echo -e "\e[93mUpdate/upgrade failed. Attempting to fix using alternative mirrors...\033[0m"
-#         if fix_update_issues; then
-#             # Try update/upgrade again after fixing mirrors
-#             if sudo apt update && sudo apt upgrade -y; then
-#                 echo -e "\e[92mSystem updated successfully after fixing mirrors...\033[0m\n"
-#             else
-#                 echo -e "\e[91mError: Failed to update even after trying alternative mirrors.\033[0m"
-#                 exit 1
-#             fi
-#         else
-#             echo -e "\e[91mError: Failed to update/upgrade system and mirror fix failed.\033[0m"
-#             exit 1
-#         fi
-#     else
-#         echo -e "\e[92mSystem updated successfully...\033[0m\n"
-#     fi
-#     sudo apt-get install software-properties-common || {
-#         echo -e "\e[91mError: Failed to install software-properties-common.\033[0m"
-#         exit 1
-#     }
-#     # Install MySQL client if not already installed
-#     echo -e "\e[32mChecking and installing MySQL client...\033[0m"
-#     if ! command -v mysql &>/dev/null; then
-#         sudo apt install -y mysql-client || {
-#             echo -e "\e[91mError: Failed to install MySQL client. Please install it manually and try again.\033[0m"
-#             exit 1
-#         }
-#         echo -e "\e[92mMySQL client installed successfully.\033[0m"
-#     else
-#         echo -e "\e[92mMySQL client is already installed.\033[0m"
-#     fi
-#     # Add Ondřej Surý PPA for PHP 8.2
-#     sudo apt install -y software-properties-common || {
-#         echo -e "\e[91mError: Failed to install software-properties-common.\033[0m"
-#         exit 1
-#     }
-#     sudo add-apt-repository -y ppa:ondrej/php || {
-#         echo -e "\e[91mError: Failed to add PPA ondrej/php. Trying with locale override...\033[0m"
-#         sudo LC_ALL=C.UTF-8 add-apt-repository -y ppa:ondrej/php || {
-#             echo -e "\e[91mError: Failed to add PPA even with locale override.\033[0m"
-#             exit 1
-#         }
-#     }
-#     sudo apt update || {
-#         echo -e "\e[91mError: Failed to update package list after adding PPA.\033[0m"
-#         exit 1
-#     }
-#     # Install all required packages
-#     sudo apt install -y git unzip curl wget jq || {
-#         echo -e "\e[91mError: Failed to install basic tools.\033[0m"
-#         exit 1
-#     }
-#     # Install Apache if not installed
-#     if ! dpkg -s apache2 &>/dev/null; then
-#         sudo apt install -y apache2 || {
-#             echo -e "\e[91mError: Failed to install Apache2.\033[0m"
-#             exit 1
-#         }
-#     fi
-#     # Install PHP 8.2 and all necessary modules (including PDO)
-#     DEBIAN_FRONTEND=noninteractive sudo apt install -y php8.2 php8.2-fpm php8.2-mysql php8.2-mbstring php8.2-zip php8.2-gd php8.2-curl php8.2-soap php8.2-ssh2 libssh2-1-dev libssh2-1 php8.2-pdo || {
-#         echo -e "\e[91mError: Failed to install PHP 8.2 and modules.\033[0m"
-#         exit 1
-#     }
-#     # Install additional Apache module
-#     sudo apt install -y libapache2-mod-php8.2 || {
-#         echo -e "\e[91mError: Failed to install libapache2-mod-php8.2.\033[0m"
-#         exit 1
-#     }
-#     sudo apt install -y python3-certbot-apache || {
-#         echo -e "\e[91mError: Failed to install Certbot for Apache.\033[0m"
-#         exit 1
-#     }
-#     sudo systemctl enable certbot.timer || {
-#         echo -e "\e[91mError: Failed to enable certbot timer.\033[0m"
-#         exit 1
-#     }
-#     # Install UFW if not present
-#     if ! dpkg -s ufw &>/dev/null; then
-#         sudo apt install -y ufw || {
-#             echo -e "\e[91mError: Failed to install UFW.\033[0m"
-#             exit 1
-#         }
-#     fi
-#     # Check Marzban and use its MySQL (Docker-based)
-#     ENV_FILE="/opt/marzban/.env"
-#     if [ ! -f "$ENV_FILE" ]; then
-#         echo -e "\e[91mError: Marzban .env file not found. Cannot proceed without Marzban configuration.\033[0m"
-#         exit 1
-#     fi
-#     # Get MySQL root password from .env
-#     MYSQL_ROOT_PASSWORD=$(grep "MYSQL_ROOT_PASSWORD=" "$ENV_FILE" | cut -d'=' -f2 | tr -d '[:space:]' | sed 's/"//g')
-#     ROOT_USER="root"
-#     # Check if MYSQL_ROOT_PASSWORD is empty or invalid
-#     if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
-#         echo -e "\e[93mWarning: Could not retrieve MySQL root password from Marzban .env file.\033[0m"
-#         read -s -p "Please enter the MySQL root password manually: " MYSQL_ROOT_PASSWORD
-#         echo
-#     fi
-#     # Dynamically find the MySQL container
-#     MYSQL_CONTAINER=$(docker ps -q --filter "name=mysql" --no-trunc)
-#     if [ -z "$MYSQL_CONTAINER" ]; then
-#         echo -e "\e[91mError: Could not find a running MySQL container. Ensure Marzban is running with Docker.\033[0m"
-#         echo -e "\e[93mRunning containers:\033[0m"
-#         docker ps
-#         exit 1
-#     fi
-#     echo "Testing MySQL connection..."
-#     # Read MySQL root password from .env
-#     if [ -f "/opt/marzban/.env" ]; then
-#         MYSQL_ROOT_PASSWORD=$(grep -E '^MYSQL_ROOT_PASSWORD=' /opt/marzban/.env | cut -d '=' -f2- | tr -d '" \n\r')
-#         if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
-#             echo -e "\e[93mWarning: MYSQL_ROOT_PASSWORD not found in .env. Please enter it manually.\033[0m"
-#             read -s -p "Enter MySQL root password: " MYSQL_ROOT_PASSWORD
-#             echo
-#         fi
-#     else
-#         echo -e "\e[93mWarning: .env file not found. Please enter MySQL root password manually.\033[0m"
-#         read -s -p "Enter MySQL root password: " MYSQL_ROOT_PASSWORD
-#         echo
-#     fi
-#     ROOT_USER="root"
-#     echo -e "\e[32mUsing MySQL container: $(docker inspect -f '{{.Name}}' "$MYSQL_CONTAINER" | cut -c2-)\033[0m"
-#     # Try connecting directly to host first (for mysql:latest with network_mode: host)
-#     mysql -u "$ROOT_USER" -p"$MYSQL_ROOT_PASSWORD" -h 127.0.0.1 -P 3306 -e "SELECT 1;" 2>/tmp/mysql_error.log
-#     if [ $? -eq 0 ]; then
-#         echo -e "\e[92mMySQL connection successful (direct host method).\033[0m"
-#     else
-#         # If direct connection fails, try inside container (for mysql:lts)
-#         if [ -n "$MYSQL_CONTAINER" ]; then
-#             echo -e "\e[93mDirect connection failed, trying inside container...\033[0m"
-#             docker exec "$MYSQL_CONTAINER" bash -c "echo 'SELECT 1;' | mysql -u '$ROOT_USER' -p'$MYSQL_ROOT_PASSWORD'" 2>/tmp/mysql_error.log
-#             if [ $? -eq 0 ]; then
-#                 echo -e "\e[92mMySQL connection successful (container method).\033[0m"
-#             else
-#                 echo -e "\e[91mError: Failed to connect to MySQL using both methods.\033[0m"
-#                 echo -e "\e[93mPassword used: '$MYSQL_ROOT_PASSWORD'\033[0m"
-#                 echo -e "\e[93mError details:\033[0m"
-#                 cat /tmp/mysql_error.log
-#                 echo -e "\e[93mPlease ensure MySQL is running and the root password is correct.\033[0m"
-#                 read -s -p "Enter the correct MySQL root password: " NEW_PASSWORD
-#                 echo
-#                 MYSQL_ROOT_PASSWORD="$NEW_PASSWORD"
-#                 # Retry with new password (direct method first)
-#                 mysql -u "$ROOT_USER" -p"$MYSQL_ROOT_PASSWORD" -h 127.0.0.1 -P 3306 -e "SELECT 1;" 2>/tmp/mysql_error.log || {
-#                     docker exec "$MYSQL_CONTAINER" bash -c "echo 'SELECT 1;' | mysql -u '$ROOT_USER' -p'$MYSQL_ROOT_PASSWORD'" 2>/tmp/mysql_error.log || {
-#                         echo -e "\e[91mError: Still can't connect with new password.\033[0m"
-#                         echo -e "\e[93mError details:\033[0m"
-#                         cat /tmp/mysql_error.log
-#                         exit 1
-#                     }
-#                 }
-#                 echo -e "\e[92mMySQL connection successful with new password.\033[0m"
-#             fi
-#         else
-#             echo -e "\e[91mError: No MySQL container found and direct connection failed.\033[0m"
-#             echo -e "\e[93mPassword used: '$MYSQL_ROOT_PASSWORD'\033[0m"
-#             echo -e "\e[93mError details:\033[0m"
-#             cat /tmp/mysql_error.log
-#             exit 1
-#         fi
-#     fi
-#     # Ask for database username and password like Marzban
-#     clear
-#     echo -e "\e[33mConfiguring Mirza Bot database credentials...\033[0m"
-#     default_dbuser=$(openssl rand -base64 12 | tr -dc 'a-zA-Z' | head -c8)
-#     printf "\e[33m[+] \e[36mDatabase username (default: $default_dbuser): \033[0m"
-#     read dbuser
-#     if [ -z "$dbuser" ]; then
-#         dbuser="$default_dbuser"
-#     fi
-#     default_dbpass=$(openssl rand -base64 12 | tr -dc 'a-zA-Z0-9' | head -c12)
-#     printf "\e[33m[+] \e[36mDatabase password (default: $default_dbpass): \033[0m"
-#     read -s dbpass
-#     echo
-#     if [ -z "$dbpass" ]; then
-#         dbpass="$default_dbpass"
-#     fi
-#     dbname="mirzabot"
-#     # Create database and user inside Docker container
-#     docker exec "$MYSQL_CONTAINER" bash -c "mysql -u '$ROOT_USER' -p'$MYSQL_ROOT_PASSWORD' -e \"CREATE DATABASE IF NOT EXISTS $dbname; CREATE USER IF NOT EXISTS '$dbuser'@'%' IDENTIFIED BY '$dbpass'; GRANT ALL PRIVILEGES ON $dbname.* TO '$dbuser'@'%'; FLUSH PRIVILEGES;\"" || {
-#         echo -e "\e[91mError: Failed to create database or user in Marzban MySQL container.\033[0m"
-#         exit 1
-#     }
-#     echo -e "\e[92mDatabase '$dbname' created successfully.\033[0m"
-#     # Bot directory setup
-#     BOT_DIR="/var/www/html/mirzabotconfig"
-#     if [ -d "$BOT_DIR" ]; then
-#         echo -e "\e[93mDirectory $BOT_DIR already exists. Removing...\033[0m"
-#         sudo rm -rf "$BOT_DIR" || {
-#             echo -e "\e[91mError: Failed to remove existing directory $BOT_DIR.\033[0m"
-#             exit 1
-#         }
-#     fi
-#     sudo mkdir -p "$BOT_DIR" || {
-#         echo -e "\e[91mError: Failed to create directory $BOT_DIR.\033[0m"
-#         exit 1
-#     }
-#     # Download bot files
-#     ZIP_URL=$(curl -s https://api.github.com/repos/MasterALiReza/mirzabot/releases/latest | grep "zipball_url" | cut -d '"' -f 4)
-#     if [[ "$1" == "-v" && "$2" == "beta" ]] || [[ "$1" == "-beta" ]] || [[ "$1" == "-" && "$2" == "beta" ]]; then
-#         ZIP_URL="https://github.com/MasterALiReza/mirzabot/archive/refs/heads/main.zip"
-#     elif [[ "$1" == "-v" && -n "$2" ]]; then
-#         ZIP_URL="https://github.com/MasterALiReza/mirzabot/archive/refs/tags/$2.zip"
-#     fi
-#     TEMP_DIR="/tmp/mirzabot"
-#     mkdir -p "$TEMP_DIR"
-#     wget -O "$TEMP_DIR/bot.zip" "$ZIP_URL" || {
-#         echo -e "\e[91mError: Failed to download bot files.\033[0m"
-#         exit 1
-#     }
-#     unzip "$TEMP_DIR/bot.zip" -d "$TEMP_DIR" || {
-#         echo -e "\e[91mError: Failed to unzip bot files.\033[0m"
-#         exit 1
-#     }
-#     EXTRACTED_DIR=$(find "$TEMP_DIR" -mindepth 1 -maxdepth 1 -type d)
-#     mv "$EXTRACTED_DIR"/* "$BOT_DIR" || {
-#         echo -e "\e[91mError: Failed to move bot files.\033[0m"
-#         exit 1
-#     }
-#     rm -rf "$TEMP_DIR"
-#     sudo chown -R www-data:www-data "$BOT_DIR"
-#     sudo chmod -R 755 "$BOT_DIR"
-#     echo -e "\e[92mBot files installed in $BOT_DIR.\033[0m"
-#     sleep 3
-#     clear
-#     # Configure Apache to use port 80 temporarily and 88 for HTTPS
-#     echo -e "\e[32mConfiguring Apache ports...\033[0m"
-#     sudo bash -c "echo -n > /etc/apache2/ports.conf"  # Clear the file
-#     cat <<EOF | sudo tee /etc/apache2/ports.conf
-# # If you just change the port or add more ports here, you will likely also
-# # have to change the VirtualHost statement in
-# # /etc/apache2/sites-enabled/000-default.conf
-# Listen 80
-# Listen 88
-# # vim: syntax=apache ts=4 sw=4 sts=4 sr noet
-# EOF
-#     if [ $? -ne 0 ]; then
-#         echo -e "\e[91mError: Failed to configure ports.conf.\033[0m"
-#         exit 1
-#     fi
-#     # Clear and configure VirtualHost for port 80
-#     sudo bash -c "echo -n > /etc/apache2/sites-available/000-default.conf"  # Clear the file
-#     cat <<EOF | sudo tee /etc/apache2/sites-available/000-default.conf
-# <VirtualHost *:80>
-#     ServerAdmin webmaster@localhost
-#     DocumentRoot /var/www/html
-#     ErrorLog \${APACHE_LOG_DIR}/error.log
-#     CustomLog \${APACHE_LOG_DIR}/access.log combined
-# </VirtualHost>
-# # vim: syntax=apache ts=4 sw=4 sts=4 sr noet
-# EOF
-#     if [ $? -ne 0 ]; then
-#         echo -e "\e[91mError: Failed to configure 000-default.conf.\033[0m"
-#         exit 1
-#     fi
-#     # Enable Apache and apply port changes
-#     sudo systemctl enable apache2 || {
-#         echo -e "\e[91mError: Failed to enable Apache2.\033[0m"
-#         exit 1
-#     }
-#     sudo systemctl restart apache2 || {
-#         echo -e "\e[91mError: Failed to restart Apache2.\033[0m"
-#         exit 1
-#     }
-#     # SSL setup on port 88
-#     echo -e "\e[32mConfiguring SSL on port 88...\033[0m\n"
-#     sudo ufw allow 80 || {
-#         echo -e "\e[91mError: Failed to configure firewall for port 80.\033[0m"
-#         exit 1
-#     }
-#     sudo ufw allow 88 || {
-#         echo -e "\e[91mError: Failed to configure firewall for port 88.\033[0m"
-#         exit 1
-#     }
-#     clear
-#     printf "\e[33m[+] \e[36mEnter the domain (e.g., example.com): \033[0m"
-#     read domainname
-#     while [[ ! "$domainname" =~ ^[a-zA-Z0-9.-]+$ ]]; do
-#         echo -e "\e[91mInvalid domain format. Must be like 'example.com'. Please try again.\033[0m"
-#         printf "\e[33m[+] \e[36mEnter the domain (e.g., example.com): \033[0m"
-#         read domainname
-#     done
-#     DOMAIN_NAME="$domainname"
-#     echo -e "\e[92mDomain set to: $DOMAIN_NAME\033[0m"
-#     sudo systemctl restart apache2 || {
-#         echo -e "\e[91mError: Failed to restart Apache2 before Certbot.\033[0m"
-#         exit 1
-#     }
-#     sudo certbot --apache --agree-tos --preferred-challenges http -d "$DOMAIN_NAME" --https-port 88 --no-redirect || {
-#         echo -e "\e[91mError: Failed to configure SSL with Certbot on port 88.\033[0m"
-#         exit 1
-#     }
-#     # Ensure SSL VirtualHost uses port 88 with correct settings
-#     sudo bash -c "echo -n > /etc/apache2/sites-available/000-default-le-ssl.conf"  # Clear any existing file
-#     cat <<EOF | sudo tee /etc/apache2/sites-available/000-default-le-ssl.conf
-# <IfModule mod_ssl.c>
-# <VirtualHost *:88>
-#     ServerAdmin webmaster@localhost
-#     ServerName $DOMAIN_NAME
-#     DocumentRoot /var/www/html
-#     ErrorLog \${APACHE_LOG_DIR}/error.log
-#     CustomLog \${APACHE_LOG_DIR}/access.log combined
-#     SSLEngine on
-#     SSLCertificateFile /etc/letsencrypt/live/$DOMAIN_NAME/fullchain.pem
-#     SSLCertificateKeyFile /etc/letsencrypt/live/$DOMAIN_NAME/privkey.pem
-#     SSLProtocol all -SSLv2 -SSLv3 -TLSv1 -TLSv1.1
-#     SSLCipherSuite HIGH:!aNULL:!MD5
-# </VirtualHost>
-# </IfModule>
-# EOF
-#     if [ $? -ne 0 ]; then
-#         echo -e "\e[91mError: Failed to create SSL VirtualHost configuration.\033[0m"
-#         exit 1
-#     fi
-#     sudo a2enmod ssl || {
-#         echo -e "\e[91mError: Failed to enable SSL module.\033[0m"
-#         exit 1
-#     }
-#     sudo a2ensite 000-default-le-ssl.conf || {
-#         echo -e "\e[91mError: Failed to enable SSL site.\033[0m"
-#         exit 1
-#     }
-#     # Force ports.conf to only listen on 88 before restarting Apache
-#     sudo bash -c "echo -n > /etc/apache2/ports.conf"
-#     cat <<EOF | sudo tee /etc/apache2/ports.conf
-# Listen 88
-# EOF
-#     sudo apache2ctl configtest || {
-#         echo -e "\e[91mError: Apache configuration test failed after Certbot.\033[0m"
-#         exit 1
-#     }
-#     sudo systemctl restart apache2 || {
-#         echo -e "\e[91mError: Failed to restart Apache2 after SSL configuration.\033[0m"
-#         systemctl status apache2.service
-#         exit 1
-#     }
-#     # Disable port 80 after SSL is configured
-#     echo -e "\e[32mDisabling port 80 as it's no longer needed...\033[0m"
-#     # Ports.conf already set to Listen 88 in previous step, just verify
-#     sudo a2dissite 000-default.conf || {
-#         echo -e "\e[91mError: Failed to disable port 80 VirtualHost.\033[0m"
-#         exit 1
-#     }
-#     sudo ufw delete allow 80 || {
-#         echo -e "\e[91mError: Failed to remove port 80 from firewall.\033[0m"
-#         exit 1
-#     }
-#     sudo apache2ctl configtest || {
-#         echo -e "\e[91mError: Apache configuration test failed.\033[0m"
-#         exit 1
-#     }
-#     sudo systemctl restart apache2 || {
-#         echo -e "\e[91mError: Failed to restart Apache2 after disabling port 80.\033[0m"
-#         systemctl status apache2.service
-#         exit 1
-#     }
-#     echo -e "\e[92mSSL configured successfully on port 88. Port 80 disabled.\033[0m"
-#     sleep 3
-#     clear
-#     # Bot token, chat ID, and username
-#     printf "\e[33m[+] \e[36mBot Token: \033[0m"
-#     read YOUR_BOT_TOKEN
-#     while [[ ! "$YOUR_BOT_TOKEN" =~ ^[0-9]{8,10}:[a-zA-Z0-9_-]{35}$ ]]; do
-#         echo -e "\e[91mInvalid bot token format. Please try again.\033[0m"
-#         printf "\e[33m[+] \e[36mBot Token: \033[0m"
-#         read YOUR_BOT_TOKEN
-#     done
-#     printf "\e[33m[+] \e[36mChat id: \033[0m"
-#     read YOUR_CHAT_ID
-#     while [[ ! "$YOUR_CHAT_ID" =~ ^-?[0-9]+$ ]]; do
-#         echo -e "\e[91mInvalid chat ID format. Please try again.\033[0m"
-#         printf "\e[33m[+] \e[36mChat id: \033[0m"
-#         read YOUR_CHAT_ID
-#     done
-#     YOUR_DOMAIN="$DOMAIN_NAME:88"  # Use port 88 for HTTPS
-#     printf "\e[33m[+] \e[36mUsernamebot: \033[0m"
-#     read YOUR_BOTNAME
-#     while [ -z "$YOUR_BOTNAME" ]; do
-#         echo -e "\e[91mError: Bot username cannot be empty.\033[0m"
-#         printf "\e[33m[+] \e[36mUsernamebot: \033[0m"
-#         read YOUR_BOTNAME
-#     done
-#     # Create config file with correct MySQL host and PDO
-#     ASAS="$"
-#     secrettoken=$(openssl rand -base64 10 | tr -dc 'a-zA-Z0-9' | cut -c1-8)
-#     cat <<EOF > "$BOT_DIR/config.php"
-# <?php
-# \$APIKEY = '$YOUR_BOT_TOKEN';
-# \$usernamedb = '$dbuser';
-# \$passworddb = '$dbpass';
-# \$dbname = '$dbname';
-# \$domainhosts = '$YOUR_DOMAIN/mirzabotconfig';
-# \$adminnumber = '$YOUR_CHAT_ID';
-# \$usernamebot = '$YOUR_BOTNAME';
-# \$secrettoken = '$secrettoken';
-# \$connect = mysqli_connect('127.0.0.1', \$usernamedb, \$passworddb, \$dbname);
-# if (\$connect->connect_error) {
-#     die('Database connection failed: ' . \$connect->connect_error);
-# }
-# mysqli_set_charset(\$connect, 'utf8mb4');
-# \$options = [
-#     PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-#     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-#     PDO::ATTR_EMULATE_PREPARES   => false,
-# ];
-# \$dsn = "mysql:host=127.0.0.1;port=3306;dbname=\$dbname;charset=utf8mb4";
-# try {
-#     \$pdo = new PDO(\$dsn, \$usernamedb, \$passworddb, \$options);
-# } catch (\PDOException \$e) {
-#     die('PDO Connection failed: ' . \$e->getMessage());
-# }
-# ?>
-# EOF
-#     # Set webhook with port 88
-#     curl -F "url=https://${YOUR_DOMAIN}/mirzabotconfig/index.php" \
-#          -F "secret_token=${secrettoken}" \
-#          "https://api.telegram.org/bot${YOUR_BOT_TOKEN}/setWebhook" || {
-#         echo -e "\e[91mError: Failed to set webhook.\033[0m"
-#         exit 1
-#     }
-#     # Send confirmation message
-#     MESSAGE="✅ The bot is installed! for start bot send comment /start"
-#     curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" -d chat_id="${CHAT_ID}" -d text="$MESSAGE" || {
-#         echo -e "\033[31mError: Failed to send message to Telegram.\033[0m"
-#         return 1
-#     }
-#     # Execute table creation script
-#     TABLE_SETUP_URL="https://${YOUR_DOMAIN}/mirzabotconfig/table.php"
-#     echo -e "\033[33mSetting up database tables...\033[0m"
-#     curl $TABLE_SETUP_URL || {
-#         echo -e "\033[31mError: Failed to execute table creation script at $TABLE_SETUP_URL.\033[0m"
-#         return 1
-#     }
-#     # Output Bot Information
-#     echo -e "\033[32mBot installed successfully!\033[0m"
-#     echo -e "\033[102mDomain Bot: https://$DOMAIN_NAME\033[0m"
-#     echo -e "\033[104mDatabase address: https://$DOMAIN_NAME/phpmyadmin\033[0m"
-#     echo -e "\033[33mDatabase name: \033[36m$DB_NAME\033[0m"
-#     echo -e "\033[33mDatabase username: \033[36m$DB_USERNAME\033[0m"
-#     echo -e "\033[33mDatabase password: \033[36m$DB_PASSWORD\033[0m"
-#     # Add executable permission and link
-#     chmod +x /root/install.sh
-#     ln -vs /root/install.sh /usr/local/bin/mirza
-# }
-# Update Function for Mirza Pro
+function install_bot_with_marzban() {
+    # Display warning and confirmation
+    echo -e "\033[41m[IMPORTANT WARNING]\033[0m \033[1;33mMarzban panel is detected on your server. Please make sure to backup the Marzban database before installing Mirza Bot.\033[0m"
+    read -p "Are you sure you want to install Mirza Bot alongside Marzban? (y/n): " confirm
+    if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
+        echo -e "\e[91mInstallation aborted by user.\033[0m"
+        exit 0
+    fi
+    # Check database type
+    echo -e "\e[32mChecking Marzban database type...\033[0m"
+    DB_TYPE=$(detect_database_type)
+    if [ "$DB_TYPE" != "mysql" ]; then
+        echo -e "\e[91mError: Your database is $DB_TYPE. To install Mirza Bot, you must use MySQL.\033[0m"
+        echo -e "\e[93mPlease configure Marzban to use MySQL and try again.\033[0m"
+        exit 1
+    fi
+    echo -e "\e[92mMySQL detected. Proceeding with installation...\033[0m"
+    # Check if port 80 is free before proceeding
+    echo -e "\e[32mChecking port availability...\033[0m"
+    if sudo ss -tuln | grep -q ":80 "; then
+        echo -e "\e[91mError: Port 80 is already in use. Please free port 80 and run the script again.\033[0m"
+        exit 1
+    fi
+    if sudo ss -tuln | grep -q ":88 "; then
+        echo -e "\e[91mError: Port 88 is already in use. Please free port 88 and run the script again.\033[0m"
+        exit 1
+    fi
+    echo -e "\e[92mPorts 80 and 88 are free. Proceeding with installation...\033[0m"
+    # Try normal update/upgrade first
+    if ! (sudo apt update && sudo apt upgrade -y); then
+        echo -e "\e[93mUpdate/upgrade failed. Attempting to fix using alternative mirrors...\033[0m"
+        if fix_update_issues; then
+            # Try update/upgrade again after fixing mirrors
+            if sudo apt update && sudo apt upgrade -y; then
+                echo -e "\e[92mSystem updated successfully after fixing mirrors...\033[0m\n"
+            else
+                echo -e "\e[91mError: Failed to update even after trying alternative mirrors.\033[0m"
+                exit 1
+            fi
+        else
+            echo -e "\e[91mError: Failed to update/upgrade system and mirror fix failed.\033[0m"
+            exit 1
+        fi
+    else
+        echo -e "\e[92mSystem updated successfully...\033[0m\n"
+    fi
+    sudo apt-get install software-properties-common || {
+        echo -e "\e[91mError: Failed to install software-properties-common.\033[0m"
+        exit 1
+    }
+    # Install MySQL client if not already installed
+    echo -e "\e[32mChecking and installing MySQL client...\033[0m"
+    if ! command -v mysql &>/dev/null; then
+        sudo apt install -y mysql-client || {
+            echo -e "\e[91mError: Failed to install MySQL client. Please install it manually and try again.\033[0m"
+            exit 1
+        }
+        echo -e "\e[92mMySQL client installed successfully.\033[0m"
+    else
+        echo -e "\e[92mMySQL client is already installed.\033[0m"
+    fi
+    # Add Ondřej Surý PPA for PHP 8.2
+    sudo apt install -y software-properties-common || {
+        echo -e "\e[91mError: Failed to install software-properties-common.\033[0m"
+        exit 1
+    }
+    sudo add-apt-repository -y ppa:ondrej/php || {
+        echo -e "\e[91mError: Failed to add PPA ondrej/php. Trying with locale override...\033[0m"
+        sudo LC_ALL=C.UTF-8 add-apt-repository -y ppa:ondrej/php || {
+            echo -e "\e[91mError: Failed to add PPA even with locale override.\033[0m"
+            exit 1
+        }
+    }
+    sudo apt update || {
+        echo -e "\e[91mError: Failed to update package list after adding PPA.\033[0m"
+        exit 1
+    }
+    # Install all required packages
+    sudo apt install -y git unzip curl wget jq || {
+        echo -e "\e[91mError: Failed to install basic tools.\033[0m"
+        exit 1
+    }
+    # Install Apache if not installed
+    if ! dpkg -s apache2 &>/dev/null; then
+        sudo apt install -y apache2 || {
+            echo -e "\e[91mError: Failed to install Apache2.\033[0m"
+            exit 1
+        }
+    fi
+    # Install PHP 8.2 and all necessary modules (including PDO)
+    DEBIAN_FRONTEND=noninteractive sudo apt install -y php8.2 php8.2-fpm php8.2-mysql php8.2-mbstring php8.2-zip php8.2-gd php8.2-curl php8.2-soap php8.2-ssh2 libssh2-1-dev libssh2-1 php8.2-pdo || {
+        echo -e "\e[91mError: Failed to install PHP 8.2 and modules.\033[0m"
+        exit 1
+    }
+    # Install additional Apache module
+    sudo apt install -y libapache2-mod-php8.2 || {
+        echo -e "\e[91mError: Failed to install libapache2-mod-php8.2.\033[0m"
+        exit 1
+    }
+    sudo apt install -y python3-certbot-apache || {
+        echo -e "\e[91mError: Failed to install Certbot for Apache.\033[0m"
+        exit 1
+    }
+    sudo systemctl enable certbot.timer || {
+        echo -e "\e[91mError: Failed to enable certbot timer.\033[0m"
+        exit 1
+    }
+    # Install UFW if not present
+    if ! dpkg -s ufw &>/dev/null; then
+        sudo apt install -y ufw || {
+            echo -e "\e[91mError: Failed to install UFW.\033[0m"
+            exit 1
+        }
+    fi
+    # Check Marzban and use its MySQL (Docker-based)
+    ENV_FILE="/opt/marzban/.env"
+    if [ ! -f "$ENV_FILE" ]; then
+        echo -e "\e[91mError: Marzban .env file not found. Cannot proceed without Marzban configuration.\033[0m"
+        exit 1
+    fi
+    # Get MySQL root password from .env
+    MYSQL_ROOT_PASSWORD=$(grep "MYSQL_ROOT_PASSWORD=" "$ENV_FILE" | cut -d'=' -f2 | tr -d '[:space:]' | sed 's/"//g')
+    ROOT_USER="root"
+    # Check if MYSQL_ROOT_PASSWORD is empty or invalid
+    if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
+        echo -e "\e[93mWarning: Could not retrieve MySQL root password from Marzban .env file.\033[0m"
+        read -s -p "Please enter the MySQL root password manually: " MYSQL_ROOT_PASSWORD
+        echo
+    fi
+    # Dynamically find the MySQL container
+    MYSQL_CONTAINER=$(docker ps -q --filter "name=mysql" --no-trunc)
+    if [ -z "$MYSQL_CONTAINER" ]; then
+        echo -e "\e[91mError: Could not find a running MySQL container. Ensure Marzban is running with Docker.\033[0m"
+        echo -e "\e[93mRunning containers:\033[0m"
+        docker ps
+        exit 1
+    fi
+    echo "Testing MySQL connection..."
+    # Read MySQL root password from .env
+    if [ -f "/opt/marzban/.env" ]; then
+        MYSQL_ROOT_PASSWORD=$(grep -E '^MYSQL_ROOT_PASSWORD=' /opt/marzban/.env | cut -d '=' -f2- | tr -d '" \n\r')
+        if [ -z "$MYSQL_ROOT_PASSWORD" ]; then
+            echo -e "\e[93mWarning: MYSQL_ROOT_PASSWORD not found in .env. Please enter it manually.\033[0m"
+            read -s -p "Enter MySQL root password: " MYSQL_ROOT_PASSWORD
+            echo
+        fi
+    else
+        echo -e "\e[93mWarning: .env file not found. Please enter MySQL root password manually.\033[0m"
+        read -s -p "Enter MySQL root password: " MYSQL_ROOT_PASSWORD
+        echo
+    fi
+    ROOT_USER="root"
+    echo -e "\e[32mUsing MySQL container: $(docker inspect -f '{{.Name}}' "$MYSQL_CONTAINER" | cut -c2-)\033[0m"
+    # Try connecting directly to host first (for mysql:latest with network_mode: host)
+    mysql -u "$ROOT_USER" -p"$MYSQL_ROOT_PASSWORD" -h 127.0.0.1 -P 3306 -e "SELECT 1;" 2>/tmp/mysql_error.log
+    if [ $? -eq 0 ]; then
+        echo -e "\e[92mMySQL connection successful (direct host method).\033[0m"
+    else
+        # If direct connection fails, try inside container (for mysql:lts)
+        if [ -n "$MYSQL_CONTAINER" ]; then
+            echo -e "\e[93mDirect connection failed, trying inside container...\033[0m"
+            docker exec "$MYSQL_CONTAINER" bash -c "echo 'SELECT 1;' | mysql -u '$ROOT_USER' -p'$MYSQL_ROOT_PASSWORD'" 2>/tmp/mysql_error.log
+            if [ $? -eq 0 ]; then
+                echo -e "\e[92mMySQL connection successful (container method).\033[0m"
+            else
+                echo -e "\e[91mError: Failed to connect to MySQL using both methods.\033[0m"
+                echo -e "\e[93mPassword used: '$MYSQL_ROOT_PASSWORD'\033[0m"
+                echo -e "\e[93mError details:\033[0m"
+                cat /tmp/mysql_error.log
+                echo -e "\e[93mPlease ensure MySQL is running and the root password is correct.\033[0m"
+                read -s -p "Enter the correct MySQL root password: " NEW_PASSWORD
+                echo
+                MYSQL_ROOT_PASSWORD="$NEW_PASSWORD"
+                # Retry with new password (direct method first)
+                mysql -u "$ROOT_USER" -p"$MYSQL_ROOT_PASSWORD" -h 127.0.0.1 -P 3306 -e "SELECT 1;" 2>/tmp/mysql_error.log || {
+                    docker exec "$MYSQL_CONTAINER" bash -c "echo 'SELECT 1;' | mysql -u '$ROOT_USER' -p'$MYSQL_ROOT_PASSWORD'" 2>/tmp/mysql_error.log || {
+                        echo -e "\e[91mError: Still can't connect with new password.\033[0m"
+                        echo -e "\e[93mError details:\033[0m"
+                        cat /tmp/mysql_error.log
+                        exit 1
+                    }
+                }
+                echo -e "\e[92mMySQL connection successful with new password.\033[0m"
+            fi
+        else
+            echo -e "\e[91mError: No MySQL container found and direct connection failed.\033[0m"
+            echo -e "\e[93mPassword used: '$MYSQL_ROOT_PASSWORD'\033[0m"
+            echo -e "\e[93mError details:\033[0m"
+            cat /tmp/mysql_error.log
+            exit 1
+        fi
+    fi
+    # Ask for database username and password like Marzban
+    clear
+    echo -e "\e[33mConfiguring Mirza Bot database credentials...\033[0m"
+    default_dbuser=$(openssl rand -base64 12 | tr -dc 'a-zA-Z' | head -c8)
+    printf "\e[33m[+] \e[36mDatabase username (default: $default_dbuser): \033[0m"
+    read dbuser
+    if [ -z "$dbuser" ]; then
+        dbuser="$default_dbuser"
+    fi
+    default_dbpass=$(openssl rand -base64 12 | tr -dc 'a-zA-Z0-9' | head -c12)
+    printf "\e[33m[+] \e[36mDatabase password (default: $default_dbpass): \033[0m"
+    read -s dbpass
+    echo
+    if [ -z "$dbpass" ]; then
+        dbpass="$default_dbpass"
+    fi
+    dbname="mirzabot"
+    # Create database and user inside Docker container
+    docker exec "$MYSQL_CONTAINER" bash -c "mysql -u '$ROOT_USER' -p'$MYSQL_ROOT_PASSWORD' -e \"CREATE DATABASE IF NOT EXISTS $dbname; CREATE USER IF NOT EXISTS '$dbuser'@'%' IDENTIFIED BY '$dbpass'; GRANT ALL PRIVILEGES ON $dbname.* TO '$dbuser'@'%'; FLUSH PRIVILEGES;\"" || {
+        echo -e "\e[91mError: Failed to create database or user in Marzban MySQL container.\033[0m"
+        exit 1
+    }
+    echo -e "\e[92mDatabase '$dbname' created successfully.\033[0m"
+    # Bot directory setup
+    BOT_DIR="/var/www/html/mirzaprobotconfig"
+    if [ -d "$BOT_DIR" ]; then
+        echo -e "\e[93mDirectory $BOT_DIR already exists. Removing...\033[0m"
+        sudo rm -rf "$BOT_DIR" || {
+            echo -e "\e[91mError: Failed to remove existing directory $BOT_DIR.\033[0m"
+            exit 1
+        }
+    fi
+    sudo mkdir -p "$BOT_DIR" || {
+        echo -e "\e[91mError: Failed to create directory $BOT_DIR.\033[0m"
+        exit 1
+    }
+    # Download bot files
+    ZIP_URL=$(curl -s https://api.github.com/repos/MasterALiReza/mirzabot/releases/latest | grep "zipball_url" | cut -d '"' -f 4)
+    if [[ "$1" == "-v" && "$2" == "beta" ]] || [[ "$1" == "-beta" ]] || [[ "$1" == "-" && "$2" == "beta" ]]; then
+        ZIP_URL="https://github.com/MasterALiReza/mirzabot/archive/refs/heads/main.zip"
+    elif [[ "$1" == "-v" && -n "$2" ]]; then
+        ZIP_URL="https://github.com/MasterALiReza/mirzabot/archive/refs/tags/$2.zip"
+    fi
+    TEMP_DIR="/tmp/mirzabot"
+    mkdir -p "$TEMP_DIR"
+    wget -O "$TEMP_DIR/bot.zip" "$ZIP_URL" || {
+        echo -e "\e[91mError: Failed to download bot files.\033[0m"
+        exit 1
+    }
+    unzip "$TEMP_DIR/bot.zip" -d "$TEMP_DIR" || {
+        echo -e "\e[91mError: Failed to unzip bot files.\033[0m"
+        exit 1
+    }
+    EXTRACTED_DIR=$(find "$TEMP_DIR" -mindepth 1 -maxdepth 1 -type d)
+    mv "$EXTRACTED_DIR"/* "$BOT_DIR" || {
+        echo -e "\e[91mError: Failed to move bot files.\033[0m"
+        exit 1
+    }
+    rm -rf "$TEMP_DIR"
+    sudo chown -R www-data:www-data "$BOT_DIR"
+    sudo chmod -R 755 "$BOT_DIR"
+    echo -e "\e[92mBot files installed in $BOT_DIR.\033[0m"
+    sleep 3
+    clear
+    # Configure Apache to use port 80 temporarily and 88 for HTTPS
+    echo -e "\e[32mConfiguring Apache ports...\033[0m"
+    sudo bash -c "echo -n > /etc/apache2/ports.conf"  # Clear the file
+    cat <<EOF | sudo tee /etc/apache2/ports.conf
+# If you just change the port or add more ports here, you will likely also
+# have to change the VirtualHost statement in
+# /etc/apache2/sites-enabled/000-default.conf
+Listen 80
+Listen 88
+# vim: syntax=apache ts=4 sw=4 sts=4 sr noet
+EOF
+    if [ $? -ne 0 ]; then
+        echo -e "\e[91mError: Failed to configure ports.conf.\033[0m"
+        exit 1
+    fi
+    # Clear and configure VirtualHost for port 80
+    sudo bash -c "echo -n > /etc/apache2/sites-available/000-default.conf"  # Clear the file
+    cat <<EOF | sudo tee /etc/apache2/sites-available/000-default.conf
+<VirtualHost *:80>
+    ServerAdmin webmaster@localhost
+    DocumentRoot /var/www/html
+    ErrorLog \${APACHE_LOG_DIR}/error.log
+    CustomLog \${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+# vim: syntax=apache ts=4 sw=4 sts=4 sr noet
+EOF
+    if [ $? -ne 0 ]; then
+        echo -e "\e[91mError: Failed to configure 000-default.conf.\033[0m"
+        exit 1
+    fi
+    # Enable Apache and apply port changes
+    sudo systemctl enable apache2 || {
+        echo -e "\e[91mError: Failed to enable Apache2.\033[0m"
+        exit 1
+    }
+    sudo systemctl restart apache2 || {
+        echo -e "\e[91mError: Failed to restart Apache2.\033[0m"
+        exit 1
+    }
+    # SSL setup on port 88
+    echo -e "\e[32mConfiguring SSL on port 88...\033[0m\n"
+    sudo ufw allow 80 || {
+        echo -e "\e[91mError: Failed to configure firewall for port 80.\033[0m"
+        exit 1
+    }
+    sudo ufw allow 88 || {
+        echo -e "\e[91mError: Failed to configure firewall for port 88.\033[0m"
+        exit 1
+    }
+    clear
+    printf "\e[33m[+] \e[36mEnter the domain (e.g., example.com): \033[0m"
+    read domainname
+    while [[ ! "$domainname" =~ ^[a-zA-Z0-9.-]+$ ]]; do
+        echo -e "\e[91mInvalid domain format. Must be like 'example.com'. Please try again.\033[0m"
+        printf "\e[33m[+] \e[36mEnter the domain (e.g., example.com): \033[0m"
+        read domainname
+    done
+    DOMAIN_NAME="$domainname"
+    echo -e "\e[92mDomain set to: $DOMAIN_NAME\033[0m"
+    sudo systemctl restart apache2 || {
+        echo -e "\e[91mError: Failed to restart Apache2 before Certbot.\033[0m"
+        exit 1
+    }
+    sudo certbot --apache --agree-tos --preferred-challenges http -d "$DOMAIN_NAME" --https-port 88 --no-redirect || {
+        echo -e "\e[91mError: Failed to configure SSL with Certbot on port 88.\033[0m"
+        exit 1
+    }
+    # Ensure SSL VirtualHost uses port 88 with correct settings
+    sudo bash -c "echo -n > /etc/apache2/sites-available/000-default-le-ssl.conf"  # Clear any existing file
+    cat <<EOF | sudo tee /etc/apache2/sites-available/000-default-le-ssl.conf
+<IfModule mod_ssl.c>
+<VirtualHost *:88>
+    ServerAdmin webmaster@localhost
+    ServerName $DOMAIN_NAME
+    DocumentRoot /var/www/html
+    ErrorLog \${APACHE_LOG_DIR}/error.log
+    CustomLog \${APACHE_LOG_DIR}/access.log combined
+    SSLEngine on
+    SSLCertificateFile /etc/letsencrypt/live/$DOMAIN_NAME/fullchain.pem
+    SSLCertificateKeyFile /etc/letsencrypt/live/$DOMAIN_NAME/privkey.pem
+    SSLProtocol all -SSLv2 -SSLv3 -TLSv1 -TLSv1.1
+    SSLCipherSuite HIGH:!aNULL:!MD5
+</VirtualHost>
+</IfModule>
+EOF
+    if [ $? -ne 0 ]; then
+        echo -e "\e[91mError: Failed to create SSL VirtualHost configuration.\033[0m"
+        exit 1
+    fi
+    sudo a2enmod ssl || {
+        echo -e "\e[91mError: Failed to enable SSL module.\033[0m"
+        exit 1
+    }
+    sudo a2ensite 000-default-le-ssl.conf || {
+        echo -e "\e[91mError: Failed to enable SSL site.\033[0m"
+        exit 1
+    }
+    # Force ports.conf to only listen on 88 before restarting Apache
+    sudo bash -c "echo -n > /etc/apache2/ports.conf"
+    cat <<EOF | sudo tee /etc/apache2/ports.conf
+Listen 88
+EOF
+    sudo apache2ctl configtest || {
+        echo -e "\e[91mError: Apache configuration test failed after Certbot.\033[0m"
+        exit 1
+    }
+    sudo systemctl restart apache2 || {
+        echo -e "\e[91mError: Failed to restart Apache2 after SSL configuration.\033[0m"
+        systemctl status apache2.service
+        exit 1
+    }
+    # Disable port 80 after SSL is configured
+    echo -e "\e[32mDisabling port 80 as it's no longer needed...\033[0m"
+    # Ports.conf already set to Listen 88 in previous step, just verify
+    sudo a2dissite 000-default.conf || {
+        echo -e "\e[91mError: Failed to disable port 80 VirtualHost.\033[0m"
+        exit 1
+    }
+    sudo ufw delete allow 80 || {
+        echo -e "\e[91mError: Failed to remove port 80 from firewall.\033[0m"
+        exit 1
+    }
+    sudo apache2ctl configtest || {
+        echo -e "\e[91mError: Apache configuration test failed.\033[0m"
+        exit 1
+    }
+    sudo systemctl restart apache2 || {
+        echo -e "\e[91mError: Failed to restart Apache2 after disabling port 80.\033[0m"
+        systemctl status apache2.service
+        exit 1
+    }
+    echo -e "\e[92mSSL configured successfully on port 88. Port 80 disabled.\033[0m"
+    sleep 3
+    clear
+    # Bot token, chat ID, and username
+    printf "\e[33m[+] \e[36mBot Token: \033[0m"
+    read YOUR_BOT_TOKEN
+    while [[ ! "$YOUR_BOT_TOKEN" =~ ^[0-9]{8,10}:[a-zA-Z0-9_-]{35}$ ]]; do
+        echo -e "\e[91mInvalid bot token format. Please try again.\033[0m"
+        printf "\e[33m[+] \e[36mBot Token: \033[0m"
+        read YOUR_BOT_TOKEN
+    done
+    printf "\e[33m[+] \e[36mChat id: \033[0m"
+    read YOUR_CHAT_ID
+    while [[ ! "$YOUR_CHAT_ID" =~ ^-?[0-9]+$ ]]; do
+        echo -e "\e[91mInvalid chat ID format. Please try again.\033[0m"
+        printf "\e[33m[+] \e[36mChat id: \033[0m"
+        read YOUR_CHAT_ID
+    done
+    YOUR_DOMAIN="$DOMAIN_NAME:88"  # Use port 88 for HTTPS
+    printf "\e[33m[+] \e[36mUsernamebot: \033[0m"
+    read YOUR_BOTNAME
+    while [ -z "$YOUR_BOTNAME" ]; do
+        echo -e "\e[91mError: Bot username cannot be empty.\033[0m"
+        printf "\e[33m[+] \e[36mUsernamebot: \033[0m"
+        read YOUR_BOTNAME
+    done
+    # Create config file with correct MySQL host and PDO
+    ASAS="$"
+    secrettoken=$(openssl rand -base64 10 | tr -dc 'a-zA-Z0-9' | cut -c1-8)
+    cat <<EOF > "$BOT_DIR/config.php"
+<?php
+\$APIKEY = '$YOUR_BOT_TOKEN';
+\$usernamedb = '$dbuser';
+\$passworddb = '$dbpass';
+\$dbname = '$dbname';
+\$domainhosts = '$YOUR_DOMAIN/mirzaprobotconfig';
+\$adminnumber = '$YOUR_CHAT_ID';
+\$usernamebot = '$YOUR_BOTNAME';
+\$secrettoken = '$secrettoken';
+\$connect = mysqli_connect('127.0.0.1', \$usernamedb, \$passworddb, \$dbname);
+if (\$connect->connect_error) {
+    die('Database connection failed: ' . \$connect->connect_error);
+}
+mysqli_set_charset(\$connect, 'utf8mb4');
+\$options = [
+    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    PDO::ATTR_EMULATE_PREPARES   => false,
+];
+\$dsn = "mysql:host=127.0.0.1;port=3306;dbname=\$dbname;charset=utf8mb4";
+try {
+    \$pdo = new PDO(\$dsn, \$usernamedb, \$passworddb, \$options);
+} catch (\PDOException \$e) {
+    die('PDO Connection failed: ' . \$e->getMessage());
+}
+?>
+EOF
+    # Set webhook with port 88
+    curl -F "url=https://${YOUR_DOMAIN}/mirzaprobotconfig/index.php" \
+         -F "secret_token=${secrettoken}" \
+         "https://api.telegram.org/bot${YOUR_BOT_TOKEN}/setWebhook" || {
+        echo -e "\e[91mError: Failed to set webhook.\033[0m"
+        exit 1
+    }
+    # Send confirmation message
+    MESSAGE="✅ The bot is installed! for start bot send comment /start"
+    curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" -d chat_id="${CHAT_ID}" -d text="$MESSAGE" || {
+        echo -e "\033[31mError: Failed to send message to Telegram.\033[0m"
+        return 1
+    }
+    # Execute table creation script
+    TABLE_SETUP_URL="https://${YOUR_DOMAIN}/mirzaprobotconfig/table.php"
+    echo -e "\033[33mSetting up database tables...\033[0m"
+    curl $TABLE_SETUP_URL || {
+        echo -e "\033[31mError: Failed to execute table creation script at $TABLE_SETUP_URL.\033[0m"
+        return 1
+    }
+    # Output Bot Information
+    echo -e "\033[32mBot installed successfully!\033[0m"
+    echo -e "\033[102mDomain Bot: https://$DOMAIN_NAME\033[0m"
+    echo -e "\033[104mDatabase address: https://$DOMAIN_NAME/phpmyadmin\033[0m"
+    echo -e "\033[33mDatabase name: \033[36m$DB_NAME\033[0m"
+    echo -e "\033[33mDatabase username: \033[36m$DB_USERNAME\033[0m"
+    echo -e "\033[33mDatabase password: \033[36m$DB_PASSWORD\033[0m"
+    # Add executable permission and link
+    chmod +x /root/install.sh
+    ln -vs /root/install.sh /usr/local/bin/mirza
+}
+Update Function for Mirza Pro
 function update_bot() {
     echo "Updating Mirza Pro Bot..."
     # Update server packages
@@ -1373,9 +1392,7 @@ EOF
             sudo rm -f /etc/apache2/sites-enabled/000-default* 2>/dev/null || true
             sudo rm -f /etc/apache2/sites-enabled/default-ssl* 2>/dev/null || true
             
-            # Remove the source files to be sure
-            sudo rm -f /etc/apache2/sites-available/000-default.conf 2>/dev/null || true
-            sudo rm -f /etc/apache2/sites-available/000-default-le-ssl.conf 2>/dev/null || true
+            # We skip removing original files in sites-available to prevent breaking other apps.
             sleep 3 
             # Enable SSL module
             sudo a2enmod ssl 2>/dev/null || true
@@ -1413,7 +1430,7 @@ EOF
         echo -e "\e[91mError: /root/install.sh not found after update attempt.\033[0m"
     fi
 }
-# Delete Function for Mirza Pro
+Delete Function for Mirza Pro
 function remove_bot() {
     echo -e "\e[33mStarting Mirza Pro Bot removal process...\033[0m"
     LOG_FILE="/var/log/remove_bot.log"
@@ -1454,24 +1471,26 @@ function remove_bot() {
             exit 1
         }
     fi
-    # Delete MySQL and Database Data
-    echo -e "\e[33mRemoving MySQL and database...\033[0m" | tee -a "$LOG_FILE"
-    sudo systemctl stop mysql
-    sudo systemctl disable mysql
-    sudo systemctl daemon-reload
-    sudo apt --fix-broken install -y
-    sudo apt-get purge -y mysql-server mysql-client mysql-common mysql-server-core-* mysql-client-core-*
-    sudo rm -rf /etc/mysql /var/lib/mysql /var/log/mysql /var/log/mysql.* /usr/lib/mysql /usr/include/mysql /usr/share/mysql
-    sudo rm /lib/systemd/system/mysql.service
-    sudo rm /etc/init.d/mysql
-    sudo dpkg --remove --force-remove-reinstreq mysql-server mysql-server-8.0
-    sudo find /etc/systemd /lib/systemd /usr/lib/systemd -name "*mysql*" -exec rm -f {} \;
-    sudo apt-get purge -y mysql-server mysql-server-8.0 mysql-client mysql-client-8.0
-    sudo apt-get purge -y mysql-client-core-8.0 mysql-server-core-8.0 mysql-common php-mysql php8.2-mysql php8.3-mysql php-mariadb-mysql-kbs
-    sudo apt-get autoremove --purge -y
-    sudo apt-get clean
-    sudo apt-get update
-    echo -e "\e[92mMySQL has been completely removed.\033[0m" | tee -a "$LOG_FILE"
+    # Delete ONLY the bot's database and user
+    echo -e "\e[33mRemoving bot database and user...\033[0m" | tee -a "$LOG_FILE"
+    ROOT_CRED_FILE="/root/confmirza/dbrootmirza.txt"
+    if [ -f "$ROOT_CRED_FILE" ]; then
+        ROOT_PASS=$(grep '\$pass' "$ROOT_CRED_FILE" | cut -d"'" -f2)
+        OLD_CONFIG="/var/www/html/mirzaprobotconfig/config.php"
+        if [ -f "$OLD_CONFIG" ]; then
+            DB_NAME=$(grep '\$dbname' "$OLD_CONFIG" | cut -d"'" -f2)
+            DB_USER=$(grep '\$usernamedb' "$OLD_CONFIG" | cut -d"'" -f2)
+            if [ -n "$DB_NAME" ]; then
+                sudo mysql -u root -p"$ROOT_PASS" -e "DROP DATABASE IF EXISTS $DB_NAME;"
+            fi
+            if [ -n "$DB_USER" ]; then
+                sudo mysql -u root -p"$ROOT_PASS" -e "DROP USER IF EXISTS '$DB_USER'@'localhost';"
+                sudo mysql -u root -p"$ROOT_PASS" -e "DROP USER IF EXISTS '$DB_USER'@'%';"
+                sudo mysql -u root -p"$ROOT_PASS" -e "FLUSH PRIVILEGES;"
+            fi
+            echo -e "\e[92mBot database and user removed successfully.\033[0m" | tee -a "$LOG_FILE"
+        fi
+    fi
     # Delete PHPMyAdmin
     echo -e "\e[33mRemoving PHPMyAdmin...\033[0m" | tee -a "$LOG_FILE"
     if dpkg -s phpmyadmin &>/dev/null; then
@@ -1509,375 +1528,364 @@ function remove_bot() {
     sudo ufw reload
     echo -e "\e[92mMirza Pro Bot, MySQL, and their dependencies have been completely removed.\033[0m" | tee -a "$LOG_FILE"
 }
-# function remove_bot_with_marzban() {
-#     echo -e "\e[33mRemoving Mirza Bot alongside Marzban...\033[0m" | tee -a "$LOG_FILE"
-#     # Define Bot Directory
-#     BOT_DIR="/var/www/html/mirzabotconfig"
-#     # Check if Bot Directory exists before proceeding
-#     if [ ! -d "$BOT_DIR" ]; then
-#         echo -e "\e[93mWarning: Bot directory $BOT_DIR not found. Assuming it was already removed.\033[0m" | tee -a "$LOG_FILE"
-#         DB_NAME="mirzabot"  # Fallback to default database name
-#         DB_USER=""
-#     else
-#         # Get database credentials from config.php BEFORE removing the directory
-#         CONFIG_PATH="$BOT_DIR/config.php"
-#         if [ -f "$CONFIG_PATH" ]; then
-#             DB_USER=$(grep '^\$usernamedb' "$CONFIG_PATH" | awk -F"'" '{print $2}')
-#             DB_NAME=$(grep '^\$dbname' "$CONFIG_PATH" | awk -F"'" '{print $2}')
-#             if [ -z "$DB_USER" ] || [ -z "$DB_NAME" ]; then
-#                 echo -e "\e[91mError: Could not extract database credentials from $CONFIG_PATH. Using defaults.\033[0m" | tee -a "$LOG_FILE"
-#                 DB_NAME="mirzabot"  # Fallback to default
-#                 DB_USER=""
-#             else
-#                 echo -e "\e[92mFound database credentials: User=$DB_USER, Database=$DB_NAME\033[0m" | tee -a "$LOG_FILE"
-#             fi
-#         else
-#             echo -e "\e[93mWarning: config.php not found at $CONFIG_PATH. Assuming default database name 'mirzabot'.\033[0m" | tee -a "$LOG_FILE"
-#             DB_NAME="mirzabot"
-#             DB_USER=""
-#         fi
-#         # Now remove the Bot Directory
-#         sudo rm -rf "$BOT_DIR" && echo -e "\e[92mBot directory removed: $BOT_DIR\033[0m" | tee -a "$LOG_FILE" || {
-#             echo -e "\e[91mFailed to remove bot directory: $BOT_DIR. Exiting...\033[0m" | tee -a "$LOG_FILE"
-#             exit 1
-#         }
-#     fi
-#     # Get MySQL root password from Marzban's .env
-#     ENV_FILE="/opt/marzban/.env"
-#     if [ -f "$ENV_FILE" ]; then
-#         MYSQL_ROOT_PASSWORD=$(grep "MYSQL_ROOT_PASSWORD=" "$ENV_FILE" | cut -d'=' -f2 | tr -d '[:space:]' | sed 's/"//g')
-#         ROOT_USER="root"
-#     else
-#         echo -e "\e[91mError: Marzban .env file not found. Cannot proceed without MySQL root password.\033[0m" | tee -a "$LOG_FILE"
-#         exit 1
-#     fi
-#     # Find MySQL container
-#     MYSQL_CONTAINER=$(docker ps -q --filter "name=mysql" --no-trunc)
-#     if [ -z "$MYSQL_CONTAINER" ]; then
-#         echo -e "\e[91mError: Could not find a running MySQL container. Ensure Marzban is running.\033[0m" | tee -a "$LOG_FILE"
-#         exit 1
-#     fi
-#     # Remove database
-#     if [ -n "$DB_NAME" ]; then
-#         echo -e "\e[33mRemoving database $DB_NAME...\033[0m" | tee -a "$LOG_FILE"
-#         docker exec "$MYSQL_CONTAINER" bash -c "mysql -u '$ROOT_USER' -p'$MYSQL_ROOT_PASSWORD' -e \"DROP DATABASE IF EXISTS $DB_NAME;\"" && {
-#             echo -e "\e[92mDatabase $DB_NAME removed successfully.\033[0m" | tee -a "$LOG_FILE"
-#         } || {
-#             echo -e "\e[91mFailed to remove database $DB_NAME.\033[0m" | tee -a "$LOG_FILE"
-#         }
-#     fi
-#     # Remove user if DB_USER is available
-#     if [ -n "$DB_USER" ]; then
-#         echo -e "\e[33mRemoving database user $DB_USER...\033[0m" | tee -a "$LOG_FILE"
-#         docker exec "$MYSQL_CONTAINER" bash -c "mysql -u '$ROOT_USER' -p'$MYSQL_ROOT_PASSWORD' -e \"DROP USER IF EXISTS '$DB_USER'@'%'; FLUSH PRIVILEGES;\"" && {
-#             echo -e "\e[92mUser $DB_USER removed successfully.\033[0m" | tee -a "$LOG_FILE"
-#         } || {
-#             echo -e "\e[91mFailed to remove user $DB_USER.\033[0m" | tee -a "$LOG_FILE"
-#         }
-#     else
-#         echo -e "\e[93mWarning: No database user specified. Checking for non-default users...\033[0m" | tee -a "$LOG_FILE"
-#         # Check for non-default users
-#         MIRZA_USERS=$(docker exec "$MYSQL_CONTAINER" bash -c "mysql -u '$ROOT_USER' -p'$MYSQL_ROOT_PASSWORD' -e \"SELECT User FROM mysql.user WHERE User NOT IN ('root', 'mysql.infoschema', 'mysql.session', 'mysql.sys', 'marzban');\"" | grep -v "User" | awk '{print $1}')
-#         if [ -n "$MIRZA_USERS" ]; then
-#             for user in $MIRZA_USERS; do
-#                 echo -e "\e[33mRemoving detected non-default user: $user...\033[0m" | tee -a "$LOG_FILE"
-#                 docker exec "$MYSQL_CONTAINER" bash -c "mysql -u '$ROOT_USER' -p'$MYSQL_ROOT_PASSWORD' -e \"DROP USER IF EXISTS '$user'@'%'; FLUSH PRIVILEGES;\"" && {
-#                     echo -e "\e[92mUser $user removed successfully.\033[0m" | tee -a "$LOG_FILE"
-#                 } || {
-#                     echo -e "\e[91mFailed to remove user $user.\033[0m" | tee -a "$LOG_FILE"
-#                 }
-#             done
-#         else
-#             echo -e "\e[93mNo non-default users found.\033[0m" | tee -a "$LOG_FILE"
-#         fi
-#     fi
-#     # Remove Apache
-#     echo -e "\e[33mRemoving Apache...\033[0m" | tee -a "$LOG_FILE"
-#     sudo systemctl stop apache2 || {
-#         echo -e "\e[91mFailed to stop Apache. Continuing anyway...\033[0m" | tee -a "$LOG_FILE"
-#     }
-#     sudo systemctl disable apache2 || {
-#         echo -e "\e[91mFailed to disable Apache. Continuing anyway...\033[0m" | tee -a "$LOG_FILE"
-#     }
-#     sudo apt-get purge -y apache2 apache2-utils apache2-bin apache2-data libapache2-mod-php* || {
-#         echo -e "\e[91mFailed to purge Apache packages.\033[0m" | tee -a "$LOG_FILE"
-#     }
-#     sudo apt-get autoremove --purge -y
-#     sudo apt-get autoclean -y
-#     sudo rm -rf /etc/apache2 /var/www/html
-#     # Reset Firewall (only remove Apache rule, keep SSL)
-#     echo -e "\e[33mResetting firewall rules (keeping SSL)...\033[0m" | tee -a "$LOG_FILE"
-#     sudo ufw delete allow 'Apache' || {
-#         echo -e "\e[91mFailed to remove Apache rule from UFW.\033[0m" | tee -a "$LOG_FILE"
-#     }
-#     sudo ufw reload
-#     echo -e "\e[92mMirza Bot has been removed alongside Marzban. SSL certificates remain intact.\033[0m" | tee -a "$LOG_FILE"
-# }
+function remove_bot_with_marzban() {
+    echo -e "\e[33mRemoving Mirza Bot alongside Marzban...\033[0m" | tee -a "$LOG_FILE"
+    # Define Bot Directory
+    BOT_DIR="/var/www/html/mirzaprobotconfig"
+    # Check if Bot Directory exists before proceeding
+    if [ ! -d "$BOT_DIR" ]; then
+        echo -e "\e[93mWarning: Bot directory $BOT_DIR not found. Assuming it was already removed.\033[0m" | tee -a "$LOG_FILE"
+        DB_NAME="mirzabot"  # Fallback to default database name
+        DB_USER=""
+    else
+        # Get database credentials from config.php BEFORE removing the directory
+        CONFIG_PATH="$BOT_DIR/config.php"
+        if [ -f "$CONFIG_PATH" ]; then
+            DB_USER=$(grep '^\$usernamedb' "$CONFIG_PATH" | awk -F"'" '{print $2}')
+            DB_NAME=$(grep '^\$dbname' "$CONFIG_PATH" | awk -F"'" '{print $2}')
+            if [ -z "$DB_USER" ] || [ -z "$DB_NAME" ]; then
+                echo -e "\e[91mError: Could not extract database credentials from $CONFIG_PATH. Using defaults.\033[0m" | tee -a "$LOG_FILE"
+                DB_NAME="mirzabot"  # Fallback to default
+                DB_USER=""
+            else
+                echo -e "\e[92mFound database credentials: User=$DB_USER, Database=$DB_NAME\033[0m" | tee -a "$LOG_FILE"
+            fi
+        else
+            echo -e "\e[93mWarning: config.php not found at $CONFIG_PATH. Assuming default database name 'mirzabot'.\033[0m" | tee -a "$LOG_FILE"
+            DB_NAME="mirzabot"
+            DB_USER=""
+        fi
+        # Now remove the Bot Directory
+        sudo rm -rf "$BOT_DIR" && echo -e "\e[92mBot directory removed: $BOT_DIR\033[0m" | tee -a "$LOG_FILE" || {
+            echo -e "\e[91mFailed to remove bot directory: $BOT_DIR. Exiting...\033[0m" | tee -a "$LOG_FILE"
+            exit 1
+        }
+    fi
+    # Get MySQL root password from Marzban's .env
+    ENV_FILE="/opt/marzban/.env"
+    if [ -f "$ENV_FILE" ]; then
+        MYSQL_ROOT_PASSWORD=$(grep "MYSQL_ROOT_PASSWORD=" "$ENV_FILE" | cut -d'=' -f2 | tr -d '[:space:]' | sed 's/"//g')
+        ROOT_USER="root"
+    else
+        echo -e "\e[91mError: Marzban .env file not found. Cannot proceed without MySQL root password.\033[0m" | tee -a "$LOG_FILE"
+        exit 1
+    fi
+    # Find MySQL container
+    MYSQL_CONTAINER=$(docker ps -q --filter "name=mysql" --no-trunc)
+    if [ -z "$MYSQL_CONTAINER" ]; then
+        echo -e "\e[91mError: Could not find a running MySQL container. Ensure Marzban is running.\033[0m" | tee -a "$LOG_FILE"
+        exit 1
+    fi
+    # Remove database
+    if [ -n "$DB_NAME" ]; then
+        echo -e "\e[33mRemoving database $DB_NAME...\033[0m" | tee -a "$LOG_FILE"
+        docker exec "$MYSQL_CONTAINER" bash -c "mysql -u '$ROOT_USER' -p'$MYSQL_ROOT_PASSWORD' -e \"DROP DATABASE IF EXISTS $DB_NAME;\"" && {
+            echo -e "\e[92mDatabase $DB_NAME removed successfully.\033[0m" | tee -a "$LOG_FILE"
+        } || {
+            echo -e "\e[91mFailed to remove database $DB_NAME.\033[0m" | tee -a "$LOG_FILE"
+        }
+    fi
+    # Remove user if DB_USER is available
+    if [ -n "$DB_USER" ]; then
+        echo -e "\e[33mRemoving database user $DB_USER...\033[0m" | tee -a "$LOG_FILE"
+        docker exec "$MYSQL_CONTAINER" bash -c "mysql -u '$ROOT_USER' -p'$MYSQL_ROOT_PASSWORD' -e \"DROP USER IF EXISTS '$DB_USER'@'%'; FLUSH PRIVILEGES;\"" && {
+            echo -e "\e[92mUser $DB_USER removed successfully.\033[0m" | tee -a "$LOG_FILE"
+        } || {
+            echo -e "\e[91mFailed to remove user $DB_USER.\033[0m" | tee -a "$LOG_FILE"
+        }
+    else
+        echo -e "\e[93mWarning: No database user specified. Checking for non-default users...\033[0m" | tee -a "$LOG_FILE"
+        # Check for non-default users
+        MIRZA_USERS=$(docker exec "$MYSQL_CONTAINER" bash -c "mysql -u '$ROOT_USER' -p'$MYSQL_ROOT_PASSWORD' -e \"SELECT User FROM mysql.user WHERE User NOT IN ('root', 'mysql.infoschema', 'mysql.session', 'mysql.sys', 'marzban');\"" | grep -v "User" | awk '{print $1}')
+        if [ -n "$MIRZA_USERS" ]; then
+            for user in $MIRZA_USERS; do
+                echo -e "\e[33mRemoving detected non-default user: $user...\033[0m" | tee -a "$LOG_FILE"
+                docker exec "$MYSQL_CONTAINER" bash -c "mysql -u '$ROOT_USER' -p'$MYSQL_ROOT_PASSWORD' -e \"DROP USER IF EXISTS '$user'@'%'; FLUSH PRIVILEGES;\"" && {
+                    echo -e "\e[92mUser $user removed successfully.\033[0m" | tee -a "$LOG_FILE"
+                } || {
+                    echo -e "\e[91mFailed to remove user $user.\033[0m" | tee -a "$LOG_FILE"
+                }
+            done
+        else
+            echo -e "\e[93mNo non-default users found.\033[0m" | tee -a "$LOG_FILE"
+        fi
+    fi
+    # Remove Apache
+    echo -e "\e[33mRemoving Apache...\033[0m" | tee -a "$LOG_FILE"
+    sudo systemctl stop apache2 || {
+        echo -e "\e[91mFailed to stop Apache. Continuing anyway...\033[0m" | tee -a "$LOG_FILE"
+    }
+    sudo systemctl disable apache2 || {
+        echo -e "\e[91mFailed to disable Apache. Continuing anyway...\033[0m" | tee -a "$LOG_FILE"
+    }
+    sudo apt-get purge -y apache2 apache2-utils apache2-bin apache2-data libapache2-mod-php* || {
+        echo -e "\e[91mFailed to purge Apache packages.\033[0m" | tee -a "$LOG_FILE"
+    }
+    sudo apt-get autoremove --purge -y
+    sudo apt-get autoclean -y
+    sudo rm -rf /etc/apache2 /var/www/html
+    # Reset Firewall (only remove Apache rule, keep SSL)
+    echo -e "\e[33mResetting firewall rules (keeping SSL)...\033[0m" | tee -a "$LOG_FILE"
+    sudo ufw delete allow 'Apache' || {
+        echo -e "\e[91mFailed to remove Apache rule from UFW.\033[0m" | tee -a "$LOG_FILE"
+    }
+    sudo ufw reload
+    echo -e "\e[92mMirza Bot has been removed alongside Marzban. SSL certificates remain intact.\033[0m" | tee -a "$LOG_FILE"
+}
 #Extract database credentials from config.php
-# function extract_db_credentials() {
-#     CONFIG_PATH="/var/www/html/mirzabotconfig/config.php"
-#     if [ -f "$CONFIG_PATH" ]; then
-#         DB_USER=$(grep '^\$usernamedb' "$CONFIG_PATH" | awk -F"'" '{print $2}')
-#         DB_PASS=$(grep '^\$passworddb' "$CONFIG_PATH" | awk -F"'" '{print $2}')
-#         DB_NAME=$(grep '^\$dbname' "$CONFIG_PATH" | awk -F"'" '{print $2}')
-#         TELEGRAM_TOKEN=$(grep '^\$APIKEY' "$CONFIG_PATH" | awk -F"'" '{print $2}')
-#         TELEGRAM_CHAT_ID=$(grep '^\$adminnumber' "$CONFIG_PATH" | awk -F"'" '{print $2}')
-#         if [ -z "$DB_USER" ] || [ -z "$DB_PASS" ] || [ -z "$DB_NAME" ] || [ -z "$TELEGRAM_TOKEN" ] || [ -z "$TELEGRAM_CHAT_ID" ]; then
-#             echo -e "\033[31m[ERROR]\033[0m Failed to extract required credentials from $CONFIG_PATH."
-#             return 1
-#         fi
-#         return 0
-#     else
-#         echo -e "\033[31m[ERROR]\033[0m config.php not found at $CONFIG_PATH."
-#         return 1
-#     fi
-# }
-# Translate cron schedule to human-readable format
-# function translate_cron() {
-#     local cron_line="$1"
-#     local schedule=""
-#     case "$cron_line" in
-#         "* * * * *"*) schedule="Every Minute" ;;
-#         "0 * * * *"*) schedule="Every Hour" ;;
-#         "0 0 * * *"*) schedule="Every Day" ;;
-#         "0 0 * * 0"*) schedule="Every Week" ;;
-#         *) schedule="Custom Schedule ($cron_line)" ;;
-#     esac
-#     echo "$schedule"
-# }
-# Export Database Function
-# function export_database() {
-#     echo -e "\033[33mChecking database configuration...\033[0m"
-#     if ! extract_db_credentials; then
-#         return 1
-#     fi
-#     # Check if Marzban is installed
-#     if check_marzban_installed; then
-#         echo -e "\033[31m[ERROR]\033[0m Exporting database is not supported when Marzban is installed due to database being managed by Docker."
-#         return 1
-#     fi
-#     echo -e "\033[33mVerifying database existence...\033[0m"
-#     if ! mysql -u "$DB_USER" -p"$DB_PASS" -e "USE $DB_NAME;" 2>/dev/null; then
-#         echo -e "\033[31m[ERROR]\033[0m Database $DB_NAME does not exist or credentials are incorrect."
-#         return 1
-#     fi
-#     BACKUP_FILE="/root/${DB_NAME}_backup.sql"
-#     echo -e "\033[33mCreating backup at $BACKUP_FILE...\033[0m"
-#     if ! mysqldump -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" > "$BACKUP_FILE"; then
-#         echo -e "\033[31m[ERROR]\033[0m Failed to create database backup."
-#         return 1
-#     fi
-#     echo -e "\033[32mBackup successfully created at $BACKUP_FILE.\033[0m"
-# }
-# Import Database Function
-# function import_database() {
-#     echo -e "\033[33mChecking database configuration...\033[0m"
-#     if ! extract_db_credentials; then
-#         return 1
-#     fi
-#     # Check if Marzban is installed
-#     if check_marzban_installed; then
-#         echo -e "\033[31m[ERROR]\033[0m Importing database is not supported when Marzban is installed due to database being managed by Docker."
-#         return 1
-#     fi
-#     echo -e "\033[33mVerifying database existence...\033[0m"
-#     if ! mysql -u "$DB_USER" -p"$DB_PASS" -e "USE $DB_NAME;" 2>/dev/null; then
-#         echo -e "\033[31m[ERROR]\033[0m Database $DB_NAME does not exist or credentials are incorrect."
-#         return 1
-#     fi
-#     while true; do
-#         read -p "Enter the path to the backup file [default: /root/${DB_NAME}_backup.sql]: " BACKUP_FILE
-#         BACKUP_FILE=${BACKUP_FILE:-/root/${DB_NAME}_backup.sql}
-#         if [[ -f "$BACKUP_FILE" && "$BACKUP_FILE" =~ \.sql$ ]]; then
-#             break
-#         else
-#             echo -e "\033[31m[ERROR]\033[0m Invalid file path or format. Please provide a valid .sql file."
-#         fi
-#     done
-#     echo -e "\033[33mImporting backup from $BACKUP_FILE...\033[0m"
-#     if ! mysql -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" < "$BACKUP_FILE"; then
-#         echo -e "\033[31m[ERROR]\033[0m Failed to import database from backup file."
-#         return 1
-#     fi
-#     echo -e "\033[32mDatabase successfully imported from $BACKUP_FILE.\033[0m"
-# }
-# Function for automated backup
-# function auto_backup() {
-#     echo -e "\033[36mConfigure Automated Backup\033[0m"
-#     # Check if Mirza Bot is installed
-#     BOT_DIR="/var/www/html/mirzabotconfig"
-#     if [ ! -d "$BOT_DIR" ]; then
-#         echo -e "\033[31m[ERROR]\033[0m Mirza Bot is not installed ($BOT_DIR not found)."
-#         echo -e "\033[33mExiting...\033[0m"
-#         sleep 2
-#         return 1
-#     fi
-#     # Extract credentials
-#     if ! extract_db_credentials; then
-#         return 1
-#     fi
-#     # Determine backup script based on Marzban presence
-#     if check_marzban_installed; then
-#         echo -e "\033[41m[NOTICE]\033[0m \033[33mMarzban detected. Using Marzban-compatible backup.\033[0m"
-#         BACKUP_SCRIPT="/root/backup_mirza_marzban.sh"
-#         MYSQL_CONTAINER=$(docker ps -q --filter "name=mysql" --no-trunc)
-#         if [ -z "$MYSQL_CONTAINER" ]; then
-#             echo -e "\033[31m[ERROR]\033[0m No running MySQL container found for Marzban."
-#             return 1
-#         fi
-#         # Create Marzban backup script
-#         cat <<EOF > "$BACKUP_SCRIPT"
-# #!/bin/bash
-# BACKUP_FILE="/root/\${DB_NAME}_\$(date +\"%Y%m%d_%H%M%S\").sql"
-# docker exec $MYSQL_CONTAINER mysqldump -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" > "\$BACKUP_FILE"
-# if [ \$? -eq 0 ]; then
-#     curl -F document=@"\$BACKUP_FILE" "https://api.telegram.org/bot$TELEGRAM_TOKEN/sendDocument" -F chat_id="$TELEGRAM_CHAT_ID"
-#     rm "\$BACKUP_FILE"
-# else
-#     echo -e "\033[31m[ERROR]\033[0m Failed to create Marzban database backup."
-# fi
-# EOF
-#     else
-#         echo -e "\033[33mUsing standard backup.\033[0m"
-#         BACKUP_SCRIPT="/root/mirza_backup.sh"
-#         # Verify database existence
-#         if ! mysql -u "$DB_USER" -p"$DB_PASS" -e "USE $DB_NAME;" 2>/dev/null; then
-#             echo -e "\033[31m[ERROR]\033[0m Database $DB_NAME does not exist or credentials are incorrect."
-#             return 1
-#         fi
-#         # Create standard backup script
-#         cat <<EOF > "$BACKUP_SCRIPT"
-# #!/bin/bash
-# BACKUP_FILE="/root/\${DB_NAME}_\$(date +\"%Y%m%d_%H%M%S\").sql"
-# mysqldump -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" > "\$BACKUP_FILE"
-# if [ \$? -eq 0 ]; then
-#     curl -F document=@"\$BACKUP_FILE" "https://api.telegram.org/bot$TELEGRAM_TOKEN/sendDocument" -F chat_id="$TELEGRAM_CHAT_ID"
-#     rm "\$BACKUP_FILE"
-# else
-#     echo -e "\033[31m[ERROR]\033[0m Failed to create database backup."
-# fi
-# EOF
-#     fi
-#     # Make the script executable
-#     chmod +x "$BACKUP_SCRIPT"
-#     # Check current cron and translate it
-#     CURRENT_CRON=$(crontab -l 2>/dev/null | grep "$BACKUP_SCRIPT" | grep -v "^#")
-#     if [ -n "$CURRENT_CRON" ]; then
-#         SCHEDULE=$(translate_cron "$CURRENT_CRON")
-#         echo -e "\033[33mCurrent Backup Schedule:\033[0m $SCHEDULE"
-#     else
-#         echo -e "\033[33mNo active backup schedule found.\033[0m"
-#     fi
-#     # Show backup frequency options
-#     echo -e "\033[36m1) Every Minute\033[0m"
-#     echo -e "\033[36m2) Every Hour\033[0m"
-#     echo -e "\033[36m3) Every Day\033[0m"
-#     echo -e "\033[36m4) Every Week\033[0m"
-#     echo -e "\033[36m5) Disable Backup\033[0m"
-#     echo -e "\033[36m6) Back to Menu\033[0m"
-#     echo ""
-#     read -p "Select an option [1-6]: " backup_option
-#     # Function to update cron
-#     update_cron() {
-#         local cron_line="$1"
-#         if [ -n "$CURRENT_CRON" ]; then
-#             crontab -l 2>/dev/null | grep -v "$BACKUP_SCRIPT" | crontab - && {
-#                 echo -e "\033[92mRemoved previous backup schedule.\033[0m"
-#             } || {
-#                 echo -e "\033[31mFailed to remove existing cron.\033[0m"
-#             }
-#         fi
-#         if [ -n "$cron_line" ]; then
-#             (crontab -l 2>/dev/null; echo "$cron_line") | crontab - && {
-#                 echo -e "\033[92mBackup scheduled: $(translate_cron "$cron_line")\033[0m"
-#                 bash "$BACKUP_SCRIPT" &>/dev/null &
-#             } || {
-#                 echo -e "\033[31mFailed to schedule backup.\033[0m"
-#             }
-#         fi
-#     }
-#     # Process user choice
-#     case $backup_option in
-#         1) update_cron "* * * * * bash $BACKUP_SCRIPT" ;;
-#         2) update_cron "0 * * * * bash $BACKUP_SCRIPT" ;;
-#         3) update_cron "0 0 * * * bash $BACKUP_SCRIPT" ;;
-#         4) update_cron "0 0 * * 0 bash $BACKUP_SCRIPT" ;;
-#         5)
-#             if [ -n "$CURRENT_CRON" ]; then
-#                 crontab -l 2>/dev/null | grep -v "$BACKUP_SCRIPT" | crontab - && {
-#                     echo -e "\033[92mAutomated backup disabled.\033[0m"
-#                 } || {
-#                     echo -e "\033[31mFailed to disable backup.\033[0m"
-#                 }
-#             else
-#                 echo -e "\033[93mNo backup schedule to disable.\033[0m"
-#             fi
-#             ;;
-#         6) show_menu ;;
-#         *)
-#             echo -e "\033[31mInvalid option. Please try again.\033[0m"
-#             auto_backup
-#             ;;
-#     esac
-# }
-# Function to renew SSL certificates
-# 
-# Function to Manage Additional Bots
-# 
-# function change_domain() {
-#     local new_domain
-#     while [[ ! "$new_domain" =~ ^[a-zA-Z0-9.-]+$ ]]; do
-#         read -p "Enter new domain: " new_domain
-#         [[ ! "$new_domain" =~ ^[a-zA-Z0-9.-]+$ ]] && echo -e "\033[31mInvalid domain format\033[0m"
-#     done
-#     echo -e "\033[33mStopping Apache to configure SSL...\033[0m"
-#     if ! sudo systemctl stop apache2; then
-#         echo -e "\033[31m[ERROR] Failed to stop Apache!\033[0m"
-#         return 1
-#     fi
-#     echo -e "\033[33mConfiguring SSL for new domain...\033[0m"
-#     if ! sudo certbot --apache --redirect --agree-tos --preferred-challenges http -d "$new_domain"; then
-#         echo -e "\033[31m[ERROR] SSL configuration failed!\033[0m"
-#         echo -e "\033[33mCleaning up...\033[0m"
-#         sudo certbot delete --cert-name "$new_domain" 2>/dev/null
-#         echo -e "\033[33mRestarting Apache after cleanup...\033[0m"
-#         sudo systemctl start apache2 || echo -e "\033[31m[ERROR] Failed to restart Apache!\033[0m"
-#         return 1
-#     fi
-#     echo -e "\033[33mRestarting Apache after SSL configuration...\033[0m"
-#     if ! sudo systemctl start apache2; then
-#         echo -e "\033[31m[ERROR] Failed to restart Apache!\033[0m"
-#         return 1
-#     fi
-#     CONFIG_FILE="/var/www/html/mirzabotconfig/config.php"
-#     if [ -f "$CONFIG_FILE" ]; then
-#         sudo cp "$CONFIG_FILE" "$CONFIG_FILE.$(date +%s).bak"
-#         sudo sed -i "s/\$domainhosts = '.*\/mirzabotconfig';/\$domainhosts = '${new_domain}\/mirzabotconfig';/" "$CONFIG_FILE"
-#         NEW_SECRET=$(openssl rand -base64 12 | tr -dc 'a-zA-Z0-9')
-#         sudo sed -i "s/\$secrettoken = '.*';/\$secrettoken = '${NEW_SECRET%%}';/" "$CONFIG_FILE"
-#         BOT_TOKEN=$(awk -F"'" '/\$APIKEY/{print $2}' "$CONFIG_FILE")
-#         curl -s -o /dev/null -F "url=https://${new_domain}/mirzabotconfig/index.php" \
-#              -F "secret_token=${NEW_SECRET}" \
-#              "https://api.telegram.org/bot${BOT_TOKEN}/setWebhook" || {
-#             echo -e "\033[33m[WARNING] Webhook update failed\033[0m"
-#         }
-#     else
-#         echo -e "\033[31m[CRITICAL] Config file missing!\033[0m"
-#         return 1
-#     fi
-#     if curl -sI "https://${new_domain}" | grep -q "200 OK"; then
-#         echo -e "\033[32mDomain successfully migrated to ${new_domain}\033[0m"
-#         echo -e "\033[33mOld domain configuration has been automatically cleaned up\033[0m"
-#     else
-#         echo -e "\033[31m[WARNING] Final verification failed!\033[0m"
-#         echo -e "\033[33mPlease check:\033[0m"
-#         echo -e "1. DNS settings for ${new_domain}"
-#         echo -e "2. Apache virtual host configuration"
-#         echo -e "3. Firewall settings"
-#         return 1
-#     fi
-# }
-# Added Function for Installing Additional Bot
+function extract_db_credentials() {
+    CONFIG_PATH="/var/www/html/mirzaprobotconfig/config.php"
+    if [ -f "$CONFIG_PATH" ]; then
+        DB_USER=$(grep '^\$usernamedb' "$CONFIG_PATH" | awk -F"'" '{print $2}')
+        DB_PASS=$(grep '^\$passworddb' "$CONFIG_PATH" | awk -F"'" '{print $2}')
+        DB_NAME=$(grep '^\$dbname' "$CONFIG_PATH" | awk -F"'" '{print $2}')
+        TELEGRAM_TOKEN=$(grep '^\$APIKEY' "$CONFIG_PATH" | awk -F"'" '{print $2}')
+        TELEGRAM_CHAT_ID=$(grep '^\$adminnumber' "$CONFIG_PATH" | awk -F"'" '{print $2}')
+        if [ -z "$DB_USER" ] || [ -z "$DB_PASS" ] || [ -z "$DB_NAME" ] || [ -z "$TELEGRAM_TOKEN" ] || [ -z "$TELEGRAM_CHAT_ID" ]; then
+            echo -e "\033[31m[ERROR]\033[0m Failed to extract required credentials from $CONFIG_PATH."
+            return 1
+        fi
+        return 0
+    else
+        echo -e "\033[31m[ERROR]\033[0m config.php not found at $CONFIG_PATH."
+        return 1
+    fi
+}
+Translate cron schedule to human-readable format
+function translate_cron() {
+    local cron_line="$1"
+    local schedule=""
+    case "$cron_line" in
+        "* * * * *"*) schedule="Every Minute" ;;
+        "0 * * * *"*) schedule="Every Hour" ;;
+        "0 0 * * *"*) schedule="Every Day" ;;
+        "0 0 * * 0"*) schedule="Every Week" ;;
+        *) schedule="Custom Schedule ($cron_line)" ;;
+    esac
+    echo "$schedule"
+}
+Export Database Function
+function export_database() {
+    echo -e "\033[33mChecking database configuration...\033[0m"
+    if ! extract_db_credentials; then
+        return 1
+    fi
+    # Check if Marzban is installed
+    if check_marzban_installed; then
+        echo -e "\033[31m[ERROR]\033[0m Exporting database is not supported when Marzban is installed due to database being managed by Docker."
+        return 1
+    fi
+    echo -e "\033[33mVerifying database existence...\033[0m"
+    if ! mysql -u "$DB_USER" -p"$DB_PASS" -e "USE $DB_NAME;" 2>/dev/null; then
+        echo -e "\033[31m[ERROR]\033[0m Database $DB_NAME does not exist or credentials are incorrect."
+        return 1
+    fi
+    BACKUP_FILE="/root/${DB_NAME}_backup.sql"
+    echo -e "\033[33mCreating backup at $BACKUP_FILE...\033[0m"
+    if ! mysqldump -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" > "$BACKUP_FILE"; then
+        echo -e "\033[31m[ERROR]\033[0m Failed to create database backup."
+        return 1
+    fi
+    echo -e "\033[32mBackup successfully created at $BACKUP_FILE.\033[0m"
+}
+Import Database Function
+function import_database() {
+    echo -e "\033[33mChecking database configuration...\033[0m"
+    if ! extract_db_credentials; then
+        return 1
+    fi
+    # Check if Marzban is installed
+    if check_marzban_installed; then
+        echo -e "\033[31m[ERROR]\033[0m Importing database is not supported when Marzban is installed due to database being managed by Docker."
+        return 1
+    fi
+    echo -e "\033[33mVerifying database existence...\033[0m"
+    if ! mysql -u "$DB_USER" -p"$DB_PASS" -e "USE $DB_NAME;" 2>/dev/null; then
+        echo -e "\033[31m[ERROR]\033[0m Database $DB_NAME does not exist or credentials are incorrect."
+        return 1
+    fi
+    while true; do
+        read -p "Enter the path to the backup file [default: /root/${DB_NAME}_backup.sql]: " BACKUP_FILE
+        BACKUP_FILE=${BACKUP_FILE:-/root/${DB_NAME}_backup.sql}
+        if [[ -f "$BACKUP_FILE" && "$BACKUP_FILE" =~ \.sql$ ]]; then
+            break
+        else
+            echo -e "\033[31m[ERROR]\033[0m Invalid file path or format. Please provide a valid .sql file."
+        fi
+    done
+    echo -e "\033[33mImporting backup from $BACKUP_FILE...\033[0m"
+    if ! mysql -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" < "$BACKUP_FILE"; then
+        echo -e "\033[31m[ERROR]\033[0m Failed to import database from backup file."
+        return 1
+    fi
+    echo -e "\033[32mDatabase successfully imported from $BACKUP_FILE.\033[0m"
+}
+Function for automated backup
+function auto_backup() {
+    echo -e "\033[36mConfigure Automated Backup\033[0m"
+    # Check if Mirza Bot is installed
+    BOT_DIR="/var/www/html/mirzaprobotconfig"
+    if [ ! -d "$BOT_DIR" ]; then
+        echo -e "\033[31m[ERROR]\033[0m Mirza Bot is not installed ($BOT_DIR not found)."
+        echo -e "\033[33mExiting...\033[0m"
+        sleep 2
+        return 1
+    fi
+    # Extract credentials
+    if ! extract_db_credentials; then
+        return 1
+    fi
+    # Determine backup script based on Marzban presence
+    if check_marzban_installed; then
+        echo -e "\033[41m[NOTICE]\033[0m \033[33mMarzban detected. Using Marzban-compatible backup.\033[0m"
+        BACKUP_SCRIPT="/root/backup_mirza_marzban.sh"
+        MYSQL_CONTAINER=$(docker ps -q --filter "name=mysql" --no-trunc)
+        if [ -z "$MYSQL_CONTAINER" ]; then
+            echo -e "\033[31m[ERROR]\033[0m No running MySQL container found for Marzban."
+            return 1
+        fi
+        # Create Marzban backup script
+        cat <<EOF > "$BACKUP_SCRIPT"
+#!/bin/bash
+BACKUP_FILE="/root/\${DB_NAME}_\$(date +\"%Y%m%d_%H%M%S\").sql"
+docker exec $MYSQL_CONTAINER mysqldump -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" > "\$BACKUP_FILE"
+if [ \$? -eq 0 ]; then
+    curl -F document=@"\$BACKUP_FILE" "https://api.telegram.org/bot$TELEGRAM_TOKEN/sendDocument" -F chat_id="$TELEGRAM_CHAT_ID"
+    rm "\$BACKUP_FILE"
+else
+    echo -e "\033[31m[ERROR]\033[0m Failed to create Marzban database backup."
+fi
+EOF
+    else
+        echo -e "\033[33mUsing standard backup.\033[0m"
+        BACKUP_SCRIPT="/root/mirza_backup.sh"
+        # Verify database existence
+        if ! mysql -u "$DB_USER" -p"$DB_PASS" -e "USE $DB_NAME;" 2>/dev/null; then
+            echo -e "\033[31m[ERROR]\033[0m Database $DB_NAME does not exist or credentials are incorrect."
+            return 1
+        fi
+        # Create standard backup script
+        cat <<EOF > "$BACKUP_SCRIPT"
+#!/bin/bash
+BACKUP_FILE="/root/\${DB_NAME}_\$(date +\"%Y%m%d_%H%M%S\").sql"
+mysqldump -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" > "\$BACKUP_FILE"
+if [ \$? -eq 0 ]; then
+    curl -F document=@"\$BACKUP_FILE" "https://api.telegram.org/bot$TELEGRAM_TOKEN/sendDocument" -F chat_id="$TELEGRAM_CHAT_ID"
+    rm "\$BACKUP_FILE"
+else
+    echo -e "\033[31m[ERROR]\033[0m Failed to create database backup."
+fi
+EOF
+    fi
+    # Make the script executable
+    chmod +x "$BACKUP_SCRIPT"
+    # Check current cron and translate it
+    CURRENT_CRON=$(crontab -l 2>/dev/null | grep "$BACKUP_SCRIPT" | grep -v "^#")
+    if [ -n "$CURRENT_CRON" ]; then
+        SCHEDULE=$(translate_cron "$CURRENT_CRON")
+        echo -e "\033[33mCurrent Backup Schedule:\033[0m $SCHEDULE"
+    else
+        echo -e "\033[33mNo active backup schedule found.\033[0m"
+    fi
+    # Show backup frequency options
+    echo -e "\033[36m1) Every Minute\033[0m"
+    echo -e "\033[36m2) Every Hour\033[0m"
+    echo -e "\033[36m3) Every Day\033[0m"
+    echo -e "\033[36m4) Every Week\033[0m"
+    echo -e "\033[36m5) Disable Backup\033[0m"
+    echo -e "\033[36m6) Back to Menu\033[0m"
+    echo ""
+    read -p "Select an option [1-6]: " backup_option
+    # Function to update cron
+    update_cron() {
+        local cron_line="$1"
+        if [ -n "$CURRENT_CRON" ]; then
+            crontab -l 2>/dev/null | grep -v "$BACKUP_SCRIPT" | crontab - && {
+                echo -e "\033[92mRemoved previous backup schedule.\033[0m"
+            } || {
+                echo -e "\033[31mFailed to remove existing cron.\033[0m"
+            }
+        fi
+        if [ -n "$cron_line" ]; then
+            (crontab -l 2>/dev/null; echo "$cron_line") | crontab - && {
+                echo -e "\033[92mBackup scheduled: $(translate_cron "$cron_line")\033[0m"
+                bash "$BACKUP_SCRIPT" &>/dev/null &
+            } || {
+                echo -e "\033[31mFailed to schedule backup.\033[0m"
+            }
+        fi
+    }
+    # Process user choice
+    case $backup_option in
+        1) update_cron "* * * * * bash $BACKUP_SCRIPT" ;;
+        2) update_cron "0 * * * * bash $BACKUP_SCRIPT" ;;
+        3) update_cron "0 0 * * * bash $BACKUP_SCRIPT" ;;
+        4) update_cron "0 0 * * 0 bash $BACKUP_SCRIPT" ;;
+        5)
+            if [ -n "$CURRENT_CRON" ]; then
+                crontab -l 2>/dev/null | grep -v "$BACKUP_SCRIPT" | crontab - && {
+                    echo -e "\033[92mAutomated backup disabled.\033[0m"
+                } || {
+                    echo -e "\033[31mFailed to disable backup.\033[0m"
+                }
+            else
+                echo -e "\033[93mNo backup schedule to disable.\033[0m"
+            fi
+            ;;
+        6) show_menu ;;
+        *)
+            echo -e "\033[31mInvalid option. Please try again.\033[0m"
+            auto_backup
+            ;;
+    esac
+}
+Function to renew SSL certificates
+
+Function to Manage Additional Bots
+
+function change_domain() {
+    local new_domain
+    while [[ ! "$new_domain" =~ ^[a-zA-Z0-9.-]+$ ]]; do
+        read -p "Enter new domain: " new_domain
+        [[ ! "$new_domain" =~ ^[a-zA-Z0-9.-]+$ ]] && echo -e "\033[31mInvalid domain format\033[0m"
+    done
+    echo -e "\033[33mConfiguring SSL for new domain...\033[0m"
+    if ! sudo certbot --apache --redirect --agree-tos --preferred-challenges http -d "$new_domain"; then
+        echo -e "\033[31m[ERROR] SSL configuration failed!\033[0m"
+        echo -e "\033[33mCleaning up...\033[0m"
+        sudo certbot delete --cert-name "$new_domain" 2>/dev/null
+        sudo certbot delete --cert-name "$new_domain" 2>/dev/null
+        return 1
+    fi
+    CONFIG_FILE="/var/www/html/mirzaprobotconfig/config.php"
+    if [ -f "$CONFIG_FILE" ]; then
+        sudo cp "$CONFIG_FILE" "$CONFIG_FILE.$(date +%s).bak"
+        sudo sed -i "s/\$domainhosts = '.*\/mirzaprobotconfig';/\$domainhosts = '${new_domain}\/mirzaprobotconfig';/" "$CONFIG_FILE"
+        NEW_SECRET=$(openssl rand -base64 12 | tr -dc 'a-zA-Z0-9')
+        sudo sed -i "s/\$secrettoken = '.*';/\$secrettoken = '${NEW_SECRET%%}';/" "$CONFIG_FILE"
+        BOT_TOKEN=$(awk -F"'" '/\$APIKEY/{print $2}' "$CONFIG_FILE")
+        curl -s -o /dev/null -F "url=https://${new_domain}/mirzaprobotconfig/index.php" \
+             -F "secret_token=${NEW_SECRET}" \
+             "https://api.telegram.org/bot${BOT_TOKEN}/setWebhook" || {
+            echo -e "\033[33m[WARNING] Webhook update failed\033[0m"
+        }
+    else
+        echo -e "\033[31m[CRITICAL] Config file missing!\033[0m"
+        return 1
+    fi
+    if curl -sI "https://${new_domain}" | grep -q "200 OK"; then
+        echo -e "\033[32mDomain successfully migrated to ${new_domain}\033[0m"
+        echo -e "\033[33mOld domain configuration has been automatically cleaned up\033[0m"
+    else
+        echo -e "\033[31m[WARNING] Final verification failed!\033[0m"
+        echo -e "\033[33mPlease check:\033[0m"
+        echo -e "1. DNS settings for ${new_domain}"
+        echo -e "2. Apache virtual host configuration"
+        echo -e "3. Firewall settings"
+        return 1
+    fi
+}
+Added Function for Installing Additional Bot
 # function install_additional_bot() {
 #     clear
 #     echo -e "\033[33mStarting Additional Bot Installation...\033[0m"
@@ -2064,8 +2072,8 @@ function remove_bot() {
 # function update_additional_bot() {
 #     clear
 #     echo -e "\033[36mAvailable Bots:\033[0m"
-#     # List directories in /var/www/html excluding mirzabotconfig
-#     BOT_DIRS=$(ls -d /var/www/html/*/ 2>/dev/null | grep -v "/var/www/html/mirzabotconfig" | xargs -n 1 basename)
+#     # List directories in /var/www/html excluding mirzaprobotconfig
+#     BOT_DIRS=$(ls -d /var/www/html/*/ 2>/dev/null | grep -v "/var/www/html/mirzaprobotconfig" | xargs -n 1 basename)
 #     if [ -z "$BOT_DIRS" ]; then
 #         echo -e "\033[31mNo additional bots found in /var/www/html.\033[0m"
 #         return 1
@@ -2127,8 +2135,8 @@ function remove_bot() {
 # function remove_additional_bot() {
 #     clear
 #     echo -e "\033[36mAvailable Bots:\033[0m"
-#     # List directories in /var/www/html excluding mirzabotconfig
-#     BOT_DIRS=$(ls -d /var/www/html/*/ 2>/dev/null | grep -v "/var/www/html/mirzabotconfig" | xargs -n 1 basename)
+#     # List directories in /var/www/html excluding mirzaprobotconfig
+#     BOT_DIRS=$(ls -d /var/www/html/*/ 2>/dev/null | grep -v "/var/www/html/mirzaprobotconfig" | xargs -n 1 basename)
 #     if [ -z "$BOT_DIRS" ]; then
 #         echo -e "\033[31mNo additional bots found in /var/www/html.\033[0m"
 #         return 1
@@ -2218,8 +2226,8 @@ function remove_bot() {
 # function export_additional_bot_database() {
 #     clear
 #     echo -e "\033[36mAvailable Bots:\033[0m"
-#     # List all directories in /var/www/html excluding mirzabotconfig
-#     BOT_DIRS=$(ls -d /var/www/html/*/ 2>/dev/null | grep -v "/var/www/html/mirzabotconfig" | xargs -n 1 basename)
+#     # List all directories in /var/www/html excluding mirzaprobotconfig
+#     BOT_DIRS=$(ls -d /var/www/html/*/ 2>/dev/null | grep -v "/var/www/html/mirzaprobotconfig" | xargs -n 1 basename)
 #     # Check if there are no additional bots available
 #     if [ -z "$BOT_DIRS" ]; then
 #         echo -e "\033[31mNo additional bots found in /var/www/html.\033[0m"
@@ -2337,7 +2345,7 @@ function remove_bot() {
 #     fi
 #     # List all available bots
 #     echo -e "\033[36mAvailable Bots:\033[0m"
-#     BOT_DIRS=$(ls -d /var/www/html/*/ 2>/dev/null | grep -v "/var/www/html/mirzabotconfig" | xargs -n 1 basename)
+#     BOT_DIRS=$(ls -d /var/www/html/*/ 2>/dev/null | grep -v "/var/www/html/mirzaprobotconfig" | xargs -n 1 basename)
 #     if [ -z "$BOT_DIRS" ]; then
 #         echo -e "\033[31mNo additional bots found in /var/www/html.\033[0m"
 #         return 1
@@ -2386,7 +2394,7 @@ function remove_bot() {
 #     echo -e "\033[36mConfiguring Automated Backup for Additional Bot...\033[0m"
 #     # List all available bots in /var/www/html excluding the main configuration directory
 #     echo -e "\033[36mAvailable Bots:\033[0m"
-#     BOT_DIRS=$(ls -d /var/www/html/*/ 2>/dev/null | grep -v "/var/www/html/mirzabotconfig" | xargs -n 1 basename)
+#     BOT_DIRS=$(ls -d /var/www/html/*/ 2>/dev/null | grep -v "/var/www/html/mirzaprobotconfig" | xargs -n 1 basename)
 #     if [ -z "$BOT_DIRS" ]; then
 #         echo -e "\033[31mNo additional bots found in /var/www/html.\033[0m"
 #         return 1
@@ -2466,7 +2474,7 @@ function migrate_to_pro() {
     echo -e "\033[1;33mStarting Migration from Free to Pro Version...\033[0m"
 
     # 1. Check Previous Installation Source
-    OLD_BOT_DIR="/var/www/html/mirzabotconfig"
+    OLD_BOT_DIR="/var/www/html/mirzaprobotconfig"
     if [ ! -d "$OLD_BOT_DIR" ]; then
         echo -e "\033[31m[ERROR] Free version source code not found in $OLD_BOT_DIR.\033[0m"
         echo -e "\033[33mMake sure the free version is installed.\033[0m"
@@ -2510,10 +2518,10 @@ function migrate_to_pro() {
     echo ""
     echo -e "\033[43;30m[WARNING] Additional Bots Notice\033[0m"
     echo -e "\033[33mThis migration process will reconfigure Apache for the Pro version.\033[0m"
-    echo -e "\033[33mOnly the main bot (mirzabotconfig) will be migrated.\033[0m"
+    echo -e "\033[33mOnly the main bot (mirzaprobotconfig) will be migrated.\033[0m"
     echo -e "\033[33mExisting Additional Bots in /var/www/html/ might stop working.\033[0m"
     echo -e "\033[36mFound directories:\033[0m"
-    ls -d /var/www/html/*/ 2>/dev/null | grep -v "mirzabotconfig"
+    ls -d /var/www/html/*/ 2>/dev/null | grep -v "mirzaprobotconfig"
     echo ""
     read -p "Do you understand and want to proceed? (y/n): " confirm_add
     if [[ "$confirm_add" != "y" && "$confirm_add" != "Y" ]]; then
@@ -2580,7 +2588,7 @@ function migrate_to_pro() {
 
     # 7. Create New Database User & Delete Old User
     # Extract old user from config to delete it
-    OLD_CONFIG="/var/www/html/mirzabotconfig/config.php"
+    OLD_CONFIG="/var/www/html/mirzaprobotconfig/config.php"
     OLD_DB_USER=$(grep '$usernamedb' "$OLD_CONFIG" | cut -d"'" -f2)
     
     if [ -n "$OLD_DB_USER" ]; then
@@ -2594,9 +2602,9 @@ function migrate_to_pro() {
     NEW_DB_PASS=$(openssl rand -base64 12 | tr -dc 'a-zA-Z0-9' | cut -c1-10)
 
     echo -e "\033[33mCreating new database user...\033[0m"
-    mysql -u "$ROOT_USER" -p"$ROOT_PASS" -e "CREATE USER '$NEW_DB_USER'@'localhost' IDENTIFIED WITH mysql_native_password BY '$NEW_DB_PASS';"
+    mysql -u "$ROOT_USER" -p"$ROOT_PASS" -e "CREATE USER '$NEW_DB_USER'@'localhost' IDENTIFIED BY '$NEW_DB_PASS';"
     mysql -u "$ROOT_USER" -p"$ROOT_PASS" -e "GRANT ALL PRIVILEGES ON $NEW_DB.* TO '$NEW_DB_USER'@'localhost';"
-    mysql -u "$ROOT_USER" -p"$ROOT_PASS" -e "CREATE USER '$NEW_DB_USER'@'%' IDENTIFIED WITH mysql_native_password BY '$NEW_DB_PASS';"
+    mysql -u "$ROOT_USER" -p"$ROOT_PASS" -e "CREATE USER '$NEW_DB_USER'@'%' IDENTIFIED BY '$NEW_DB_PASS';"
     mysql -u "$ROOT_USER" -p"$ROOT_PASS" -e "GRANT ALL PRIVILEGES ON $NEW_DB.* TO '$NEW_DB_USER'@'%';"
     mysql -u "$ROOT_USER" -p"$ROOT_PASS" -e "FLUSH PRIVILEGES;"
 
@@ -2607,7 +2615,7 @@ function migrate_to_pro() {
     OLD_BOT_NAME=$(grep '$usernamebot' "$OLD_CONFIG" | cut -d"'" -f2)
     OLD_DOMAIN_FULL=$(grep '$domainhosts' "$OLD_CONFIG" | cut -d"'" -f2)
     
-    # Extract pure domain (remove /mirzabotconfig)
+    # Extract pure domain (remove /mirzaprobotconfig)
     DOMAIN_NAME=$(echo "$OLD_DOMAIN_FULL" | cut -d'/' -f1)
 
     echo -e "\033[32mDomain detected: $DOMAIN_NAME\033[0m"
