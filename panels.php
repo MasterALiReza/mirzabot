@@ -273,10 +273,10 @@ class ManagePanel
         } elseif ($Get_Data_Panel['type'] == "WGDashboard") {
             $data_limit = round($data_limit / (1024 * 1024 * 1024), 2);
             $data_Output = addpear($Get_Data_Panel['name_panel'], $usernameC);
-            if (!empty($data_Output['status']) && $data_Output['status'] != 200) {
+            if (isset($data_Output['status']) && ($data_Output['status'] === false || $data_Output['status'] != 200)) {
                 return array(
                     'status' => 'Unsuccessful',
-                    'msg' => $data_Output['status']
+                    'msg' => $data_Output['msg'] ?? ($data_Output['status'] ? 'error code : ' . $data_Output['status'] : 'Unknown error')
                 );
             }
             if (!empty($data_Output['error'])) {
@@ -294,15 +294,15 @@ class ManagePanel
                 setjob($Get_Data_Panel['name_panel'], "date", date('Y-m-d H:i:s', $expire), $data_Output['public_key']);
             }
             update("invoice", "user_info", json_encode($data_Output), "username", $usernameC);
-            if (!$response['status']) {
+            if (empty($response) || !$response['status']) {
                 $Output['status'] = 'Unsuccessful';
-                $Output['msg'] = $data_Output['msg'];
+                $Output['msg'] = $response['message'] ?? $data_Output['msg'] ?? 'Response status false';
             } else {
                 $download_config = downloadconfig($Get_Data_Panel['name_panel'], $data_Output['public_key']);
-                if (!empty($download_config['status']) && $download_config['status'] != 200) {
+                if (isset($download_config['status']) && ($download_config['status'] === false || $download_config['status'] != 200)) {
                     return array(
                         'status' => 'Unsuccessful',
-                        'msg' => $download_config['status']
+                        'msg' => $download_config['msg'] ?? ($download_config['status'] ? 'error code : ' . $download_config['status'] : 'Unknown error')
                     );
                 }
                 if (!empty($download_config['error'])) {
@@ -311,10 +311,11 @@ class ManagePanel
                         'msg' => $download_config['error']
                     );
                 }
-                $download_config = json_decode($download_config['body'], true)['data'];
+                $download_config_body = json_decode($download_config['body'], true);
+                $download_config_data = $download_config_body['data'] ?? $download_config_body;
                 $Output['status'] = 'successful';
                 $Output['username'] = $usernameC;
-                $Output['subscription_url'] = strval($download_config['file']);
+                $Output['subscription_url'] = strval($download_config_data['file'] ?? '');
                 $Output['configs'] = [];
             }
         } elseif ($Get_Data_Panel['type'] == "s_ui") {
@@ -783,10 +784,10 @@ class ManagePanel
                     $status = "limited";
                 }
                 $download_config = downloadconfig($Get_Data_Panel['name_panel'], $UsernameData['id']);
-                if (!empty($download_config['status']) && $download_config['status'] != 200) {
+                if (isset($download_config['status']) && ($download_config['status'] === false || $download_config['status'] != 200)) {
                     return array(
                         'status' => 'Unsuccessful',
-                        'msg' => $download_config['status']
+                        'msg' => $download_config['msg'] ?? ($download_config['status'] ? 'error code : ' . $download_config['status'] : 'Unknown error')
                     );
                 }
                 if (!empty($download_config['error'])) {
@@ -795,7 +796,8 @@ class ManagePanel
                         'msg' => $download_config['error']
                     );
                 }
-                $download_config = json_decode($download_config['body'], true)['data'];
+                $download_config_body = json_decode($download_config['body'], true);
+                $download_config_data = $download_config_body['data'] ?? $download_config_body;
                 $Output = array(
                     'status' => $status,
                     'username' => $UsernameData['name'],
@@ -804,7 +806,7 @@ class ManagePanel
                     'online_at' => null,
                     'used_traffic' => $data_useage,
                     'links' => [],
-                    'subscription_url' => strval($download_config['file']),
+                    'subscription_url' => strval($download_config_data['file'] ?? ''),
                     'sub_updated_at' => null,
                     'sub_last_user_agent' => null,
                 );
