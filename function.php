@@ -2197,8 +2197,8 @@ function generateUserBanner($user_id) {
         $img_width = imagesx($img);
         $img_height = imagesy($img);
         
-        // QR size: 38% of image width (about 390px on 1024px canvas)
-        $qr_size = (int)round($img_width * 0.38);
+        // QR size: 50% of image width (about 512px on 1024px canvas)
+        $qr_size = (int)round($img_width * 0.50);
         if ($qr_size < 150) $qr_size = 150;
         
         // Generate QR Code from qrserver
@@ -2208,7 +2208,7 @@ function generateUserBanner($user_id) {
             $qr_img = @imagecreatefromstring($qr_data);
             if ($qr_img) {
                 $qr_x = ($img_width - $qr_size) / 2;
-                $qr_y = (($img_height - $qr_size) / 2) + ($img_height * 0.1);
+                $qr_y = ($img_height - $qr_size) / 2;
                 
                 if ($qr_y < 0) $qr_y = 10;
                 if ($qr_x < 0) $qr_x = 10;
