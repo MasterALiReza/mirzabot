@@ -585,8 +585,8 @@ include __DIR__ . '/inc/layout_head.php';
                             <tr>
                                 <th style="text-align:right;"><?= $textbotlang['panel']['dashColProduct'] ?? 'محصول' ?></th>
                                 <th class="desktop-text-center" style="text-align:right;"><?= $textbotlang['panel']['dashColAmount'] ?? 'مبلغ' ?></th>
-                                <th class="desktop-text-center" style="text-align:right;">تاریخ</th>
                                 <th style="text-align:right;"><?= $textbotlang['panel']['dashColStatus'] ?? 'وضعیت' ?></th>
+                                <th style="text-align:center;">عملیات</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -643,6 +643,11 @@ include __DIR__ . '/inc/layout_head.php';
                                         </td>
                                         <td data-label="<?= $textbotlang['panel']['dashColStatus'] ?? 'وضعیت' ?>" style="text-align:right;">
                                             <span class="tag <?= $tagClass ?>"><?= $label ?></span>
+                                        </td>
+                                        <td data-label="عملیات" style="text-align:center;">
+                                            <button class="btn btn-ghost btn-sm" onclick="manageService('<?= $inv['id_invoice'] ?>')" title="مدیریت سرویس">
+                                                <?= icon('settings', 16) ?>
+                                            </button>
                                         </td>
                                     </tr>
                                 <?php endforeach; endif; ?>
@@ -1127,6 +1132,21 @@ include __DIR__ . '/inc/layout_head.php';
     </div>
 </div>
 
+<div class="modal-veil" id="serviceManageModal">
+    <div class="modal">
+        <div class="modal-head">
+            <h3>مدیریت سرویس</h3>
+            <button class="modal-x" onclick="closeModal('serviceManageModal')"><?= icon('close', 14) ?></button>
+        </div>
+        <div class="modal-body" id="serviceManageContent" style="min-height: 200px; display: flex; justify-content: center; align-items: center;">
+            <!-- Loading Spinner -->
+            <div style="text-align:center; color:var(--mute);">
+                در حال دریافت اطلاعات از سرور...
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="js/profile.js?v=<?= time() ?>"></script>
 <script>
     // Fix browser back caching
@@ -1135,6 +1155,27 @@ include __DIR__ . '/inc/layout_head.php';
             window.location.reload();
         }
     };
+
+    function manageService(invoiceId) {
+        openModal('serviceManageModal');
+        const contentDiv = document.getElementById('serviceManageContent');
+        contentDiv.innerHTML = '<div style="text-align:center; color:var(--mute); padding: 40px 0;">در حال دریافت اطلاعات از سرور...</div>';
+        
+        fetch('ajax/get_service_details.php?id_user=<?= $id ?>&id_invoice=' + encodeURIComponent(invoiceId))
+            .then(response => {
+                if (!response.ok && response.status !== 400 && response.status !== 404 && response.status !== 500) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.text();
+            })
+            .then(html => {
+                contentDiv.innerHTML = html;
+            })
+            .catch(error => {
+                contentDiv.innerHTML = '<div style="text-align:center; color:var(--red); padding: 40px 0;">خطا در برقراری ارتباط با سرور.</div>';
+                console.error('Error fetching service details:', error);
+            });
+    }
 </script>
 
 <?php include __DIR__ . '/inc/layout_foot.php'; ?>

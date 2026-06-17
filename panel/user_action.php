@@ -168,6 +168,86 @@ switch ($action) {
         }
         break;
 
+    case 'removeservice':
+        $id_invoice = $_GET['id_invoice'] ?? '';
+        if (!$id_invoice) {
+            flash('error', 'شناسه سرویس ارسال نشده است.');
+            break;
+        }
+        $invoice = db_fetch($pdo, "SELECT * FROM invoice WHERE id_invoice = ? AND id_user = ?", [$id_invoice, $id]);
+        if (!$invoice) {
+            flash('error', 'سرویس یافت نشد.');
+            break;
+        }
+        $old_cwd = getcwd();
+        chdir(__DIR__ . '/../');
+        require_once 'panels.php';
+        chdir($old_cwd);
+
+        $ManagePanel = new ManagePanel();
+        $DataUserOut = $ManagePanel->DataUser($invoice['Service_location'], $invoice['username']);
+        
+        $warning = '';
+        if (isset($DataUserOut['msg']) && $DataUserOut['msg'] == "User not found") {
+            $warning = ' (اما کاربر در سرور یافت نشد)';
+        } elseif (isset($DataUserOut['status']) && $DataUserOut['status'] == "Unsuccessful") {
+            $err_msg = !empty($DataUserOut['msg']) ? (is_string($DataUserOut['msg']) ? $DataUserOut['msg'] : json_encode($DataUserOut['msg'])) : "";
+            $warning = ' (سرور در دسترس نبود یا خطا داشت: ' . htmlspecialchars($err_msg) . ')';
+        }
+
+        $ManagePanel->RemoveUser($invoice['Service_location'], $invoice['username']);
+        db_query($pdo, "UPDATE invoice SET Status = 'removebyadmin' WHERE id_invoice = ?", [$id_invoice]);
+        flash('success', 'سرویس کاربر با موفقیت حذف شد.' . $warning);
+        break;
+
+    case 'removeserviceandrefund':
+        $id_invoice = $_GET['id_invoice'] ?? '';
+        if (!$id_invoice) {
+            flash('error', 'شناسه سرویس ارسال نشده است.');
+            break;
+        }
+        $invoice = db_fetch($pdo, "SELECT * FROM invoice WHERE id_invoice = ? AND id_user = ?", [$id_invoice, $id]);
+        if (!$invoice) {
+            flash('error', 'سرویس یافت نشد.');
+            break;
+        }
+        if ($invoice['Status'] === 'removebyadmin') {
+            flash('warning', 'این سرویس قبلاً حذف شده است.');
+            break;
+        }
+        $old_cwd = getcwd();
+        chdir(__DIR__ . '/../');
+        require_once 'panels.php';
+        require_once 'botapi.php';
+        chdir($old_cwd);
+
+        $ManagePanel = new ManagePanel();
+        $DataUserOut = $ManagePanel->DataUser($invoice['Service_location'], $invoice['username']);
+        
+        $warning = '';
+        if (isset($DataUserOut['msg']) && $DataUserOut['msg'] == "User not found") {
+            $warning = ' (اما کاربر در سرور یافت نشد)';
+        } elseif (isset($DataUserOut['status']) && $DataUserOut['status'] == "Unsuccessful") {
+            $err_msg = !empty($DataUserOut['msg']) ? (is_string($DataUserOut['msg']) ? $DataUserOut['msg'] : json_encode($DataUserOut['msg'])) : "";
+            $warning = ' (سرور در دسترس نبود یا خطا داشت: ' . htmlspecialchars($err_msg) . ')';
+        }
+
+        $ManagePanel->RemoveUser($invoice['Service_location'], $invoice['username']);
+        db_query($pdo, "UPDATE invoice SET Status = 'removebyadmin' WHERE id_invoice = ?", [$id_invoice]);
+        
+        $price = (int)$invoice['price_product'];
+        db_query($pdo, "UPDATE user SET Balance = Balance + ? WHERE id = ?", [$price, $id]);
+        
+        $msg = sprintf($textbotlang['Admin']['adminphp']['msg_user_balance_amount_add_2'] ?? "مبلغ %s تومان به حساب شما افزوده شد.", number_format($price));
+        if (function_exists('sendmessage')) {
+            sendmessage($id, $msg, null, 'HTML');
+        } elseif (function_exists('telegram')) {
+            telegram('SendMessage', ['chat_id' => $id, 'text' => $msg, 'parse_mode' => 'HTML']);
+        }
+        
+        flash('success', 'سرویس حذف شد و مبلغ ' . number_format($price) . ' تومان به حساب کاربر برگشت داده شد.' . $warning);
+        break;
+
     default:
         flash('error', $textbotlang['panel']['userActionInvalidOperation']);
 }

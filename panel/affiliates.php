@@ -256,7 +256,7 @@ include __DIR__ . '/inc/layout_head.php';
                                         <?= mb_substr($name ?: ($uname ?: $ref['id']), 0, 1) ?>
                                     </div>
                                     <div style="min-width: 0; display: flex; flex-direction: column; gap: 2px; text-align: right; align-items: flex-start; overflow: hidden;">
-                                        <a href="user.php?id=<?= (int)$ref['id'] ?>" class="username-link" style="color: var(--text); font-weight: 600; text-decoration: none; max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-block;">
+                                        <a href="user.php?id=<?= (int)$ref['id'] ?>" class="username-link" style="color: var(--text); font-weight: 600; text-decoration: none; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-block;">
                                             <?= htmlspecialchars($name ?: ($uname ? '@' . $uname : 'کاربر بی‌نام')) ?>
                                         </a>
                                         <div class="profile-id-box" style="font-size: 0.75rem; color: var(--mute); margin: 0; display: flex; align-items: center; gap: 2px;">
@@ -391,17 +391,19 @@ function toggleReferrals(referrerId) {
    DESKTOP COLUMN ALIGNMENTS (min-width: 769px)
    ========================================== */
 @media (min-width: 769px) {
-    /* Main table columns */
-    #affiliatesTbl th:nth-child(1), 
-    #affiliatesTbl td:nth-child(1) { width: 48px; min-width: 48px; text-align: center; }
-    #affiliatesTbl th:nth-child(2), 
-    #affiliatesTbl td:nth-child(2) { width: 35%; }
-    #affiliatesTbl th:nth-child(3), 
-    #affiliatesTbl td:nth-child(3) { width: 20%; }
-    #affiliatesTbl th:nth-child(4), 
-    #affiliatesTbl td:nth-child(4) { width: 20%; }
-    #affiliatesTbl th:nth-child(5), 
-    #affiliatesTbl td:nth-child(5) { width: 25%; }
+    /* Main table headers */
+    #affiliatesTbl > thead > tr > th:nth-child(1) { width: 48px; min-width: 48px; text-align: center; }
+    #affiliatesTbl > thead > tr > th:nth-child(2) { width: 35%; }
+    #affiliatesTbl > thead > tr > th:nth-child(3) { width: 20%; }
+    #affiliatesTbl > thead > tr > th:nth-child(4) { width: 20%; }
+    #affiliatesTbl > thead > tr > th:nth-child(5) { width: 25%; }
+
+    /* Main table body rows */
+    #affiliatesTbl > tbody > tr[id^="referrer-row-"] > td:nth-child(1) { width: 48px; min-width: 48px; text-align: center; }
+    #affiliatesTbl > tbody > tr[id^="referrer-row-"] > td:nth-child(2) { width: 35%; }
+    #affiliatesTbl > tbody > tr[id^="referrer-row-"] > td:nth-child(3) { width: 20%; }
+    #affiliatesTbl > tbody > tr[id^="referrer-row-"] > td:nth-child(4) { width: 20%; }
+    #affiliatesTbl > tbody > tr[id^="referrer-row-"] > td:nth-child(5) { width: 25%; }
 
     /* Nested table columns */
     #affiliatesTbl tbody tr[id^="details-"] table th:nth-child(1), 

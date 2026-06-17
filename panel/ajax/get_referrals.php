@@ -50,7 +50,7 @@ try {
                                     <?= mb_substr($refName ?: ($refUname ?: $ref['id']), 0, 1) ?>
                                 </div>
                                 <div style="min-width: 0; display: flex; flex-direction: column; gap: 2px; text-align: right; align-items: flex-start; overflow: hidden;">
-                                    <a href="user.php?id=<?= (int)$ref['id'] ?>" class="username-link" style="color: var(--text); font-weight: 600; text-decoration: none; max-width: 160px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-block;">
+                                    <a href="user.php?id=<?= (int)$ref['id'] ?>" class="username-link" style="color: var(--text); font-weight: 600; text-decoration: none; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-block;">
                                         <?= htmlspecialchars($refName ?: ($refUname ? '@' . $refUname : 'کاربر بی‌نام')) ?>
                                     </a>
                                     <div class="profile-id-box" style="font-size: 0.75rem; color: var(--mute); margin: 0; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
