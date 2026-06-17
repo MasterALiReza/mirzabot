@@ -38,12 +38,57 @@ try {
     $ManagePanel = new ManagePanel();
     $DataUserOut = $ManagePanel->DataUser($invoice['Service_location'], $invoice['username']);
 
+    $invStatus = strtolower($invoice['Status'] ?? '');
+    $isUnprovisioned = in_array($invStatus, ['unpaid', 'paying', 'pending', 'send_on_hold', 'cancled', 'canceled', 'waiting']);
+
     if (isset($DataUserOut['status']) && $DataUserOut['status'] == "Unsuccessful") {
         $err_msg = !empty($DataUserOut['msg']) ? htmlspecialchars(is_string($DataUserOut['msg']) ? $DataUserOut['msg'] : json_encode($DataUserOut['msg'])) : "نامشخص";
-        echo '<div style="padding:20px;text-align:center;color:var(--no);">
-                <p style="margin-bottom:10px;">خطا در ارتباط با سرور یا کاربر در پنل وجود ندارد.</p>
-                <p style="font-size:0.85em; opacity:0.8; word-break: break-all;">جزئیات: ' . $err_msg . '</p>
-              </div>';
+        
+        if ($isUnprovisioned) {
+            // Unpaid or Pending Orders UI
+            echo '<div style="padding: 30px 20px; text-align: center; color: var(--text);">
+                    <div style="margin-bottom: 20px;">
+                        <span style="font-size: 3rem; color: var(--warn); opacity: 0.9;">' . icon('clock', 48) . '</span>
+                    </div>
+                    <h3 style="margin-bottom: 12px;">سفارش تکمیل نشده است</h3>
+                    <p style="opacity: 0.8; margin-bottom: 24px; font-size: 0.95em;">این سفارش هنوز در وضعیت <strong>«' . htmlspecialchars($invStatus) . '»</strong> قرار دارد، بنابراین اطلاعات آن به سمت سرور ارسال نشده و کانفیگ ساخته نشده است.</p>
+                    
+                    <div style="background: var(--sf); border: 1px solid var(--bd); border-radius: 12px; padding: 16px; text-align: right; margin-bottom: 24px;">
+                        <div style="font-weight: 600; margin-bottom: 10px;">جزئیات سفارش ثبت شده در ربات:</div>
+                        <div style="font-size: 0.9em; opacity: 0.8; margin-bottom: 6px;">شناسه فاکتور: ' . htmlspecialchars($invoice['id_invoice']) . '</div>
+                        <div style="font-size: 0.9em; opacity: 0.8; margin-bottom: 6px;">محصول: ' . htmlspecialchars($invoice['name_product']) . '</div>
+                        <div style="font-size: 0.9em; opacity: 0.8;">مبلغ: ' . number_format((int)$invoice['price_product']) . ' تومان</div>
+                    </div>
+                    
+                    <div>
+                        <a href="user_action.php?action=removeservice&id_invoice=' . $id_invoice . '&id=' . $id_user . '&_csrf=' . csrf_token() . '&back=user.php" class="btn btn-no" style="width: 100%; justify-content: center;" data-confirm="آیا از حذف این فاکتور مطمئن هستید؟">
+                            ' . icon('trash', 14) . ' حذف فاکتور
+                        </a>
+                    </div>
+                  </div>';
+        } else {
+            // Created order but deleted from Marzban manually (Error State)
+            echo '<div style="padding: 30px 20px; text-align: center; color: var(--text);">
+                    <div style="margin-bottom: 20px;">
+                        <span style="font-size: 3rem; color: var(--red); opacity: 0.9;">' . icon('alert-triangle', 48) . '</span>
+                    </div>
+                    <h3 style="margin-bottom: 12px;">خطا در یافتن سرویس</h3>
+                    <p style="opacity: 0.8; margin-bottom: 10px; font-size: 0.95em;">کاربر در پنل یافت نشد یا سرور در دسترس نیست.</p>
+                    <p style="font-size: 0.8em; opacity: 0.6; word-break: break-all; margin-bottom: 24px;">جزئیات خطا: ' . $err_msg . '</p>
+                    
+                    <div style="background: var(--sf); border: 1px solid var(--bd); border-radius: 12px; padding: 16px; text-align: right; margin-bottom: 24px;">
+                        <div style="font-weight: 600; margin-bottom: 10px;">وضعیت فاکتور در ربات:</div>
+                        <div style="font-size: 0.9em; opacity: 0.8;">' . htmlspecialchars($invStatus) . '</div>
+                    </div>
+                    
+                    <div>
+                        <a href="user_action.php?action=removeservice&id_invoice=' . $id_invoice . '&id=' . $id_user . '&_csrf=' . csrf_token() . '&back=user.php" class="btn btn-no" style="width: 100%; justify-content: center;" data-confirm="آیا می‌خواهید این فاکتور خراب را از ربات حذف کنید؟">
+                            ' . icon('trash', 14) . ' پاکسازی فاکتور
+                        </a>
+                    </div>
+                  </div>';
+        }
+        exit;
     }
 
     // Prepare status translation

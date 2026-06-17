@@ -123,6 +123,14 @@ try {
 } catch (Exception $e) {
 }
 
+try {
+    $all_panels = db_fetchAll($pdo, "SELECT name_panel, type FROM marzban_panel");
+} catch (Exception $e) { $all_panels = []; }
+
+try {
+    $all_products = db_fetchAll($pdo, "SELECT name_product, Location FROM product");
+} catch (Exception $e) { $all_products = []; }
+
 $balance = (int) ($user['Balance'] ?? 0);
 $totalSpent = array_sum(array_column($invoices, 'price_product'));
 $activeServices = count(array_filter($invoices, fn($inv) => ($inv['Status'] ?? '') === 'active'));
@@ -412,6 +420,9 @@ include __DIR__ . '/inc/layout_head.php';
                         <button class="btn btn-ghost" onclick="openModal('discountModal')">
                             <?= icon('percent', 14) ?> درصد تخفیف
                         </button>
+                        <button class="btn btn-primary" style="background:var(--ok);color:#fff;border:none" onclick="openModal('addOrderModal')">
+                            <?= icon('shopping-cart', 14) ?> افزودن سفارش دستی
+                        </button>
                     </div>
                 </div>
 
@@ -454,6 +465,12 @@ include __DIR__ . '/inc/layout_head.php';
                             class="btn btn-ghost" data-confirm="آیا تایید عضویت کانال اعمال شود؟" hx-boost="false">
                             <?= icon('bell', 14) ?> تایید کانال
                         </a>
+                        <?php if ($user['number'] !== 'confrim number by admin'): ?>
+                        <a href="user_action.php?action=confirm_phone&id=<?= $id ?>&_csrf=<?= csrf_token() ?>&back=user.php"
+                            class="btn btn-ghost" data-confirm="آیا می‌خواهید شماره تلفن این کاربر را به صورت دستی تایید کنید؟" hx-boost="false">
+                            <?= icon('phone-call', 14) ?> تایید دستی شماره
+                        </a>
+                        <?php endif; ?>
                     </div>
                 </div>
 
@@ -485,6 +502,12 @@ include __DIR__ . '/inc/layout_head.php';
                             class="btn btn-ghost" data-confirm="حذف تمام زیرمجموعه های کاربر؟" hx-boost="false">
                             <?= icon('user-minus', 14) ?> حذف زیرمجموعه‌ها
                         </a>
+                        <?php if ((int)($user['affiliates'] ?? 0) > 0): ?>
+                        <a href="user_action.php?action=remove_single_affiliate&id=<?= $id ?>&_csrf=<?= csrf_token() ?>&back=user.php"
+                            class="btn btn-ghost" data-confirm="آیا مطمئن هستید که می‌خواهید این کاربر را از معرف خود جدا کنید؟" hx-boost="false">
+                            <?= icon('user-x', 14) ?> قطع اتصال معرف
+                        </a>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -1132,6 +1155,52 @@ include __DIR__ . '/inc/layout_head.php';
     </div>
 </div>
 
+<div class="modal-veil" id="addOrderModal">
+    <div class="modal">
+        <div class="modal-head">
+            <h3>افزودن سفارش دستی</h3>
+            <button class="modal-x" onclick="closeModal('addOrderModal')"><?= icon('close', 14) ?></button>
+        </div>
+        <form id="addOrderForm" onsubmit="submitAddOrder(event)">
+            <div class="modal-body">
+                <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
+                <input type="hidden" name="id_user" value="<?= $id ?>">
+                
+                <div class="field">
+                    <label>نام کانفیگ (لاتین)</label>
+                    <input type="text" name="config_name" class="input" placeholder="مثال: config_abc" pattern="^\w{3,32}$" required>
+                </div>
+
+                <div class="field">
+                    <label>انتخاب پنل (سرور)</label>
+                    <select name="panel_name" class="select" id="orderPanelSelect" onchange="updateProductList()" required>
+                        <option value="">-- انتخاب کنید --</option>
+                        <?php foreach ($all_panels as $p): ?>
+                            <option value="<?= htmlspecialchars($p['name_panel']) ?>"><?= htmlspecialchars($p['name_panel']) ?> (<?= htmlspecialchars($p['type']) ?>)</option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>انتخاب محصول</label>
+                    <select name="product_name" class="select" id="orderProductSelect" required disabled>
+                        <option value="">ابتدا پنل را انتخاب کنید</option>
+                        <?php foreach ($all_products as $prod): ?>
+                            <option value="<?= htmlspecialchars($prod['name_product']) ?>" data-location="<?= htmlspecialchars($prod['Location']) ?>" style="display:none;">
+                                <?= htmlspecialchars($prod['name_product']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-foot">
+                <button type="submit" class="btn btn-primary" id="addOrderBtn"><?= icon('shopping-cart', 13) ?> ایجاد کانفیگ</button>
+                <button type="button" class="btn btn-ghost" onclick="closeModal('addOrderModal')">لغو</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <div class="modal-veil" id="serviceManageModal">
     <div class="modal" style="max-width: 600px; width: 95%;">
         <div class="modal-head">
@@ -1175,6 +1244,58 @@ include __DIR__ . '/inc/layout_head.php';
                 contentDiv.innerHTML = '<div style="text-align:center; color:var(--red); padding: 40px 0;">خطا در برقراری ارتباط با سرور.</div>';
                 console.error('Error fetching service details:', error);
             });
+    }
+
+    function updateProductList() {
+        const panelSelect = document.getElementById('orderPanelSelect');
+        const productSelect = document.getElementById('orderProductSelect');
+        const selectedPanel = panelSelect.value;
+        
+        productSelect.disabled = !selectedPanel;
+        productSelect.value = "";
+        
+        Array.from(productSelect.options).forEach(opt => {
+            if (opt.value === "") return;
+            const loc = opt.getAttribute('data-location');
+            if (loc === selectedPanel || loc === '/all') {
+                opt.style.display = '';
+            } else {
+                opt.style.display = 'none';
+            }
+        });
+    }
+
+    function submitAddOrder(e) {
+        e.preventDefault();
+        const form = e.target;
+        const btn = document.getElementById('addOrderBtn');
+        const originalText = btn.innerHTML;
+        
+        btn.disabled = true;
+        btn.innerHTML = 'در حال ساخت...';
+        
+        const formData = new FormData(form);
+        
+        fetch('ajax/add_order_manual.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                window.location.reload();
+            } else {
+                alert('خطا: ' + data.message);
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        })
+        .catch(err => {
+            alert('خطای ارتباط با سرور.');
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        });
     }
 </script>
 

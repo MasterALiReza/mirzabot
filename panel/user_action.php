@@ -62,6 +62,11 @@ switch ($action) {
         flash('success', 'وضعیت احراز هویت تغییر کرد.');
         break;
 
+    case 'confirm_phone':
+        db_query($pdo, "UPDATE user SET number = 'confrim number by admin' WHERE id = ?", [$id]);
+        flash('success', 'شماره تلفن با موفقیت توسط ادمین تایید شد.');
+        break;
+
     case 'toggle_card':
         $current = $user['cardpayment'] ?? '1';
         $new = ($current === '1') ? '0' : '1';
