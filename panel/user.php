@@ -1161,7 +1161,7 @@ include __DIR__ . '/inc/layout_head.php';
         const contentDiv = document.getElementById('serviceManageContent');
         contentDiv.innerHTML = '<div style="text-align:center; color:var(--mute); padding: 40px 0;">در حال دریافت اطلاعات از سرور...</div>';
         
-        fetch('ajax/get_service_details.php?id_user=<?= $id ?>&id_invoice=' + encodeURIComponent(invoiceId))
+        fetch('ajax/get_service_details.php?id_user=<?= $id ?>&id_invoice=' + encodeURIComponent(invoiceId) + '&_csrf=<?= csrf_token() ?>')
             .then(response => {
                 if (!response.ok && response.status !== 400 && response.status !== 404 && response.status !== 500) {
                     throw new Error('Network response was not ok');
