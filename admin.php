@@ -2801,11 +2801,15 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
     return;
 } elseif (strpos($datain, 'syncpnl_') === 0 && $adminrulecheck['rule'] == "administrator") {
     $loc = base64_decode(str_replace('syncpnl_', '', $datain));
-    $panels = CustomQuery("SELECT `name_panel` FROM `marzban_panel`");
+    // Save the old location in the database
+    update("user", "Processing_value_one", $loc, "id", $from_id);
+    
+    $panels = CustomQuery("SELECT `name_panel`, `code_panel` FROM `marzban_panel`");
     $keys = [];
     if($panels && $panels->num_rows > 0){
         while($row = $panels->fetch_assoc()){
-            $keys[] = [['text' => $row['name_panel'], 'callback_data' => "dosync_" . base64_encode($loc) . "_" . base64_encode($row['name_panel'])]];
+            // Use code_panel instead of base64 panel name to keep it well under 64 bytes
+            $keys[] = [['text' => $row['name_panel'], 'callback_data' => "s_dest_" . $row['code_panel']]];
         }
     }
     if (empty($keys)) {
@@ -2817,27 +2821,34 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
         return;
     }
     $keyboard = json_encode(['inline_keyboard' => $keys]);
-    sendmessage($from_id, "شما قصد دارید تمام فاکتورهای مربوط به پنل <b>{$loc}</b> را به کدام پنل زیر منتقل کنید؟\nلطفا پنل مقصد را انتخاب کنید:", $keyboard, 'HTML');
-    telegram('answerCallbackQuery', [
-        'callback_query_id' => $callback_query_id,
-        'text' => 'لطفا پنل مقصد را انتخاب کنید',
-        'show_alert' => false
-    ]);
+    Editmessagetext($from_id, $message_id, "شما قصد دارید تمام فاکتورهای مربوط به پنل\n<b>{$loc}</b>\nرا به کدام پنل زیر منتقل کنید؟\nلطفا پنل مقصد را انتخاب کنید:", $keyboard);
     return;
-} elseif (strpos($datain, 'dosync_') === 0 && $adminrulecheck['rule'] == "administrator") {
-    $parts = explode('_', str_replace('dosync_', '', $datain));
-    if (count($parts) == 2) {
-        $old_loc = base64_decode($parts[0]);
-        $new_loc = base64_decode($parts[1]);
+} elseif (strpos($datain, 's_dest_') === 0 && $adminrulecheck['rule'] == "administrator") {
+    $code_panel = str_replace('s_dest_', '', $datain);
+    $old_loc = $user['Processing_value_one']; // The old panel name saved previously
+    
+    $panel = select("marzban_panel", "*", "code_panel", $code_panel, "select");
+    if($panel && !empty($old_loc) && $old_loc != "none") {
+        $new_loc = $panel['name_panel'];
         $stmt = $pdo->prepare("UPDATE invoice SET Service_location = ? WHERE Service_location = ?");
         $stmt->execute([$new_loc, $old_loc]);
         $count = $stmt->rowCount();
+        
+        // Reset the value
+        update("user", "Processing_value_one", "none", "id", $from_id);
+        
         telegram('answerCallbackQuery', [
             'callback_query_id' => $callback_query_id,
             'text' => "✅ با موفقیت $count فاکتور آپدیت شدند.",
             'show_alert' => true
         ]);
-        sendmessage($from_id, "✅ عملیات جایگزینی با موفقیت انجام شد!\n\nتعداد $count فاکتور متعلق به پنل <b>{$old_loc}</b> به پنل <b>{$new_loc}</b> منتقل شدند.", null, 'HTML');
+        Editmessagetext($from_id, $message_id, "✅ عملیات جایگزینی با موفقیت انجام شد!\n\nتعداد $count فاکتور متعلق به پنل <b>{$old_loc}</b> به پنل <b>{$new_loc}</b> منتقل شدند.", json_encode(['inline_keyboard'=>[]]));
+    } else {
+        telegram('answerCallbackQuery', [
+            'callback_query_id' => $callback_query_id,
+            'text' => "❌ خطای سیستمی رخ داد. لطفا مجددا تلاش کنید.",
+            'show_alert' => true
+        ]);
     }
     return;
 } elseif (preg_match('/Confirm_pay_(\w+)/', $datain, $dataget) && ($adminrulecheck['rule'] == "administrator" || $adminrulecheck['rule'] == "Seller")) {
