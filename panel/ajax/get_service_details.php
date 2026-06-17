@@ -59,6 +59,10 @@ try {
 
     $panelStatus = $DataUserOut['status'] ?? 'Unknown';
     $statusText = $statusMap[$panelStatus][1] ?? $statusMap['Unknown'][1];
+    
+    // Remove checkmark emoji from status text for cleaner UI in the web panel
+    $statusText = trim(str_replace(['✅', '☑️', '✔', '🟢', '🔴'], '', $statusText));
+
     $statusClass = $statusMap[$panelStatus][0] ?? $statusMap['Unknown'][0];
 
     // Dates & JDF
