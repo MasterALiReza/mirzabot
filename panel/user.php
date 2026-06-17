@@ -1133,7 +1133,7 @@ include __DIR__ . '/inc/layout_head.php';
 </div>
 
 <div class="modal-veil" id="serviceManageModal">
-    <div class="modal">
+    <div class="modal" style="max-width: 600px; width: 95%;">
         <div class="modal-head">
             <h3>مدیریت سرویس</h3>
             <button class="modal-x" onclick="closeModal('serviceManageModal')"><?= icon('close', 14) ?></button>

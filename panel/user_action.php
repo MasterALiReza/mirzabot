@@ -248,6 +248,84 @@ switch ($action) {
         flash('success', 'سرویس حذف شد و مبلغ ' . number_format($price) . ' تومان به حساب کاربر برگشت داده شد.' . $warning);
         break;
 
+    case 'extendservice':
+        $id_invoice = $_GET['id_invoice'] ?? '';
+        if (!$id_invoice) {
+            flash('error', 'شناسه سرویس ارسال نشده است.');
+            break;
+        }
+        $invoice = db_fetch($pdo, "SELECT * FROM invoice WHERE id_invoice = ? AND id_user = ?", [$id_invoice, $id]);
+        if (!$invoice) {
+            flash('error', 'سرویس یافت نشد.');
+            break;
+        }
+        $old_cwd = getcwd();
+        chdir(__DIR__ . '/../');
+        require_once 'panels.php';
+        chdir($old_cwd);
+
+        $marzban_panel = db_fetch($pdo, "SELECT * FROM marzban_panel WHERE name_panel = ?", [$invoice['Service_location']]);
+        if (!$marzban_panel) {
+            flash('error', 'پنل مربوط به این سرویس یافت نشد.');
+            break;
+        }
+
+        $ManagePanel = new ManagePanel();
+        $extend = $ManagePanel->extend($marzban_panel['Methodextend'], $invoice['Volume'], $invoice['Service_time'], $invoice['username'], "custom_volume", $marzban_panel['code_panel']);
+        
+        if ($extend['status'] == false) {
+            $err_msg = is_string($extend['msg']) ? $extend['msg'] : json_encode($extend['msg']);
+            flash('error', 'خطا در تمدید سرویس در سرور: ' . htmlspecialchars($err_msg));
+            break;
+        }
+
+        db_query($pdo, "INSERT IGNORE INTO service_other (id_user, username, value, type, time, price, output) VALUES (?, ?, ?, ?, ?, ?, ?)", [
+            $id,
+            $invoice['username'],
+            $invoice['Volume'] . "_" . $invoice['Service_time'],
+            "extend_user_by_admin",
+            date('Y-m-d H:i:s'),
+            0,
+            ""
+        ]);
+
+        flash('success', 'سرویس کاربر با موفقیت تمدید شد.');
+        break;
+
+    case 'toggle_status':
+        $id_invoice = $_GET['id_invoice'] ?? '';
+        if (!$id_invoice) {
+            flash('error', 'شناسه سرویس ارسال نشده است.');
+            break;
+        }
+        $invoice = db_fetch($pdo, "SELECT * FROM invoice WHERE id_invoice = ? AND id_user = ?", [$id_invoice, $id]);
+        if (!$invoice) {
+            flash('error', 'سرویس یافت نشد.');
+            break;
+        }
+        $old_cwd = getcwd();
+        chdir(__DIR__ . '/../');
+        require_once 'panels.php';
+        chdir($old_cwd);
+
+        $ManagePanel = new ManagePanel();
+        $dataoutput = $ManagePanel->Change_status($invoice['username'], $invoice['Service_location']);
+        if (isset($dataoutput['status']) && $dataoutput['status'] == "Unsuccessful") {
+            $err_msg = !empty($dataoutput['msg']) ? (is_string($dataoutput['msg']) ? $dataoutput['msg'] : json_encode($dataoutput['msg'])) : "";
+            flash('error', 'خطا در تغییر وضعیت اکانت در سرور: ' . htmlspecialchars($err_msg));
+            break;
+        }
+
+        $DataUserOut = $ManagePanel->DataUser($invoice['Service_location'], $invoice['username']);
+        if (isset($DataUserOut['status']) && $DataUserOut['status'] == "active") {
+            db_query($pdo, "UPDATE invoice SET Status = 'active' WHERE id_invoice = ?", [$id_invoice]);
+            flash('success', 'اکانت با موفقیت روشن (فعال) شد.');
+        } else {
+            db_query($pdo, "UPDATE invoice SET Status = 'disablebyadmin' WHERE id_invoice = ?", [$id_invoice]);
+            flash('success', 'اکانت با موفقیت خاموش (غیرفعال) شد.');
+        }
+        break;
+
     default:
         flash('error', $textbotlang['panel']['userActionInvalidOperation']);
 }
