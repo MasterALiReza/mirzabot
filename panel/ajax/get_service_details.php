@@ -20,7 +20,7 @@ $id_user = (int)($_GET['id_user'] ?? 0);
 
 if (empty($id_invoice) || !$id_user) {
     http_response_code(400);
-    echo '<div style="padding:20px;text-align:center;color:var(--red);">درخواست نامعتبر است.</div>';
+    echo '<div style="padding:20px;text-align:center;color:var(--no);">درخواست نامعتبر است.</div>';
     exit;
 }
 
@@ -28,7 +28,7 @@ try {
     $invoice = db_fetch($pdo, "SELECT * FROM invoice WHERE id_invoice = ? AND id_user = ?", [$id_invoice, $id_user]);
     if (!$invoice) {
         http_response_code(404);
-        echo '<div style="padding:20px;text-align:center;color:var(--red);">سفارش مورد نظر یافت نشد.</div>';
+        echo '<div style="padding:20px;text-align:center;color:var(--no);">سفارش مورد نظر یافت نشد.</div>';
         exit;
     }
 
@@ -37,7 +37,7 @@ try {
 
     if (isset($DataUserOut['status']) && $DataUserOut['status'] == "Unsuccessful") {
         $err_msg = !empty($DataUserOut['msg']) ? htmlspecialchars(is_string($DataUserOut['msg']) ? $DataUserOut['msg'] : json_encode($DataUserOut['msg'])) : "نامشخص";
-        echo '<div style="padding:20px;text-align:center;color:var(--red);">
+        echo '<div style="padding:20px;text-align:center;color:var(--no);">
                 <p style="margin-bottom:10px;">خطا در ارتباط با سرور یا کاربر در پنل وجود ندارد.</p>
                 <p style="font-size:0.85em; opacity:0.8; word-break: break-all;">جزئیات: ' . $err_msg . '</p>
               </div>';
@@ -318,7 +318,7 @@ try {
                 </div>
                 <div class="card-value" style="color: var(--text);"><?= $RemainingVolume ?></div>
                 <div class="progress-bar-container">
-                    <div class="progress-bar-fill" style="width: <?= $usedPercent ?>%; background: <?= $usedPercent > 80 ? 'var(--rose)' : ($usedPercent > 50 ? 'var(--amber)' : 'var(--emerald)') ?>;"></div>
+                    <div class="progress-bar-fill" style="width: <?= $usedPercent ?>%; background: <?= $usedPercent > 80 ? 'var(--no)' : ($usedPercent > 50 ? 'var(--warn)' : 'var(--ok)') ?>;"></div>
                 </div>
             </div>
             <div class="card-desc">مصرف شده: <?= $usedTrafficGb ?> از <?= $LastTraffic ?> (<?= round($usedPercent, 1) ?>٪)</div>
@@ -368,13 +368,24 @@ try {
             </div>
             
             <?php if ($subUrl): ?>
-            <div style="display:flex; justify-content:space-between; align-items:center; background: rgba(255,255,255,0.02); padding: 8px 12px; border-radius: 8px; margin-bottom: 4px;">
-                <span style="font-size:0.85em; color:var(--ac); cursor:pointer;" onclick="navigator.clipboard.writeText('<?= htmlspecialchars($subUrl) ?>').then(()=>alert('کپی شد!'))">
-                    لینک اشتراک: برای کپی کردن کلیک کنید
-                </span>
-                <button class="btn btn-ghost btn-sm" style="padding: 2px 6px; display:flex; align-items:center; gap:4px;" onclick="navigator.clipboard.writeText('<?= htmlspecialchars($subUrl) ?>').then(()=>alert('کپی شد!'))">
-                    <?= icon('copy', 13) ?> کپی
-                </button>
+            <div style="display:flex; flex-direction:column; gap:4px; background: rgba(255,255,255,0.02); padding: 10px 14px; border-radius: 8px; margin-bottom: 6px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:0.85em; color:var(--ac); cursor:pointer;" onclick="navigator.clipboard.writeText('<?= htmlspecialchars($subUrl) ?>').then(()=>alert('کپی شد!'))">
+                        لینک اشتراک: برای کپی کردن کلیک کنید
+                    </span>
+                    <button class="btn btn-ghost btn-sm" style="padding: 2px 6px; display:flex; align-items:center; gap:4px;" onclick="navigator.clipboard.writeText('<?= htmlspecialchars($subUrl) ?>').then(()=>alert('کپی شد!'))">
+                        <?= icon('copy', 13) ?> کپی
+                    </button>
+                </div>
+                <!-- Subscription QR Code -->
+                <details style="margin-top: 4px;">
+                    <summary style="font-size: 0.8em; color: var(--ac); cursor: pointer; list-style: none; outline: none; display: inline-flex; align-items: center; gap: 4px;">
+                        📷 نمایش QR کد لینک اشتراک
+                    </summary>
+                    <div style="text-align: center; padding: 10px; background: #fff; border-radius: 8px; margin-top: 6px; width: fit-content; margin-left: auto; margin-right: auto;">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=<?= urlencode(trim($subUrl)) ?>" alt="QR Code" style="display: block; width: 150px; height: 150px;" />
+                    </div>
+                </details>
             </div>
             <?php endif; ?>
 
@@ -387,16 +398,35 @@ try {
                     </span>
                     <span class="chevron"><?= icon('arrow-left', 14) ?></span>
                 </summary>
-                <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 12px; padding: 4px;">
-                    <?php foreach ($configLinks as $index => $link): if(empty(trim($link))) continue; ?>
-                        <div style="display:flex; flex-direction:column; gap:4px;">
+                <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 14px; padding: 4px;">
+                    <?php foreach ($configLinks as $index => $link): if(empty(trim($link))) continue; 
+                        $linkClean = trim($link);
+                        $isWireguard = (stripos($linkClean, '[Interface]') !== false || stripos($linkClean, 'PrivateKey') !== false);
+                    ?>
+                        <div style="display:flex; flex-direction:column; gap:4px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.04);">
                             <div style="display:flex; justify-content:space-between; align-items:center; font-size: 0.85em; color: var(--mute);">
-                                <span style="font-weight: 500;">کانفیگ #<?= ($index + 1) ?></span>
-                                <span style="color:var(--ac); cursor:pointer; font-size: 0.92em; display:inline-flex; align-items:center; gap:4px;" onclick="navigator.clipboard.writeText('<?= htmlspecialchars(trim($link)) ?>').then(()=>alert('کپی شد!'))">
-                                    <?= icon('copy', 12) ?> کپی کانفیگ
-                                </span>
+                                <span style="font-weight: 500;">کانفیگ #<?= ($index + 1) ?> <?= $isWireguard ? '(وایرگارد)' : '' ?></span>
+                                <div style="display:flex; gap:10px;">
+                                    <?php if ($isWireguard): ?>
+                                    <a href="data:text/plain;charset=utf-8,<?= rawurlencode($linkClean) ?>" download="<?= htmlspecialchars($invoice['username']) ?>_wg_<?= ($index + 1) ?>.conf" style="color:var(--ac); cursor:pointer; font-size: 0.92em; display:inline-flex; align-items:center; gap:4px;">
+                                        💾 دانلود فایل conf.
+                                    </a>
+                                    <?php endif; ?>
+                                    <span style="color:var(--ac); cursor:pointer; font-size: 0.92em; display:inline-flex; align-items:center; gap:4px;" onclick="navigator.clipboard.writeText('<?= htmlspecialchars($linkClean) ?>').then(()=>alert('کپی شد!'))">
+                                        <?= icon('copy', 12) ?> کپی کانفیگ
+                                    </span>
+                                </div>
                             </div>
-                            <div class="config-box"><?= htmlspecialchars(trim($link)) ?></div>
+                            <div class="config-box"><?= htmlspecialchars($linkClean) ?></div>
+                            <!-- Config QR Code -->
+                            <details style="margin-top: 6px;">
+                                <summary style="font-size: 0.8em; color: var(--ac); cursor: pointer; list-style: none; outline: none; display: inline-flex; align-items: center; gap: 4px;">
+                                    📷 نمایش QR کد کانفیگ
+                                </summary>
+                                <div style="text-align: center; padding: 10px; background: #fff; border-radius: 8px; margin-top: 6px; width: fit-content; margin-left: auto; margin-right: auto;">
+                                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=<?= urlencode($linkClean) ?>" alt="QR Code" style="display: block; width: 150px; height: 150px;" />
+                                </div>
+                            </details>
                         </div>
                     <?php endforeach; ?>
                 </div>
@@ -419,13 +449,13 @@ try {
         <!-- Toggle Status -->
         <?php if ($panelStatus == "active"): ?>
         <a href="user_action.php?action=toggle_status&id=<?= $id_user ?>&id_invoice=<?= urlencode($id_invoice) ?>&_csrf=<?= $csrf ?>&back=user.php" 
-           class="btn-sm-action" style="background:var(--rose); color:#fff; text-decoration:none;" 
+           class="btn-sm-action" style="background:var(--no); color:#fff; text-decoration:none;" 
            data-confirm="آیا از غیرفعال کردن (خاموش کردن) این کانفیگ مطمئن هستید؟" hx-boost="false">
            <?= icon('block', 13) ?> خاموش کردن اکانت
         </a>
         <?php else: ?>
         <a href="user_action.php?action=toggle_status&id=<?= $id_user ?>&id_invoice=<?= urlencode($id_invoice) ?>&_csrf=<?= $csrf ?>&back=user.php" 
-           class="btn-sm-action" style="background:var(--emerald); color:#fff; text-decoration:none;" 
+           class="btn-sm-action" style="background:var(--ok); color:#fff; text-decoration:none;" 
            data-confirm="آیا از فعال کردن (روشن کردن) این کانفیگ مطمئن هستید؟" hx-boost="false">
            <?= icon('check', 13) ?> روشن کردن اکانت
         </a>
@@ -440,14 +470,14 @@ try {
 
         <!-- Remove Service (No Refund) -->
         <a href="user_action.php?action=removeservice&id=<?= $id_user ?>&id_invoice=<?= urlencode($id_invoice) ?>&_csrf=<?= $csrf ?>&back=user.php" 
-           class="btn-sm-action" style="background:rgba(244, 63, 94, 0.15); color:var(--rose); border: 1px solid var(--rose); text-decoration:none;" 
+           class="btn-sm-action" style="background:rgba(244, 63, 94, 0.15); color:var(--no); border: 1px solid var(--no); text-decoration:none;" 
            data-confirm="آیا از حذف کامل این سرویس مطمئن هستید؟ این کار غیرقابل بازگشت است و وجهی بازگردانده نمی‌شود." hx-boost="false">
            <?= icon('trash', 13) ?> حذف کامل سرویس
         </a>
         
         <!-- Remove Service (Refund) -->
         <a href="user_action.php?action=removeserviceandrefund&id=<?= $id_user ?>&id_invoice=<?= urlencode($id_invoice) ?>&_csrf=<?= $csrf ?>&back=user.php" 
-           class="btn-sm-action" style="background:rgba(245, 158, 11, 0.15); color:var(--amber); border: 1px solid var(--amber); text-decoration:none;" 
+           class="btn-sm-action" style="background:rgba(245, 158, 11, 0.15); color:var(--warn); border: 1px solid var(--warn); text-decoration:none;" 
            data-confirm="آیا مطمئن هستید؟ کاربر حذف شده و مبلغ <?= number_format((int)($invoice['price_product'] ?? 0)) ?> تومان به کیف پول او برگشت داده می‌شود." hx-boost="false">
            <?= icon('refresh-cw', 13) ?> حذف سفارش و بازگشت وجه
         </a>
@@ -458,5 +488,5 @@ try {
 <?php
 } catch (Exception $e) {
     http_response_code(500);
-    echo '<div style="padding:20px;text-align:center;color:var(--rose); direction: rtl;">خطای سرور: ' . htmlspecialchars($e->getMessage()) . '</div>';
+    echo '<div style="padding:20px;text-align:center;color:var(--no); direction: rtl;">خطای سرور: ' . htmlspecialchars($e->getMessage()) . '</div>';
 }
