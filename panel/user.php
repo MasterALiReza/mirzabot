@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             $heibalanceuser = number_format($amount, 0);
             $textadd = sprintf($textbotlang['Admin']['adminphp']['msg_user_balance_amount_add_1'] ?? "✅ موجودی شما %s تومان افزایش یافت.", $heibalanceuser);
-            telegram('SendMessage', [
+            telegram('sendMessage', [
                 'chat_id' => $id,
                 'text' => $textadd,
                 'parse_mode' => 'HTML'
@@ -51,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             $lowbalanceuser = number_format($amount, 0);
             $textkam = sprintf($textbotlang['Admin']['adminphp']['err_user_balance_amount_2'] ?? "❌ مبلغ %s تومان از موجودی شما کسر شد.", $lowbalanceuser);
-            telegram('SendMessage', [
+            telegram('sendMessage', [
                 'chat_id' => $id,
                 'text' => $textkam,
                 'parse_mode' => 'HTML'
@@ -72,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($action === 'send_msg') {
         $message = trim($_POST['message'] ?? '');
         if ($message) {
-            $res = telegram('SendMessage', [
+            $res = telegram('sendMessage', [
                 'chat_id' => $id,
                 'text' => $message,
             ]);

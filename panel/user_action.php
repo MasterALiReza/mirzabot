@@ -52,6 +52,12 @@ switch ($action) {
 
     case 'zerobalance':
         db_query($pdo, "UPDATE user SET Balance = 0 WHERE id = ?", [$id]);
+        $textkam = sprintf($textbotlang['Admin']['adminphp']['err_user_balance_amount_2'] ?? "❌ مبلغ %s تومان از موجودی شما کسر شد.", "کامل");
+        telegram('sendMessage', [
+            'chat_id' => $id,
+            'text' => "❌ <b>کسر موجودی</b>\n\nموجودی کیف پول شما توسط مدیریت صفر شد.\n💰 موجودی فعلی شما: <b>0</b> تومان",
+            'parse_mode' => 'HTML'
+        ]);
         flash('success', 'موجودی کاربر صفر شد.');
         break;
 
@@ -247,7 +253,7 @@ switch ($action) {
         if (function_exists('sendmessage')) {
             sendmessage($id, $msg, null, 'HTML');
         } elseif (function_exists('telegram')) {
-            telegram('SendMessage', ['chat_id' => $id, 'text' => $msg, 'parse_mode' => 'HTML']);
+            telegram('sendMessage', ['chat_id' => $id, 'text' => $msg, 'parse_mode' => 'HTML']);
         }
         
         flash('success', 'سرویس حذف شد و مبلغ ' . number_format($price) . ' تومان به حساب کاربر برگشت داده شد.' . $warning);
