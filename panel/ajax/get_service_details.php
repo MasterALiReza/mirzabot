@@ -3,6 +3,7 @@
 ob_start();
 session_start();
 require '../inc/config.php';
+require_once '../inc/icons.php';
 ob_end_clean();
 
 require_auth();
@@ -108,12 +109,18 @@ try {
     $RemainingVolume = $limitValue > 0 ? format_bytes_fa($remainingBytes) : 'نامحدود';
     $usedTrafficGb = $usedTrafficValue > 0 ? format_bytes_fa($usedTrafficValue) : 'مصرف نشده';
 
-    $Percent = 100;
+    // Percentage Calculation
+    $remainingPercent = 100;
     if ($limitValue > 0) {
-        $Percent = (($limitValue - $usedTrafficValue) * 100) / $limitValue;
-        if ($Percent < 0) $Percent = 0;
-        $Percent = round($Percent, 2);
+        $remainingPercent = (($limitValue - $usedTrafficValue) * 100) / $limitValue;
+        if ($remainingPercent < 0) $remainingPercent = 0;
+        $remainingPercent = round($remainingPercent, 2);
     }
+    
+    // Consumed percentage for progress bar
+    $usedPercent = 100 - $remainingPercent;
+    if ($usedPercent < 0) $usedPercent = 0;
+    if ($usedPercent > 100) $usedPercent = 100;
 
     $subUrl = $DataUserOut['subscription_url'] ?? '';
     $configLinks = $DataUserOut['links'] ?? [];
@@ -143,7 +150,7 @@ try {
         background: var(--bg-card-alt);
         border: 1px solid rgba(255,255,255,0.04);
         border-radius: 12px;
-        padding: 12px 16px;
+        padding: 14px 18px;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
@@ -157,34 +164,39 @@ try {
         grid-column: 1 / -1;
     }
     .card-title {
-        font-size: 0.8em;
+        font-size: 0.82em;
         color: var(--mute);
-        margin-bottom: 6px;
+        margin-bottom: 8px;
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 8px;
+        font-weight: 500;
+    }
+    .card-title svg {
+        color: var(--ac);
+        opacity: 0.85;
     }
     .card-value {
-        font-size: 1.05em;
+        font-size: 1.1em;
         font-weight: 600;
         word-break: break-all;
     }
     .card-desc {
-        font-size: 0.75em;
+        font-size: 0.78em;
         opacity: 0.6;
-        margin-top: 4px;
+        margin-top: 6px;
     }
     .config-box {
-        background: rgba(0,0,0,0.15);
+        background: rgba(0,0,0,0.22);
         border: 1px solid rgba(255,255,255,0.06);
         border-radius: 8px;
-        padding: 8px 12px;
+        padding: 10px 14px;
         font-family: monospace;
         font-size: 0.85em;
         word-break: break-all;
-        max-height: 80px;
+        max-height: 90px;
         overflow-y: auto;
-        color: var(--mute);
+        color: #a0aec0;
         margin-top: 6px;
         direction: ltr;
         text-align: left;
@@ -199,31 +211,69 @@ try {
         grid-column: span 2;
     }
     .btn-sm-action {
-        padding: 10px 14px;
+        padding: 11px 16px;
         font-size: 0.85em;
         border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 6px;
+        gap: 8px;
         font-weight: 500;
         cursor: pointer;
-        transition: opacity 0.2s;
+        transition: opacity 0.2s, background-color 0.2s;
+        border: none;
     }
     .btn-sm-action:hover {
-        opacity: 0.9;
+        opacity: 0.95;
     }
     .progress-bar-container {
-        background: rgba(255,255,255,0.05);
+        background: rgba(255,255,255,0.06);
         height: 6px;
         border-radius: 3px;
         overflow: hidden;
-        margin-top: 6px;
+        margin-top: 8px;
     }
     .progress-bar-fill {
         height: 100%;
-        background: var(--ac);
         border-radius: 3px;
+        transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    /* Collapsible Details Styles */
+    details.configs-details {
+        margin-top: 10px;
+        width: 100%;
+    }
+    details.configs-details summary {
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 11px 15px;
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 10px;
+        font-size: 0.9em;
+        font-weight: 500;
+        outline: none;
+        user-select: none;
+        list-style: none;
+        transition: background-color 0.2s;
+    }
+    details.configs-details summary::-webkit-details-marker {
+        display: none;
+    }
+    details.configs-details summary:hover {
+        background: rgba(255,255,255,0.04);
+    }
+    details.configs-details .chevron {
+        transition: transform 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    /* default RTL state: arrow-left (pointing left) */
+    details.configs-details[open] .chevron {
+        transform: rotate(-90deg); /* point down */
     }
 </style>
 
@@ -233,10 +283,13 @@ try {
         <!-- Status & Location Card -->
         <div class="bento-card">
             <div>
-                <div class="card-title">📌 وضعیت و مشخصات عمومی</div>
+                <div class="card-title">
+                    <?= icon('user', 15) ?>
+                    <span>وضعیت و مشخصات عمومی</span>
+                </div>
                 <div class="card-value" style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
                     <span class="tag <?= $statusClass ?>"><?= $statusText ?></span>
-                    <span style="font-size: 0.85em; opacity: 0.8;"><?= htmlspecialchars($invoice['Service_location']) ?></span>
+                    <span style="font-size: 0.85em; opacity: 0.9; font-weight: 500;"><?= htmlspecialchars($invoice['Service_location']) ?></span>
                 </div>
             </div>
             <div class="card-desc">سفارش: <?= htmlspecialchars($invoice['id_invoice']) ?></div>
@@ -245,7 +298,10 @@ try {
         <!-- Purchase Info Card -->
         <div class="bento-card">
             <div>
-                <div class="card-title">💰 جزئیات خرید فاکتور</div>
+                <div class="card-title">
+                    <?= icon('invoice', 15) ?>
+                    <span>جزئیات خرید فاکتور</span>
+                </div>
                 <div class="card-value" style="font-size: 0.95em;">
                     <?= htmlspecialchars($invoice['name_product']) ?>
                 </div>
@@ -256,19 +312,25 @@ try {
         <!-- Volume Usage Card -->
         <div class="bento-card">
             <div>
-                <div class="card-title">📊 حجم مصرفی و باقی‌مانده</div>
+                <div class="card-title">
+                    <?= icon('chart', 15) ?>
+                    <span>حجم مصرفی و باقی‌مانده</span>
+                </div>
                 <div class="card-value" style="color: var(--text);"><?= $RemainingVolume ?></div>
                 <div class="progress-bar-container">
-                    <div class="progress-bar-fill" style="width: <?= $Percent ?>%; background: <?= $Percent < 20 ? 'var(--red)' : ($Percent < 50 ? 'var(--orange)' : 'var(--green)') ?>;"></div>
+                    <div class="progress-bar-fill" style="width: <?= $usedPercent ?>%; background: <?= $usedPercent > 80 ? 'var(--rose)' : ($usedPercent > 50 ? 'var(--amber)' : 'var(--emerald)') ?>;"></div>
                 </div>
             </div>
-            <div class="card-desc">مصرف شده: <?= $usedTrafficGb ?> از <?= $LastTraffic ?> (<?= (100 - $Percent) ?>٪)</div>
+            <div class="card-desc">مصرف شده: <?= $usedTrafficGb ?> از <?= $LastTraffic ?> (<?= round($usedPercent, 1) ?>٪)</div>
         </div>
 
         <!-- Expiration Card -->
         <div class="bento-card">
             <div>
-                <div class="card-title">⏰ اعتبار زمانی سرویس</div>
+                <div class="card-title">
+                    <?= icon('clock', 15) ?>
+                    <span>اعتبار زمانی سرویس</span>
+                </div>
                 <div class="card-value"><?= $expirationDate ?></div>
             </div>
             <div class="card-desc">زمان باقی‌مانده: <?= $daysRemaining ?> (تاریخ خرید: <?= $purchaseDate ?>)</div>
@@ -276,7 +338,10 @@ try {
 
         <!-- Connection Details Card -->
         <div class="bento-card bento-full">
-            <div class="card-title">🔌 جزئیات اتصال و به‌روزرسانی</div>
+            <div class="card-title">
+                <?= icon('activity', 15) ?>
+                <span>جزئیات اتصال و به‌روزرسانی</span>
+            </div>
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; font-size: 0.85em; margin-top: 4px;">
                 <div>
                     <span style="color: var(--mute);">آخرین اتصال:</span>
@@ -289,7 +354,7 @@ try {
                 <div>
                     <span style="color: var(--mute);">سیستم‌عامل/کلاینت:</span>
                     <div style="font-weight: 500; margin-top: 2px; word-break: break-all;" title="<?= htmlspecialchars($DataUserOut['sub_last_user_agent'] ?? '') ?>">
-                        <?= htmlspecialchars(trunc($DataUserOut['sub_last_user_agent'] ?? 'یافت نشد', 20)) ?>
+                        <?= htmlspecialchars(trunc($DataUserOut['sub_last_user_agent'] ?? 'یافت نشد', 22)) ?>
                     </div>
                 </div>
             </div>
@@ -297,32 +362,45 @@ try {
 
         <!-- Subscription & Configs Card -->
         <div class="bento-card bento-full">
-            <div class="card-title">🔗 اشتراک و کانفیگ‌ها</div>
+            <div class="card-title">
+                <?= icon('link', 15) ?>
+                <span>اشتراک و کانفیگ‌ها</span>
+            </div>
             
             <?php if ($subUrl): ?>
-            <div style="display:flex; justify-content:space-between; align-items:center; background: rgba(255,255,255,0.02); padding: 8px 12px; border-radius: 8px; margin-bottom: 8px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; background: rgba(255,255,255,0.02); padding: 8px 12px; border-radius: 8px; margin-bottom: 4px;">
                 <span style="font-size:0.85em; color:var(--ac); cursor:pointer;" onclick="navigator.clipboard.writeText('<?= htmlspecialchars($subUrl) ?>').then(()=>alert('کپی شد!'))">
                     لینک اشتراک: برای کپی کردن کلیک کنید
                 </span>
-                <button class="btn btn-ghost btn-sm" style="padding: 2px 6px;" onclick="navigator.clipboard.writeText('<?= htmlspecialchars($subUrl) ?>').then(()=>alert('کپی شد!'))">
-                    📋 کپی
+                <button class="btn btn-ghost btn-sm" style="padding: 2px 6px; display:flex; align-items:center; gap:4px;" onclick="navigator.clipboard.writeText('<?= htmlspecialchars($subUrl) ?>').then(()=>alert('کپی شد!'))">
+                    <?= icon('copy', 13) ?> کپی
                 </button>
             </div>
             <?php endif; ?>
 
             <?php if (!empty($configLinks)): ?>
-            <div style="margin-top: 8px;">
-                <span style="font-size: 0.8em; color: var(--mute);">کانفیگ‌های فعال سرویس:</span>
-                <?php foreach ($configLinks as $index => $link): if(empty(trim($link))) continue; ?>
-                    <div style="margin-top: 6px; display:flex; flex-direction:column; gap:4px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; font-size: 0.8em; color: var(--mute);">
-                            <span>کانفیگ #<?= ($index + 1) ?></span>
-                            <span style="color:var(--ac); cursor:pointer; font-size: 0.95em;" onclick="navigator.clipboard.writeText('<?= htmlspecialchars(trim($link)) ?>').then(()=>alert('کپی شد!'))">📋 کپی کانفیگ</span>
+            <details class="configs-details">
+                <summary>
+                    <span style="display: flex; align-items: center; gap: 8px;">
+                        <?= icon('sliders', 14) ?>
+                        کانفیگ‌های فعال سرویس (<?= count($configLinks) ?> عدد)
+                    </span>
+                    <span class="chevron"><?= icon('arrow-left', 14) ?></span>
+                </summary>
+                <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 12px; padding: 4px;">
+                    <?php foreach ($configLinks as $index => $link): if(empty(trim($link))) continue; ?>
+                        <div style="display:flex; flex-direction:column; gap:4px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; font-size: 0.85em; color: var(--mute);">
+                                <span style="font-weight: 500;">کانفیگ #<?= ($index + 1) ?></span>
+                                <span style="color:var(--ac); cursor:pointer; font-size: 0.92em; display:inline-flex; align-items:center; gap:4px;" onclick="navigator.clipboard.writeText('<?= htmlspecialchars(trim($link)) ?>').then(()=>alert('کپی شد!'))">
+                                    <?= icon('copy', 12) ?> کپی کانفیگ
+                                </span>
+                            </div>
+                            <div class="config-box"><?= htmlspecialchars(trim($link)) ?></div>
                         </div>
-                        <div class="config-box"><?= htmlspecialchars(trim($link)) ?></div>
-                    </div>
-                <?php endforeach; ?>
-            </div>
+                    <?php endforeach; ?>
+                </div>
+            </details>
             <?php else: ?>
             <div style="font-size: 0.8em; color: var(--mute); text-align: center; margin-top: 8px;">هیچ کانفیگی یافت نشد.</div>
             <?php endif; ?>
@@ -335,43 +413,43 @@ try {
 
         <!-- Refresh (AJAX) -->
         <button type="button" class="btn-sm-action btn-grid-full" style="background: rgba(255,255,255,0.06); color: var(--text); border: 1px solid rgba(255,255,255,0.08);" onclick="manageService('<?= $id_invoice ?>')">
-            🔄 بروزرسانی اطلاعات لحظه‌ای
+            <?= icon('refresh-cw', 13) ?> بروزرسانی اطلاعات لحظه‌ای
         </button>
 
         <!-- Toggle Status -->
         <?php if ($panelStatus == "active"): ?>
         <a href="user_action.php?action=toggle_status&id=<?= $id_user ?>&id_invoice=<?= urlencode($id_invoice) ?>&_csrf=<?= $csrf ?>&back=user.php" 
-           class="btn-sm-action" style="background:var(--red); color:#fff; border:none; text-decoration:none;" 
+           class="btn-sm-action" style="background:var(--rose); color:#fff; text-decoration:none;" 
            data-confirm="آیا از غیرفعال کردن (خاموش کردن) این کانفیگ مطمئن هستید؟" hx-boost="false">
-           ❌ خاموش کردن اکانت
+           <?= icon('block', 13) ?> خاموش کردن اکانت
         </a>
         <?php else: ?>
         <a href="user_action.php?action=toggle_status&id=<?= $id_user ?>&id_invoice=<?= urlencode($id_invoice) ?>&_csrf=<?= $csrf ?>&back=user.php" 
-           class="btn-sm-action" style="background:var(--green); color:#fff; border:none; text-decoration:none;" 
+           class="btn-sm-action" style="background:var(--emerald); color:#fff; text-decoration:none;" 
            data-confirm="آیا از فعال کردن (روشن کردن) این کانفیگ مطمئن هستید؟" hx-boost="false">
-           🟢 روشن کردن اکانت
+           <?= icon('check', 13) ?> روشن کردن اکانت
         </a>
         <?php endif; ?>
 
         <!-- Extend Service -->
         <a href="user_action.php?action=extendservice&id=<?= $id_user ?>&id_invoice=<?= urlencode($id_invoice) ?>&_csrf=<?= $csrf ?>&back=user.php" 
-           class="btn-sm-action" style="background:var(--blue); color:#fff; border:none; text-decoration:none;" 
+           class="btn-sm-action" style="background:var(--ac); color:#fff; text-decoration:none;" 
            data-confirm="آیا مایلید این سرویس را با حجم <?= $invoice['Volume'] ?> گیگابایت و زمان <?= $invoice['Service_time'] ?> روز تمدید رایگان کنید؟" hx-boost="false">
-           💊 تمدید سرویس
+           <?= icon('plus', 13) ?> تمدید سرویس
         </a>
 
         <!-- Remove Service (No Refund) -->
         <a href="user_action.php?action=removeservice&id=<?= $id_user ?>&id_invoice=<?= urlencode($id_invoice) ?>&_csrf=<?= $csrf ?>&back=user.php" 
-           class="btn-sm-action" style="background:rgba(239, 68, 68, 0.15); color:var(--red); border: 1px solid var(--red); text-decoration:none;" 
+           class="btn-sm-action" style="background:rgba(244, 63, 94, 0.15); color:var(--rose); border: 1px solid var(--rose); text-decoration:none;" 
            data-confirm="آیا از حذف کامل این سرویس مطمئن هستید؟ این کار غیرقابل بازگشت است و وجهی بازگردانده نمی‌شود." hx-boost="false">
-           🗑 حذف کامل سرویس
+           <?= icon('trash', 13) ?> حذف کامل سرویس
         </a>
         
         <!-- Remove Service (Refund) -->
         <a href="user_action.php?action=removeserviceandrefund&id=<?= $id_user ?>&id_invoice=<?= urlencode($id_invoice) ?>&_csrf=<?= $csrf ?>&back=user.php" 
-           class="btn-sm-action" style="background:rgba(245, 158, 11, 0.15); color:var(--orange); border: 1px solid var(--orange); text-decoration:none;" 
+           class="btn-sm-action" style="background:rgba(245, 158, 11, 0.15); color:var(--amber); border: 1px solid var(--amber); text-decoration:none;" 
            data-confirm="آیا مطمئن هستید؟ کاربر حذف شده و مبلغ <?= number_format((int)($invoice['price_product'] ?? 0)) ?> تومان به کیف پول او برگشت داده می‌شود." hx-boost="false">
-           🔄 حذف سفارش و بازگشت وجه
+           <?= icon('refresh-cw', 13) ?> حذف سفارش و بازگشت وجه
         </a>
     </div>
 
@@ -380,5 +458,5 @@ try {
 <?php
 } catch (Exception $e) {
     http_response_code(500);
-    echo '<div style="padding:20px;text-align:center;color:var(--red); direction: rtl;">خطای سرور: ' . htmlspecialchars($e->getMessage()) . '</div>';
+    echo '<div style="padding:20px;text-align:center;color:var(--rose); direction: rtl;">خطای سرور: ' . htmlspecialchars($e->getMessage()) . '</div>';
 }
