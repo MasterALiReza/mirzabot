@@ -772,13 +772,18 @@ EOF
         fi
 
         # Proceed with installation config generation
-        if [ "$db_exists" = true ] && [ -n "$EXISTING_USER" ] && [ -n "$EXISTING_PASS" ]; then
+        is_placeholder=false
+        if [[ "$EXISTING_USER" =~ ^\{.*\}$ ]] || [[ "$EXISTING_PASS" =~ ^\{.*\}$ ]]; then
+            is_placeholder=true
+        fi
+
+        if [ "$db_exists" = true ] && [ -n "$EXISTING_USER" ] && [ -n "$EXISTING_PASS" ] && [ "$is_placeholder" = false ]; then
             dbuser="$EXISTING_USER"
             dbpass="$EXISTING_PASS"
             echo -e "\e[32mUsing existing database credentials found in old config.\033[0m"
         else
             if [ "$db_exists" = true ]; then
-                echo -e "\e[33mDatabase exists but we couldn't read existing credentials. Generating new DB user...\033[0m"
+                echo -e "\e[33mDatabase exists but we couldn't read valid credentials from config. Generating/setting new DB user...\033[0m"
             fi
             clear
             echo -e "\n\e[32mPlease configure database user!\033[0m"
