@@ -797,9 +797,9 @@ EOF
             # Create Database (if not exists)
             mysql -u root -p$ROOT_PASSWORD -e "CREATE DATABASE IF NOT EXISTS $dbname;"
             # Create User (Remote Access) with restricted privileges
-            mysql -u root -p$ROOT_PASSWORD -e "CREATE USER IF NOT EXISTS '$dbuser'@'%' IDENTIFIED BY '$dbpass'; GRANT ALL PRIVILEGES ON $dbname.* TO '$dbuser'@'%'; FLUSH PRIVILEGES;"
+            mysql -u root -p$ROOT_PASSWORD -e "CREATE USER IF NOT EXISTS '$dbuser'@'%' IDENTIFIED BY '$dbpass'; ALTER USER '$dbuser'@'%' IDENTIFIED BY '$dbpass'; GRANT ALL PRIVILEGES ON $dbname.* TO '$dbuser'@'%'; FLUSH PRIVILEGES;"
             # Create User (Local Access) with restricted privileges
-            mysql -u root -p$ROOT_PASSWORD -e "CREATE USER IF NOT EXISTS '$dbuser'@'localhost' IDENTIFIED BY '$dbpass'; GRANT ALL PRIVILEGES ON $dbname.* TO '$dbuser'@'localhost'; FLUSH PRIVILEGES;" || {
+            mysql -u root -p$ROOT_PASSWORD -e "CREATE USER IF NOT EXISTS '$dbuser'@'localhost' IDENTIFIED BY '$dbpass'; ALTER USER '$dbuser'@'localhost' IDENTIFIED BY '$dbpass'; GRANT ALL PRIVILEGES ON $dbname.* TO '$dbuser'@'localhost'; FLUSH PRIVILEGES;" || {
                 echo -e "\e[91mError: Failed to create database or user.\033[0m"
                 exit 1
             }
@@ -1437,6 +1437,8 @@ function update_bot() {
             echo -e "\e[91mConfig file restore failed!\033[0m"
             exit 1
         }
+        # Sanitize domainhosts to remove /mirzaprobotconfig from older versions
+        sudo sed -i 's|/mirzaprobotconfig||g' "$CONFIG_PATH"
     fi
     # Copy the new install.sh to /root/ to ensure script self-update works next time
     if [ -f "$BOT_DIR/install.sh" ]; then
