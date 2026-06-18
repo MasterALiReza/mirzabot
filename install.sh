@@ -454,18 +454,30 @@ function install_bot() {
     echo -e "\033[33mDownloading Mirza Pro from Main Branch...\033[0m"
     # Download and extract the repository
     TEMP_DIR="/tmp/mirzaprobot"
+    rm -rf "$TEMP_DIR"
     mkdir -p "$TEMP_DIR"
     wget -O "$TEMP_DIR/bot.zip" "$ZIP_URL" || {
         echo -e "\e[91mError: Failed to download the specified version.\033[0m"
         exit 1
     }
-    unzip "$TEMP_DIR/bot.zip" -d "$TEMP_DIR"
-    # Find the extracted directory dynamically (usually mirza_pro-main)
-    EXTRACTED_DIR=$(find "$TEMP_DIR" -mindepth 1 -maxdepth 1 -type d)
-    mv "$EXTRACTED_DIR"/* "$BOT_DIR" || {
-        echo -e "\e[91mError: Failed to move extracted files.\033[0m"
+    unzip -q "$TEMP_DIR/bot.zip" -d "$TEMP_DIR" || {
+        echo -e "\e[91mError: Failed to unzip bot files.\033[0m"
         exit 1
     }
+    # Find the extracted directory dynamically
+    EXTRACTED_DIR=$(find "$TEMP_DIR" -mindepth 1 -maxdepth 1 -type d | head -n 1)
+    if [ -z "$EXTRACTED_DIR" ] || [ ! -d "$EXTRACTED_DIR" ]; then
+        echo -e "\e[91mError: Extracted directory not found. Installation failed.\033[0m"
+        rm -rf "$TEMP_DIR"
+        exit 1
+    fi
+    shopt -s dotglob
+    mv "$EXTRACTED_DIR"/* "$BOT_DIR/" || {
+        echo -e "\e[91mError: Failed to move extracted files.\033[0m"
+        shopt -u dotglob
+        exit 1
+    }
+    shopt -u dotglob
     rm -rf "$TEMP_DIR"
     sudo chown -R www-data:www-data "$BOT_DIR"
     sudo chmod -R 755 "$BOT_DIR"
@@ -1021,20 +1033,29 @@ function install_bot_with_marzban() {
         ZIP_URL="https://github.com/MasterALiReza/mirzabot/archive/refs/tags/$2.zip"
     fi
     TEMP_DIR="/tmp/mirzabot"
+    rm -rf "$TEMP_DIR"
     mkdir -p "$TEMP_DIR"
     wget -O "$TEMP_DIR/bot.zip" "$ZIP_URL" || {
         echo -e "\e[91mError: Failed to download bot files.\033[0m"
         exit 1
     }
-    unzip "$TEMP_DIR/bot.zip" -d "$TEMP_DIR" || {
+    unzip -q "$TEMP_DIR/bot.zip" -d "$TEMP_DIR" || {
         echo -e "\e[91mError: Failed to unzip bot files.\033[0m"
         exit 1
     }
-    EXTRACTED_DIR=$(find "$TEMP_DIR" -mindepth 1 -maxdepth 1 -type d)
-    mv "$EXTRACTED_DIR"/* "$BOT_DIR" || {
+    EXTRACTED_DIR=$(find "$TEMP_DIR" -mindepth 1 -maxdepth 1 -type d | head -n 1)
+    if [ -z "$EXTRACTED_DIR" ] || [ ! -d "$EXTRACTED_DIR" ]; then
+        echo -e "\e[91mError: Extracted directory not found. Installation failed.\033[0m"
+        rm -rf "$TEMP_DIR"
+        exit 1
+    fi
+    shopt -s dotglob
+    mv "$EXTRACTED_DIR"/* "$BOT_DIR/" || {
         echo -e "\e[91mError: Failed to move bot files.\033[0m"
+        shopt -u dotglob
         exit 1
     }
+    shopt -u dotglob
     rm -rf "$TEMP_DIR"
     sudo chown -R www-data:www-data "$BOT_DIR"
     sudo chmod -R 755 "$BOT_DIR"
@@ -1279,6 +1300,7 @@ function update_bot() {
     ZIP_URL="https://github.com/MasterALiReza/mirzabot/archive/refs/heads/main.zip"
     # Create temporary directory
     TEMP_DIR="/tmp/mirzaprobot_update"
+    rm -rf "$TEMP_DIR"
     mkdir -p "$TEMP_DIR"
     # Download and extract
     echo -e "\e[33mDownloading latest version...\033[0m"
@@ -1286,9 +1308,17 @@ function update_bot() {
         echo -e "\e[91mError: Failed to download update package.\033[0m"
         exit 1
     }
-    unzip -q "$TEMP_DIR/bot.zip" -d "$TEMP_DIR"
+    unzip -q "$TEMP_DIR/bot.zip" -d "$TEMP_DIR" || {
+        echo -e "\e[91mError: Failed to unzip update package.\033[0m"
+        exit 1
+    }
     # Find extracted directory (usually mirza_pro-main)
-    EXTRACTED_DIR=$(find "$TEMP_DIR" -mindepth 1 -maxdepth 1 -type d)
+    EXTRACTED_DIR=$(find "$TEMP_DIR" -mindepth 1 -maxdepth 1 -type d | head -n 1)
+    if [ -z "$EXTRACTED_DIR" ] || [ ! -d "$EXTRACTED_DIR" ]; then
+        echo -e "\e[91mError: Extracted directory not found. Update failed.\033[0m"
+        rm -rf "$TEMP_DIR"
+        exit 1
+    fi
     # Backup config file
     CONFIG_PATH="$BOT_DIR/config.php"
     TEMP_CONFIG="/root/mirzapro_config_backup.php"
@@ -1307,10 +1337,13 @@ function update_bot() {
     }
     # Move new files
     sudo mkdir -p "$BOT_DIR"
+    shopt -s dotglob
     sudo mv "$EXTRACTED_DIR"/* "$BOT_DIR/" || {
         echo -e "\e[91mFile transfer failed!\033[0m"
+        shopt -u dotglob
         exit 1
     }
+    shopt -u dotglob
     # Restore config file
     if [ -f "$TEMP_CONFIG" ]; then
         sudo mv "$TEMP_CONFIG" "$CONFIG_PATH" || {
