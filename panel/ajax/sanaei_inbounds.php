@@ -15,11 +15,10 @@ if (empty($url) || empty($password)) {
 }
 
 if ($panel_type === 'WGDashboard') {
-    $test_inbound = !empty($inboundid) ? explode(',', $inboundid)[0] : 'wg0';
     $base_url = rtrim($url, '/');
     $curl = curl_init();
     curl_setopt_array($curl, array(
-        CURLOPT_URL => $base_url . '/api/getWireguardConfigurationInfo?configurationName=' . $test_inbound,
+        CURLOPT_URL => $base_url . '/api/getWireguardConfigurations',
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_HTTPHEADER => array(
             'Accept: application/json',
@@ -34,11 +33,26 @@ if ($panel_type === 'WGDashboard') {
     curl_close($curl);
     
     $resData = json_decode($response, true);
-    if ($http_code === 200 && isset($resData['status']) && $resData['status']) {
-        echo json_encode(['success' => true, 'msg' => 'اتصال موفق', 'inbounds' => []]);
+    $is_success = ($http_code === 200 && (isset($resData['status']) ? $resData['status'] : true));
+    
+    if ($is_success && isset($resData['data']) && is_array($resData['data'])) {
+        $inbounds = [];
+        foreach ($resData['data'] as $item) {
+            $name = $item['Name'] ?? '';
+            if (!empty($name)) {
+                $inbounds[] = [
+                    'id' => $name,
+                    'remark' => $name,
+                    'port' => $item['ListenPort'] ?? '',
+                    'protocol' => 'wireguard'
+                ];
+            }
+        }
+        echo json_encode(['success' => true, 'msg' => 'اتصال موفق', 'inbounds' => $inbounds]);
         exit;
     } else {
-        echo json_encode(['success' => false, 'msg' => 'اتصال ناموفق: توکن API اشتباه است یا نام کانفیگ (' . $test_inbound . ') در پنل وجود ندارد. (کد: ' . $http_code . ')']);
+        $msg = $resData['message'] ?? ($resData['msg'] ?? 'توکن API اشتباه است یا پنل در دسترس نیست.');
+        echo json_encode(['success' => false, 'msg' => 'اتصال ناموفق: ' . $msg . ' (کد: ' . $http_code . ')']);
         exit;
     }
 }

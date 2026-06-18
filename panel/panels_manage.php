@@ -130,9 +130,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     } elseif ($action === 'edit' && isset($_POST['id'])) {
         $id = (int)$_POST['id'];
         try {
-            $stmt_old = $pdo->prepare("SELECT name_panel FROM marzban_panel WHERE id = ?");
+            $stmt_old = $pdo->prepare("SELECT name_panel, password_panel FROM marzban_panel WHERE id = ?");
             $stmt_old->execute([$id]);
-            $old_name_panel = $stmt_old->fetchColumn();
+            $old_panel = $stmt_old->fetch(PDO::FETCH_ASSOC);
+            $old_name_panel = $old_panel['name_panel'] ?? '';
+            
+            if (empty($password_panel)) {
+                $password_panel = $old_panel['password_panel'] ?? '';
+            }
 
             db_query($pdo, "UPDATE marzban_panel SET 
                 name_panel = ?, url_panel = ?, username_panel = ?, password_panel = ?, type = ?, status = ?, agent = ?, 
@@ -453,8 +458,12 @@ include __DIR__ . '/inc/layout_head.php';
                         </div>
                         <div class="field-group">
                             <label>رمز عبور یا توکن API پنل</label>
-                            <input type="password" name="password_panel" id="panelPassword" class="input" placeholder="••••••••" style="direction:ltr;text-align:left;">
-                            <small style="color:var(--ts);font-size:11px;display:block;margin-top:4px;">برای پنل ثنایی نسخه ۳.۲ به بالا می‌توانید به جای رمز عبور، توکن API (API Key) را وارد کنید.</small>
+                            <div id="changePasswordToggleContainer" style="display:none; align-items:center; gap:6px; margin-bottom:6px;">
+                                <input type="checkbox" id="changePasswordToggle" onchange="togglePasswordEdit()" style="width:auto; margin:0; cursor:pointer;">
+                                <label for="changePasswordToggle" style="font-size:12px; color:var(--ts); cursor:pointer; margin:0; font-weight:normal;">تغییر رمز عبور / توکن API</label>
+                            </div>
+                            <input type="password" name="password_panel" id="panelPassword" class="input" placeholder="••••••••" autocomplete="new-password" style="direction:ltr;text-align:left;">
+                            <small id="panelPasswordTip" style="color:var(--ts);font-size:11px;display:block;margin-top:4px;">برای پنل ثنایی نسخه ۳.۲ به بالا می‌توانید به جای رمز عبور، توکن API (API Key) را وارد کنید.</small>
                         </div>
                     </div>
                 </div>
@@ -539,7 +548,8 @@ include __DIR__ . '/inc/layout_head.php';
                         <div class="field-group">
                             <label>نمایش ساب‌لینک</label>
                             <select name="sublink" id="panelSublink" class="input">
-                                <option value="onsublink">بله</option>
+                                <option value="onsublink">بله (فقط ساب‌لینک)</option>
+                                <option value="bothsubandconfig">ساب‌لینک + کانفیگ</option>
                                 <option value="offsublink">خیر</option>
                             </select>
                         </div>
@@ -837,6 +847,21 @@ function switchTab(tabId) {
     event.currentTarget.classList.add('active');
 }
 
+function togglePasswordEdit() {
+    const cb = document.getElementById('changePasswordToggle');
+    const input = document.getElementById('panelPassword');
+    if (cb.checked) {
+        input.removeAttribute('disabled');
+        input.value = '';
+        input.placeholder = '';
+        input.focus();
+    } else {
+        input.setAttribute('disabled', 'true');
+        input.value = '';
+        input.placeholder = '••••••••';
+    }
+}
+
 function openPanelModal(action, btn = null) {
     const modalVeil = document.getElementById('panelModalVeil');
     const title = document.getElementById('panelModalTitle');
@@ -857,7 +882,12 @@ function openPanelModal(action, btn = null) {
         document.getElementById('panelName').value = '';
         document.getElementById('panelUrl').value = '';
         document.getElementById('panelUsername').value = '';
-        document.getElementById('panelPassword').value = '';
+        document.getElementById('changePasswordToggleContainer').style.display = 'none';
+        const passInput = document.getElementById('panelPassword');
+        passInput.removeAttribute('disabled');
+        passInput.value = '';
+        passInput.placeholder = '';
+        passInput.setAttribute('data-original', '');
         document.getElementById('panelType').value = 'marzban';
         document.getElementById('panelStatus').value = 'active';
         document.getElementById('panelAgent').value = 'all';
@@ -898,7 +928,13 @@ function openPanelModal(action, btn = null) {
         document.getElementById('panelName').value = data.name_panel || '';
         document.getElementById('panelUrl').value = data.url_panel || '';
         document.getElementById('panelUsername').value = data.username_panel || '';
-        document.getElementById('panelPassword').value = data.password_panel || '';
+        document.getElementById('changePasswordToggleContainer').style.display = 'flex';
+        document.getElementById('changePasswordToggle').checked = false;
+        const passInput = document.getElementById('panelPassword');
+        passInput.setAttribute('disabled', 'true');
+        passInput.value = '';
+        passInput.placeholder = '••••••••';
+        passInput.setAttribute('data-original', data.password_panel || '');
         document.getElementById('panelType').value = data.type || 'marzban';
         document.getElementById('panelStatus').value = data.status || 'active';
         document.getElementById('panelAgent').value = data.agent || 'all';
@@ -970,7 +1006,7 @@ function togglePanelFields() {
     }
 
     const typesWithInbound = ['MHSanaei-3.2', 'x-ui_single', 'alireza_single', 's_ui', 'marzneshin', 'WGDashboard'];
-    const typesWithFetcher = ['MHSanaei-3.2', 'x-ui_single', 'alireza_single', 's_ui'];
+    const typesWithFetcher = ['MHSanaei-3.2', 'x-ui_single', 'alireza_single', 's_ui', 'WGDashboard'];
 
     if (typesWithInbound.includes(panelType)) {
         if (inboundGroup) inboundGroup.style.display = 'block';
@@ -1107,7 +1143,11 @@ function closeTestConnModal() {
     function fetchSanaeiInbounds() {
         const url = document.getElementById('panelUrl').value;
         const user = document.getElementById('panelUsername').value;
-        const pass = document.getElementById('panelPassword').value;
+        let pass = document.getElementById('panelPassword').value;
+        const originalPass = document.getElementById('panelPassword').getAttribute('data-original') || '';
+        if (!pass && originalPass) {
+            pass = originalPass;
+        }
         const loader = document.getElementById('inboundsLoader');
         const list = document.getElementById('inboundsList');
         if (!url || !pass) {
@@ -1167,7 +1207,11 @@ function closeTestConnModal() {
     function testCurrentPanelConnection() {
         const url = document.getElementById('panelUrl').value;
         const user = document.getElementById('panelUsername').value;
-        const pass = document.getElementById('panelPassword').value;
+        let pass = document.getElementById('panelPassword').value;
+        const originalPass = document.getElementById('panelPassword').getAttribute('data-original') || '';
+        if (!pass && originalPass) {
+            pass = originalPass;
+        }
         const resultDiv = document.getElementById('inlineConnResult');
 
         if (!url || !pass) {
