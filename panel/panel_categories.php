@@ -61,7 +61,7 @@ include __DIR__ . '/inc/layout_head.php';
     <h2><?= icon('folder') ?> دسته‌بندی پنل‌ها</h2>
     <p>مدیریت دسته‌بندی‌های پنل‌ها برای ساخت گروهی محصولات</p>
   </div>
-  <button class="btn btn-primary" onclick="showAddCategoryModal()">
+  <button class="btn btn-primary" id="btnAddCategory">
     <?= icon('plus') ?> افزودن دسته‌بندی
   </button>
 </div>
@@ -94,7 +94,7 @@ include __DIR__ . '/inc/layout_head.php';
                 </span>
               </td>
               <td>
-                <button class="btn btn-sm btn-outline" onclick="editCategory(<?= htmlspecialchars(json_encode($cat), ENT_QUOTES, 'UTF-8') ?>)">
+                <button class="btn btn-sm btn-outline" data-edit-cat="<?= htmlspecialchars(json_encode($cat), ENT_QUOTES, 'UTF-8') ?>">
                   <?= icon('edit') ?> ویرایش
                 </button>
                 <a href="?action=delete&id=<?= $cat['id'] ?>" class="btn btn-sm btn-outline btn-danger" onclick="return confirm('آیا از حذف این دسته‌بندی اطمینان دارید؟');">
@@ -149,6 +149,46 @@ include __DIR__ . '/inc/layout_head.php';
   </div>
 </div>
 
+<script>
+(function() {
+    // Attach Add button
+    var addBtn = document.getElementById('btnAddCategory');
+    if (addBtn) {
+        addBtn.addEventListener('click', function() {
+            var modal = document.getElementById('categoryModal');
+            if (!modal) return;
+            document.getElementById('catModalTitle').innerText = 'افزودن دسته\u200C\u0628\u0646\u062F\u06CC';
+            document.getElementById('catAction').value = 'add';
+            document.getElementById('catId').value = '';
+            document.getElementById('catName').value = '';
+            document.getElementById('catStatus').value = 'active';
+            modal.classList.add('open');
+        });
+    }
 
+    // Attach Edit buttons
+    document.querySelectorAll('[data-edit-cat]').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var cat = JSON.parse(this.getAttribute('data-edit-cat'));
+            var modal = document.getElementById('categoryModal');
+            if (!modal) return;
+            document.getElementById('catModalTitle').innerText = '\u0648\u06CC\u0631\u0627\u06CC\u0634 \u062F\u0633\u062A\u0647\u200C\u0628\u0646\u062F\u06CC';
+            document.getElementById('catAction').value = 'edit';
+            document.getElementById('catId').value = cat.id;
+            document.getElementById('catName').value = cat.name;
+            document.getElementById('catStatus').value = cat.status;
+            modal.classList.add('open');
+        });
+    });
+
+    // Close modal on backdrop click
+    var modal = document.getElementById('categoryModal');
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) modal.classList.remove('open');
+        });
+    }
+}());
+</script>
 
 <?php include __DIR__ . '/inc/layout_foot.php'; ?>
