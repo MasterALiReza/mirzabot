@@ -15,15 +15,23 @@ $status_cron = json_decode($setting['cron_status'],true);
 if(!$status_cron['uptime_panel'])return;
 $inbounds = [];
 foreach($marzbanlist as $location){
-    $parsed_url = parse_url($location['url_panel']);
-    if ($parsed_url && isset($parsed_url['host'])) {
-    $address = $parsed_url['host'];
-    $port = empty($parsed_url['port']) ? ((isset($parsed_url['scheme']) && strtolower($parsed_url['scheme']) === 'http') ? 80 : 443) : $parsed_url['port'];
-    if (!checkConnection($address, $port)) {
-       foreach ($admin_ids as $admin) {
+    $url = rtrim($location['url_panel'], '/');
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+    curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
+    curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlError = curl_errno($ch);
+    curl_close($ch);
+
+    if ($httpCode == 0 && $curlError != 0) {
+        foreach ($admin_ids as $admin) {
             $textnode = sprintf($textbotlang['hardcoded']['panelDownNotice'], $location['name_panel']);
-        sendmessage($admin, $textnode, null, 'html');
-    }
-    }
+            sendmessage($admin, $textnode, null, 'html');
+        }
     }
 }

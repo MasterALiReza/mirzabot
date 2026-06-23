@@ -13,6 +13,13 @@ try {
     } catch (Exception $ex) {}
 }
 
+// Fetch Panel Categories
+try {
+    $panel_categories = db_fetchAll($pdo, "SELECT * FROM panel_category WHERE status = 'active' ORDER BY name ASC");
+} catch (Exception $e) {
+    $panel_categories = [];
+}
+
 // TEST CONNECTION AJAX
 if (isset($_GET['action']) && $_GET['action'] === 'test_connection' && isset($_GET['id'])) {
     header('Content-Type: application/json');
@@ -101,6 +108,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $priceextratime = json_encode(['f' => $_POST['priceextratime_f'] ?? "4000", 'n' => $_POST['priceextratime_n'] ?? "4000", 'n2' => $_POST['priceextratime_n2'] ?? "4000"]);
     
     $priceChangeloc = trim($_POST['priceChangeloc'] ?? '0');
+    
+    $panel_category_id = trim($_POST['panel_category_id'] ?? '');
+    if ($panel_category_id === '') $panel_category_id = null;
 
     if ($action === 'add') {
         try {
@@ -111,14 +121,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $code_panel = '7e' . ($max_num + 1);
 
             db_query($pdo, "INSERT INTO marzban_panel 
-                (name_panel, url_panel, username_panel, password_panel, type, status, code_panel, MethodUsername, inboundstatus, inbound_deactive, agent, inboundid, conecton, Methodextend, namecustom, limit_panel, TestAccount, sublink, config, qr_wgd, version_panel, on_hold_test, subvip, changeloc, status_extend, priceChangeloc, sanaei_group, mainvolume, maxvolume, maintime, maxtime, customvolume, priceextravolume, pricecustomvolume, pricecustomtime, priceextratime, val_usertest, time_usertest) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '0', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+                (name_panel, url_panel, username_panel, password_panel, type, status, code_panel, MethodUsername, inboundstatus, inbound_deactive, agent, inboundid, conecton, Methodextend, namecustom, limit_panel, TestAccount, sublink, config, qr_wgd, version_panel, on_hold_test, subvip, changeloc, status_extend, priceChangeloc, sanaei_group, mainvolume, maxvolume, maintime, maxtime, customvolume, priceextravolume, pricecustomvolume, pricecustomtime, priceextratime, val_usertest, time_usertest, panel_category_id) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '0', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
                 [
                     $name_panel, $url_panel, $username_panel, $password_panel, $type, $status, $code_panel,
                     $MethodUsername, $inboundstatus, $inbound_deactive, $agent, $inboundid, $conecton, $Methodextend,
                     $namecustom, $limit_panel, $TestAccount, $sublink, $config, $qr_wgd, $on_hold_test, $subvip, $changeloc,
                     $status_extend, $priceChangeloc, $sanaei_group, $mainvolume, $maxvolume, $maintime, $maxtime,
-                    $customvolume, $priceextravolume, $pricecustomvolume, $pricecustomtime, $priceextratime, $val_usertest, $time_usertest
+                    $customvolume, $priceextravolume, $pricecustomvolume, $pricecustomtime, $priceextratime, $val_usertest, $time_usertest, $panel_category_id
                 ]
             );
             flash('success', 'پنل جدید با موفقیت اضافه شد.');
@@ -145,7 +155,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 namecustom = ?, limit_panel = ?, TestAccount = ?, sublink = ?, config = ?, qr_wgd = ?, on_hold_test = ?, subvip = ?,
                 changeloc = ?, status_extend = ?, priceChangeloc = ?, sanaei_group = ?, mainvolume = ?, maxvolume = ?,
                 maintime = ?, maxtime = ?, customvolume = ?, priceextravolume = ?, pricecustomvolume = ?, pricecustomtime = ?,
-                priceextratime = ?, val_usertest = ?, time_usertest = ?
+                priceextratime = ?, val_usertest = ?, time_usertest = ?, panel_category_id = ?
                 WHERE id = ?",
                 [
                     $name_panel, $url_panel, $username_panel, $password_panel, $type, $status, $agent,
@@ -153,7 +163,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $namecustom, $limit_panel, $TestAccount, $sublink, $config, $qr_wgd, $on_hold_test, $subvip,
                     $changeloc, $status_extend, $priceChangeloc, $sanaei_group, $mainvolume, $maxvolume,
                     $maintime, $maxtime, $customvolume, $priceextravolume, $pricecustomvolume, $pricecustomtime,
-                    $priceextratime, $val_usertest, $time_usertest, $id
+                    $priceextratime, $val_usertest, $time_usertest, $panel_category_id, $id
                 ]
             );
             
@@ -300,8 +310,9 @@ include __DIR__ . '/inc/layout_head.php';
                             'mainvolume' => $p['mainvolume'], 'maxvolume' => $p['maxvolume'],
                             'maintime' => $p['maintime'], 'maxtime' => $p['maxtime'], 'customvolume' => $p['customvolume'],
                             'priceextravolume' => $p['priceextravolume'], 'pricecustomvolume' => $p['pricecustomvolume'],
-                            'pricecustomtime' => $p['pricecustomtime'], 'priceextratime' => $p['priceextratime'],
-                            'priceChangeloc' => $p['priceChangeloc']
+                            'priceextratime' => $p['priceextratime'],
+                            'priceChangeloc' => $p['priceChangeloc'],
+                            'panel_category_id' => $p['panel_category_id']
                         ]);
                         ?>
                         <tr>
@@ -392,8 +403,9 @@ include __DIR__ . '/inc/layout_head.php';
                 .tab-btn:hover { background: var(--bg); color: var(--fg); border-color: var(--bd); }
                 .tab-btn.active { background: rgba(var(--ac-rgb, 59,130,246), 0.1) !important; color: var(--ac) !important; border-color: rgba(var(--ac-rgb, 59,130,246), 0.2) !important; }
                 .field-group label { display:flex; align-items:center; gap:6px; font-weight:600; color:var(--fg); margin-bottom:8px; font-size:0.9rem; }
-                .field-group .input { border-radius: 12px; background: var(--bg-sec); border: 1px solid var(--bd); padding: 10px 14px; transition: all 0.3s; }
+                .field-group .input { width: 100%; box-sizing: border-box; border-radius: 12px; background: var(--bg-sec); border: 1px solid var(--bd); padding: 10px 14px; font-family: inherit; font-size: 0.95rem; color: var(--fg); transition: all 0.3s; }
                 .field-group .input:focus { border-color: var(--ac); box-shadow: 0 0 0 3px rgba(var(--ac-rgb, 59,130,246), 0.15); background: var(--bg); outline:none; }
+                .field-group select.input { appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: left 12px center; background-size: 16px; padding-left: 36px; }
                 @media (max-width: 600px) {
                     .field-grid { grid-template-columns: 1fr !important; }
                 }
@@ -443,6 +455,15 @@ include __DIR__ . '/inc/layout_head.php';
                                 <option value="f">فقط فروشنده عادی</option>
                                 <option value="n">فقط نماینده (درصددهی)</option>
                                 <option value="n2">فقط نماینده (درصددهی عمده)</option>
+                            </select>
+                        </div>
+                        <div class="field-group">
+                            <label>دسته‌بندی پنل (اختیاری)</label>
+                            <select name="panel_category_id" id="panelCategoryId" class="input">
+                                <option value="">بدون دسته‌بندی</option>
+                                <?php foreach ($panel_categories as $cat): ?>
+                                    <option value="<?= $cat['id'] ?>"><?= htmlspecialchars($cat['name']) ?></option>
+                                <?php endforeach; ?>
                             </select>
                         </div>
                     </div>
@@ -891,6 +912,7 @@ function openPanelModal(action, btn = null) {
         document.getElementById('panelType').value = 'marzban';
         document.getElementById('panelStatus').value = 'active';
         document.getElementById('panelAgent').value = 'all';
+        document.getElementById('panelCategoryId').value = '';
         
         document.getElementById('panelInboundStatus').value = 'offinbounddisable';
         document.getElementById('panelInboundDeactive').value = '0';
@@ -938,6 +960,7 @@ function openPanelModal(action, btn = null) {
         document.getElementById('panelType').value = data.type || 'marzban';
         document.getElementById('panelStatus').value = data.status || 'active';
         document.getElementById('panelAgent').value = data.agent || 'all';
+        document.getElementById('panelCategoryId').value = data.panel_category_id || '';
         
         document.getElementById('panelInboundStatus').value = data.inboundstatus || 'offinbounddisable';
         document.getElementById('panelInboundDeactive').value = data.inbound_deactive || '0';

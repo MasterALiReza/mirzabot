@@ -228,8 +228,8 @@ $initials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
           </div>
 
           <!-- فروشگاه و خدمات -->
-          <div class="nav-group <?= in_array($activeNav, ['product', 'service', 'panels_manage', 'categories_manage', 'settings_shop']) ? 'open' : '' ?>">
-            <button class="nav-group-btn <?= in_array($activeNav, ['product', 'service', 'panels_manage', 'categories_manage', 'settings_shop']) ? 'active' : '' ?>">
+          <div class="nav-group <?= in_array($activeNav, ['product', 'service', 'panels_manage', 'panel_categories', 'categories_manage', 'settings_shop']) ? 'open' : '' ?>">
+            <button class="nav-group-btn <?= in_array($activeNav, ['product', 'service', 'panels_manage', 'panel_categories', 'categories_manage', 'settings_shop']) ? 'active' : '' ?>">
               <div class="nav-group-title">
                 <span class="nav-icon"><?= icon('package') ?></span>
                 <span class="nav-label">فروشگاه و محصولات</span>
@@ -245,6 +245,9 @@ $initials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
               </a>
               <a href="panels_manage.php" class="nav-sub-item <?= $activeNav === 'panels_manage' ? 'active' : '' ?>" title="<?= $textbotlang['panel']['layoutPageTitlePanels'] ?? 'مدیریت پنل‌ها' ?>">
                 <div class="nav-sub-dot"></div><?= $textbotlang['panel']['layoutNavPanels'] ?? 'مدیریت پنل‌ها' ?>
+              </a>
+              <a href="panel_categories.php" class="nav-sub-item <?= $activeNav === 'panel_categories' ? 'active' : '' ?>" title="دسته‌بندی پنل‌ها">
+                <div class="nav-sub-dot"></div>دسته‌بندی پنل‌ها
               </a>
               <a href="settings_shop.php" class="nav-sub-item <?= $activeNav === 'settings_shop' ? 'active' : '' ?>" title="تنظیمات فروشگاه">
                 <div class="nav-sub-dot"></div>تنظیمات فروشگاه

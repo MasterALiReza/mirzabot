@@ -374,7 +374,8 @@ try {
         on_hold_test varchar(60) NOT NULL,
         version_panel varchar(60) NOT NULL,
         customvolume TEXT NULL,
-        hide_user TEXT NULL)
+        hide_user TEXT NULL,
+        panel_category_id varchar(50) NULL)
         ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci");
         if (!$result) {
             echo "table marzban_panel" . mysqli_error($connect);
@@ -445,6 +446,7 @@ try {
         addFieldToTable("marzban_panel", "config", "offconfig", "VARCHAR(50)");
         addFieldToTable("marzban_panel", "qr_wgd", "offqrwgd", "VARCHAR(50)");
         addFieldToTable("marzban_panel", "version_panel", "0", "VARCHAR(60)");
+        addFieldToTable("marzban_panel", "panel_category_id", null, "VARCHAR(50)");
         $max_stmt = $connect->query("SELECT MAX(CAST(SUBSTRING(code_panel, 3) AS UNSIGNED)) as max_num FROM marzban_panel WHERE code_panel LIKE '7e%'");
         $max_row = $max_stmt->fetch_assoc();
         $next_num = $max_row['max_num'] ? (int) $max_row['max_num'] + 1 : 15;
@@ -1291,6 +1293,24 @@ try {
         ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_bin");
         if (!$result) {
             echo "table category" . mysqli_error($connect);
+        }
+    }
+} catch (Exception $e) {
+    file_put_contents('error_log', $e->getMessage());
+}
+//----------------------- [ Panel Category ] --------------------- //
+try {
+    $result = $connect->query("SHOW TABLES LIKE 'panel_category'");
+    $table_exists = ($result->num_rows > 0);
+
+    if (!$table_exists) {
+        $result = $connect->query("CREATE TABLE panel_category (
+        id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+        status VARCHAR(50) DEFAULT 'active')
+        ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci");
+        if (!$result) {
+            echo "table panel_category" . mysqli_error($connect);
         }
     }
 } catch (Exception $e) {

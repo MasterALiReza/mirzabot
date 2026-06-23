@@ -145,6 +145,11 @@ try {
   $panels = db_fetchAll($pdo, "SELECT * FROM marzban_panel");
 } catch (Exception $e) {
 }
+$panel_categories = [];
+try {
+  $panel_categories = db_fetchAll($pdo, "SELECT * FROM panel_category WHERE status = 'active' ORDER BY name ASC");
+} catch (Exception $e) {
+}
 $products = db_fetchAll($pdo, "SELECT * FROM product ORDER BY id");
 
 // Auto-sync missing categories from product table to category table
@@ -377,10 +382,19 @@ $panelsCount = count(array_unique(array_filter(array_column($products, 'Location
             <label>پنل/سرور</label>
             <select name="namepanel" class="select">
               <option value="">-- انتخاب پنل --</option>
+              <optgroup label="پنل‌ها">
               <?php foreach ($panels as $pl): ?>
                 <option value="<?= htmlspecialchars($pl['name_panel'] ?? $pl['id']) ?>">
                   <?= htmlspecialchars($pl['name_panel'] ?? $pl['id']) ?>
                 </option><?php endforeach; ?>
+              </optgroup>
+              <?php if (!empty($panel_categories)): ?>
+              <optgroup label="دسته‌بندی‌های پنل">
+              <?php foreach ($panel_categories as $pcat): ?>
+                <option value="category_<?= $pcat['id'] ?>">دسته‌بندی: <?= htmlspecialchars($pcat['name']) ?></option>
+              <?php endforeach; ?>
+              </optgroup>
+              <?php endif; ?>
             </select>
           </div>
           <div class="field">
@@ -470,10 +484,19 @@ $panelsCount = count(array_unique(array_filter(array_column($products, 'Location
             <label>پنل/سرور</label>
             <select name="namepanel" id="edit_panel" class="select">
               <option value="">-- انتخاب پنل --</option>
+              <optgroup label="پنل‌ها">
               <?php foreach ($panels as $pl): ?>
                 <option value="<?= htmlspecialchars($pl['name_panel'] ?? $pl['id']) ?>">
                   <?= htmlspecialchars($pl['name_panel'] ?? $pl['id']) ?>
                 </option><?php endforeach; ?>
+              </optgroup>
+              <?php if (!empty($panel_categories)): ?>
+              <optgroup label="دسته‌بندی‌های پنل">
+              <?php foreach ($panel_categories as $pcat): ?>
+                <option value="category_<?= $pcat['id'] ?>">دسته‌بندی: <?= htmlspecialchars($pcat['name']) ?></option>
+              <?php endforeach; ?>
+              </optgroup>
+              <?php endif; ?>
             </select>
           </div>
           <div class="field">
