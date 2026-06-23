@@ -245,6 +245,24 @@ window.closeModal = function (id) {
     if (m) m.classList.remove('open');
 };
 
+window.showAddCategoryModal = function() {
+    openModal('categoryModal');
+    document.getElementById('catModalTitle').innerText = 'افزودن دسته‌بندی';
+    document.getElementById('catAction').value = 'add';
+    document.getElementById('catId').value = '';
+    document.getElementById('catName').value = '';
+    document.getElementById('catStatus').value = 'active';
+};
+
+window.editCategory = function(cat) {
+    openModal('categoryModal');
+    document.getElementById('catModalTitle').innerText = 'ویرایش دسته‌بندی';
+    document.getElementById('catAction').value = 'edit';
+    document.getElementById('catId').value = cat.id;
+    document.getElementById('catName').value = cat.name;
+    document.getElementById('catStatus').value = cat.status;
+};
+
 
 
 window.initUI = function(context) {

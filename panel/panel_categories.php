@@ -149,24 +149,6 @@ include __DIR__ . '/inc/layout_head.php';
   </div>
 </div>
 
-<script>
-window.showAddCategoryModal = function() {
-    openModal('categoryModal');
-    document.getElementById('catModalTitle').innerText = 'افزودن دسته‌بندی';
-    document.getElementById('catAction').value = 'add';
-    document.getElementById('catId').value = '';
-    document.getElementById('catName').value = '';
-    document.getElementById('catStatus').value = 'active';
-}
 
-window.editCategory = function(cat) {
-    openModal('categoryModal');
-    document.getElementById('catModalTitle').innerText = 'ویرایش دسته‌بندی';
-    document.getElementById('catAction').value = 'edit';
-    document.getElementById('catId').value = cat.id;
-    document.getElementById('catName').value = cat.name;
-    document.getElementById('catStatus').value = cat.status;
-}
-</script>
 
 <?php include __DIR__ . '/inc/layout_foot.php'; ?>
