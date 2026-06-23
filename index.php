@@ -4793,7 +4793,8 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
             $dataoutput['msg'] = json_encode($dataoutput['msg']);
             $msgError = $textbotlang['users']['sell']['errorConfig'];
             if ($i > 0) {
-                $charged_amount = $info_product['price_product'] * $i;
+                $per_item_price = $priceproduct / intval($user['Processing_value_four']);
+                $charged_amount = $per_item_price * $i;
                 $user_Balance_new = select("user", "*", "id", $from_id, "select");
                 $Balance_prim = $user_Balance_new['Balance'] - $charged_amount;
                 update("user", "Balance", $Balance_prim, "id", $from_id);
