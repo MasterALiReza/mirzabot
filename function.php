@@ -2224,3 +2224,35 @@ function generateUserBanner($user_id) {
     }
     return false;
 }
+
+function getProductLocCondition($panel_name) {
+    global $pdo;
+    $stmt = $pdo->prepare("SELECT panel_category_id FROM marzban_panel WHERE name_panel = ?");
+    $stmt->execute([$panel_name]);
+    $cat_id = $stmt->fetchColumn();
+    $cat_cond = $cat_id > 0 ? " OR Location = 'category_$cat_id'" : "";
+    return "(Location = '$panel_name' OR Location = '/all'$cat_cond)";
+}
+
+function getLoadBalancedPanelFromCategory($pdo, $cat_id, $agent) {
+    $stmt = $pdo->prepare("SELECT name_panel FROM marzban_panel WHERE panel_category_id = ? AND status = 'active' AND (agent = ? OR agent = 'all')");
+    $stmt->execute([$cat_id, $agent]);
+    $panels = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    if (empty($panels)) return false;
+    
+    $best_panel = false;
+    $min_users = PHP_INT_MAX;
+    
+    foreach ($panels as $panel) {
+        $name = $panel['name_panel'];
+        $countStmt = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE Service_location = ? AND status = 'active'");
+        $countStmt->execute([$name]);
+        $count = (int)$countStmt->fetchColumn();
+        
+        if ($count < $min_users) {
+            $min_users = $count;
+            $best_panel = $name;
+        }
+    }
+    return $best_panel ?: $panels[0]['name_panel'];
+}
