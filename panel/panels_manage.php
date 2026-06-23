@@ -66,6 +66,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'test_connection' && isset($_G
 
 // HANDLE ADD / EDIT POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    csrf_check_post();
     $action = $_POST['action'];
     $name_panel = trim($_POST['name_panel'] ?? '');
     $url_panel = trim($_POST['url_panel'] ?? '');
@@ -122,6 +123,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     if ($panel_category_id === '') $panel_category_id = null;
 
     if ($action === 'add') {
+        if (empty($name_panel) || empty($url_panel)) {
+            flash('error', 'وارد کردن نام پنل و آدرس پنل الزامی است.');
+            header('Location: panels_manage.php');
+            exit;
+        }
         try {
             // Generate code_panel
             $stmt = $pdo->query("SELECT MAX(CAST(SUBSTRING(code_panel, 3) AS UNSIGNED)) as max_num FROM marzban_panel WHERE code_panel LIKE '7e%'");
@@ -148,6 +154,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         exit;
     } elseif ($action === 'edit' && isset($_POST['id'])) {
         $id = (int)$_POST['id'];
+        if (empty($name_panel) || empty($url_panel)) {
+            flash('error', 'وارد کردن نام پنل و آدرس پنل الزامی است.');
+            header('Location: panels_manage.php');
+            exit;
+        }
         try {
             $stmt_old = $pdo->prepare("SELECT name_panel, password_panel FROM marzban_panel WHERE id = ?");
             $stmt_old->execute([$id]);
@@ -191,6 +202,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
 // Handle Delete Action
 if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['id'])) {
+    csrf_check_get();
     $id = (int)$_GET['id'];
     try {
         db_query($pdo, "DELETE FROM marzban_panel WHERE id = ?", [$id]);
@@ -361,7 +373,7 @@ include __DIR__ . '/inc/layout_head.php';
                                     <button class="btn btn-ghost btn-sm btn-icon" data-panel="<?= htmlspecialchars($panelData, ENT_QUOTES, 'UTF-8') ?>" onclick="openPanelModal('edit', this)" title="ویرایش">
                                         <?= icon('edit', 14) ?>
                                     </button>
-                                    <a href="?action=delete&id=<?= (int)$p['id'] ?>" class="btn btn-no btn-sm btn-icon" title="<?= $textbotlang['panel']['panelsActionDelete'] ?>" onclick="return confirm('<?= sprintf($textbotlang['panel']['panelsConfirmDelete'], htmlspecialchars($p['name_panel'])) ?>')">
+                                    <a href="?action=delete&id=<?= (int)$p['id'] ?>&_csrf=<?= csrf_token() ?>" class="btn btn-no btn-sm btn-icon" title="<?= $textbotlang['panel']['panelsActionDelete'] ?>" onclick="return confirm('<?= sprintf($textbotlang['panel']['panelsConfirmDelete'], htmlspecialchars($p['name_panel'])) ?>')">
                                         <?= icon('block', 14) ?>
                                     </a>
                                 </div>
@@ -422,6 +434,7 @@ include __DIR__ . '/inc/layout_head.php';
         </div>
 
         <form method="post" action="panels_manage.php">
+            <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
             <input type="hidden" name="action" id="panelAction" value="add">
             <input type="hidden" name="id" id="panelId" value="">
             
