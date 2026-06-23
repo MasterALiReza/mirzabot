@@ -66,7 +66,7 @@ include __DIR__ . '/inc/layout_head.php';
   </button>
 </div>
 
-<?php display_flash(); ?>
+
 
 <div class="card">
   <div class="card-header">
@@ -94,7 +94,7 @@ include __DIR__ . '/inc/layout_head.php';
                 </span>
               </td>
               <td>
-                <button class="btn btn-sm btn-outline" onclick='editCategory(<?= json_encode($cat) ?>)'>
+                <button class="btn btn-sm btn-outline" onclick="editCategory(<?= htmlspecialchars(json_encode($cat), ENT_QUOTES, 'UTF-8') ?>)">
                   <?= icon('edit') ?> ویرایش
                 </button>
                 <a href="?action=delete&id=<?= $cat['id'] ?>" class="btn btn-sm btn-outline btn-danger" onclick="return confirm('آیا از حذف این دسته‌بندی اطمینان دارید؟');">
@@ -150,7 +150,7 @@ include __DIR__ . '/inc/layout_head.php';
 </div>
 
 <script>
-function showAddCategoryModal() {
+window.showAddCategoryModal = function() {
     openModal('categoryModal');
     document.getElementById('catModalTitle').innerText = 'افزودن دسته‌بندی';
     document.getElementById('catAction').value = 'add';
@@ -159,7 +159,7 @@ function showAddCategoryModal() {
     document.getElementById('catStatus').value = 'active';
 }
 
-function editCategory(cat) {
+window.editCategory = function(cat) {
     openModal('categoryModal');
     document.getElementById('catModalTitle').innerText = 'ویرایش دسته‌بندی';
     document.getElementById('catAction').value = 'edit';
