@@ -293,9 +293,13 @@ class ManagePanel
                 $Output['msg'] = $response['message'] ?? $data_Output_body['msg'] ?? 'Response status false';
             } else {
                 // Creation succeeded! Get the actual peer object from WGDashboard
-                $peer_data = $response['data'][0];
+                $peer_data = isset($response['data'][0]) && is_array($response['data'][0]) ? $response['data'][0] : $data_Output_body;
+                
                 // Map the server ID (public key) to public_key so database queries remain compatible
-                $peer_data['public_key'] = $peer_data['id'];
+                if (!isset($peer_data['id']) && isset($peer_data['public_key'])) {
+                    $peer_data['id'] = $peer_data['public_key'];
+                }
+                $peer_data['public_key'] = $peer_data['id'] ?? $peer_data['public_key'] ?? '';
                 
                 // Add the jobs using the actual server-assigned peer ID
                 if ($data_limit != 0) {

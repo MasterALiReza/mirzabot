@@ -112,18 +112,32 @@ function addpear($namepanel, $usernameac)
     if (!empty($ipconfig_body['status']) && $ipconfig_body['status'] == false) {
         return $ipconfig_body;
     }
-    if (empty($ipconfig_body['data'])) {
+    if (empty($ipconfig_body['data']) || !is_array($ipconfig_body['data'])) {
         return array(
             'status' => false,
-            'msg' => 'No available IPs found in WGDashboard'
+            'msg' => 'No available IPs found in WGDashboard or invalid data format'
         );
     }
-    $key = array_keys($ipconfig_body['data'])[0];
-    if (is_array($ipconfig_body['data'][$key])) {
-        $ipToAssign = $ipconfig_body['data'][$key][0];
-    } else {
-        $ipToAssign = $ipconfig_body['data'][$key];
+    
+    // Find the first available IP from the available subnets safely
+    $ipToAssign = null;
+    foreach ($ipconfig_body['data'] as $subnet => $ips) {
+        if (is_array($ips) && !empty($ips)) {
+            $ipToAssign = $ips[0];
+            break;
+        } elseif (is_string($ips) && !empty($ips)) {
+            $ipToAssign = $ips;
+            break;
+        }
     }
+    
+    if (empty($ipToAssign)) {
+        return array(
+            'status' => false,
+            'msg' => 'No available IPs left in the assigned subnets on WGDashboard.'
+        );
+    }
+    
     $config = array(
         'name' => $usernameac,
         'allowed_ips' => [$ipToAssign],
@@ -232,7 +246,7 @@ function remove_userwg($location, $username)
     $marzban_list_get = select("marzban_panel", "*", "name_panel", $location, "select");
     $invoice = select("invoice", "user_info", "username", $username, "select");
     $user_info = $invoice ? json_decode($invoice['user_info'], true) : null;
-    $data_user = $user_info['public_key'] ?? $user_info['id'] ?? null;
+    $data_user = is_array($user_info) ? ($user_info['public_key'] ?? $user_info['id'] ?? null) : null;
     if (empty($data_user)) {
         return false;
     }
@@ -257,7 +271,7 @@ function allowAccessPeers($location, $username)
     $marzban_list_get = select("marzban_panel", "*", "name_panel", $location, "select");
     $invoice = select("invoice", "user_info", "username", $username, "select");
     $user_info = $invoice ? json_decode($invoice['user_info'], true) : null;
-    $data_user = $user_info['public_key'] ?? $user_info['id'] ?? null;
+    $data_user = is_array($user_info) ? ($user_info['public_key'] ?? $user_info['id'] ?? null) : null;
     if (empty($data_user)) {
         return false;
     }
@@ -282,7 +296,7 @@ function restrictPeers($location, $username)
     $marzban_list_get = select("marzban_panel", "*", "name_panel", $location, "select");
     $invoice = select("invoice", "user_info", "username", $username, "select");
     $user_info = $invoice ? json_decode($invoice['user_info'], true) : null;
-    $data_user = $user_info['public_key'] ?? $user_info['id'] ?? null;
+    $data_user = is_array($user_info) ? ($user_info['public_key'] ?? $user_info['id'] ?? null) : null;
     if (empty($data_user)) {
         return false;
     }

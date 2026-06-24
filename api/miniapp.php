@@ -612,7 +612,7 @@ switch ($data['actions']) {
                 $selected_category_id = $category_remark['id'];
             }
             $time_range_day = $data['time_range_day'] == 0 ? "" : "AND Service_time = '{$data['time_range_day']}'";
-            $stmt = $pdo->prepare("SELECT * FROM product WHERE (Location = '{$panel['name_panel']}' OR Location = '/all')AND agent= '{$user_info['agent']}' $category_remarks $time_range_day");
+            $stmt = $pdo->prepare("SELECT * FROM product WHERE (Location = '{$panel['name_panel']}' OR Location = '/all')AND agent= '{$user_info['agent']}' $category_remarks $time_range_day ORDER BY CAST(Volume_constraint AS UNSIGNED) ASC, CAST(price_product AS UNSIGNED) ASC");
             $stmt->execute();
             $product_list = [];
             while ($result = $stmt->fetch(PDO::FETCH_ASSOC)) {

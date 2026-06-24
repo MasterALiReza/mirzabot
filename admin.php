@@ -3118,7 +3118,7 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
     update("user", "Processing_value_tow", $typeagent, "id", $from_id);
     $product = [];
     $panel = select("marzban_panel", "*", "code_panel", $user['Processing_value_one'], "select");
-    $getdataproduct = mysqli_query($connect, "SELECT * FROM product WHERE (Location = '{$panel['name_panel']}' or Location = '/all') AND agent = '$typeagent'");
+    $getdataproduct = mysqli_query($connect, "SELECT * FROM product WHERE (Location = '{$panel['name_panel']}' or Location = '/all') AND agent = '$typeagent' ORDER BY CAST(Volume_constraint AS UNSIGNED) ASC, CAST(price_product AS UNSIGNED) ASC");
     $list_product = [
         'inline_keyboard' => [],
     ];
