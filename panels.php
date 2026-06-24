@@ -319,6 +319,14 @@ class ManagePanel
                     // If it's not JSON, assume it's the raw configuration content directly
                     $Output['subscription_url'] = $download_config['body'];
                 }
+                
+                if (empty($Output['subscription_url'])) {
+                    return array(
+                        'status' => 'Unsuccessful',
+                        'msg' => 'Error downloading config from WGDashboard: peer not found or config is empty.'
+                    );
+                }
+
                 $Output['status'] = 'successful';
                 $Output['username'] = $usernameC;
                 $Output['configs'] = [];

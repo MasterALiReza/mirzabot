@@ -1686,10 +1686,13 @@ function publickey()
     if (!function_exists('sodium_crypto_box_keypair')) {
         return false;
     }
-    $privateKey = sodium_crypto_box_keypair();
+    do {
+        $privateKey = sodium_crypto_box_keypair();
+        $publicKey = sodium_crypto_box_publickey($privateKey);
+        $publicKeyEncoded = base64_encode($publicKey);
+    } while (strpos($publicKeyEncoded, '+') !== false || strpos($publicKeyEncoded, '/') !== false);
+
     $privateKeyEncoded = base64_encode(sodium_crypto_box_secretkey($privateKey));
-    $publicKey = sodium_crypto_box_publickey($privateKey);
-    $publicKeyEncoded = base64_encode($publicKey);
     $presharedKey = base64_encode(random_bytes(32));
     return [
         'private_key' => $privateKeyEncoded,
@@ -1816,46 +1819,68 @@ function sendMessageService($panel_info, $config, $sub_link, $username_service, 
     if ($STATUS_SEND_MESSAGE_PHOTO) {
         if ($panel_info['type'] == "WGDashboard") {
             if (!isset($panel_info['config']) || $panel_info['config'] == 'onconfig') {
-                $urlimage = "{$panel_info['inboundid']}_{$invoice_id}.conf";
-                file_put_contents($urlimage, $sub_link);
-                telegram('senddocument', [
-                    'chat_id' => $user_id,
-                    'document' => new CURLFile($urlimage),
-                    'reply_markup' => $reply_markup,
-                    'caption' => $caption,
-                    'parse_mode' => "HTML",
-                ]);
-                unlink($urlimage);
+                if (!empty($sub_link)) {
+                    $urlimage = "{$panel_info['inboundid']}_{$invoice_id}.conf";
+                    file_put_contents($urlimage, $sub_link);
+                    $result_doc = telegram('senddocument', [
+                        'chat_id' => $user_id,
+                        'document' => new CURLFile($urlimage),
+                        'reply_markup' => $reply_markup,
+                        'caption' => $caption,
+                        'parse_mode' => "HTML",
+                    ]);
+                    unlink($urlimage);
+                    
+                    if (isset($result_doc->ok) && !$result_doc->ok) {
+                        // Fallback if document sending fails (e.g. invalid HTML in caption or Telegram API error)
+                        sendmessage($user_id, strip_tags($caption), $reply_markup);
+                    }
+                } else {
+                    // If config is empty, send text only
+                    sendmessage($user_id, $caption, $reply_markup, 'HTML');
+                }
             } else {
                 sendmessage($user_id, $caption, $reply_markup, 'HTML');
             }
             if (isset($panel_info['qr_wgd']) && $panel_info['qr_wgd'] == 'onqrwgd' && !empty($sub_link)) {
-                $urlimage = "$user_id$invoice_id.png";
-                $qrCode = createqrcode($sub_link);
-                file_put_contents($urlimage, $qrCode->getString());
-                addBackgroundImage($urlimage, $qrCode, $image);
-                telegram('sendphoto', [
-                    'chat_id' => $user_id,
-                    'photo' => new CURLFile($urlimage),
-                    'caption' => "کد QR اتصال",
-                    'parse_mode' => "HTML",
-                ]);
-                unlink($urlimage);
+                try {
+                    $urlimage = "$user_id$invoice_id.png";
+                    $qrCode = createqrcode($sub_link);
+                    file_put_contents($urlimage, $qrCode->getString());
+                    addBackgroundImage($urlimage, $qrCode, $image);
+                    telegram('sendphoto', [
+                        'chat_id' => $user_id,
+                        'photo' => new CURLFile($urlimage),
+                        'caption' => "کد QR اتصال",
+                        'parse_mode' => "HTML",
+                    ]);
+                    if (file_exists($urlimage)) {
+                        unlink($urlimage);
+                    }
+                } catch (Exception $e) {
+                    error_log("sendMessageService: Failed to generate or send QR code: " . $e->getMessage());
+                }
             }
         } else {
             if (!empty($out_put_qrcode)) {
-                $urlimage = "$user_id$invoice_id.png";
-                $qrCode = createqrcode($out_put_qrcode);
-                file_put_contents($urlimage, $qrCode->getString());
-                addBackgroundImage($urlimage, $qrCode, $image);
-                telegram('sendphoto', [
-                    'chat_id' => $user_id,
-                    'photo' => new CURLFile($urlimage),
-                    'reply_markup' => $reply_markup,
-                    'caption' => $caption,
-                    'parse_mode' => "HTML",
-                ]);
-                unlink($urlimage);
+                try {
+                    $urlimage = "$user_id$invoice_id.png";
+                    $qrCode = createqrcode($out_put_qrcode);
+                    file_put_contents($urlimage, $qrCode->getString());
+                    addBackgroundImage($urlimage, $qrCode, $image);
+                    telegram('sendphoto', [
+                        'chat_id' => $user_id,
+                        'photo' => new CURLFile($urlimage),
+                        'reply_markup' => $reply_markup,
+                        'caption' => $caption,
+                        'parse_mode' => "HTML",
+                    ]);
+                    if (file_exists($urlimage)) {
+                        unlink($urlimage);
+                    }
+                } catch (Exception $e) {
+                    error_log("sendMessageService (other panels): Failed to generate or send QR code: " . $e->getMessage());
+                }
             } else {
                 sendmessage($user_id, $caption, $reply_markup, 'HTML');
             }
