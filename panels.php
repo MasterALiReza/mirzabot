@@ -285,20 +285,31 @@ class ManagePanel
                     'msg' => $data_Output['error']
                 );
             }
-            $data_Output = $data_Output['body'];
-            $response = json_decode($data_Output['response'], true);
-            if ($data_limit != 0) {
-                setjob($Get_Data_Panel['name_panel'], "total_data", $data_limit, $data_Output['public_key']);
-            }
-            if ($expire != 0) {
-                setjob($Get_Data_Panel['name_panel'], "date", date('Y-m-d H:i:s', $expire), $data_Output['public_key']);
-            }
-            update("invoice", "user_info", json_encode($data_Output), "username", $usernameC);
+            $data_Output_body = $data_Output['body'];
+            $response = json_decode($data_Output_body['response'], true);
+            
             if (empty($response) || !$response['status']) {
                 $Output['status'] = 'Unsuccessful';
-                $Output['msg'] = $response['message'] ?? $data_Output['msg'] ?? 'Response status false';
+                $Output['msg'] = $response['message'] ?? $data_Output_body['msg'] ?? 'Response status false';
             } else {
-                $download_config = downloadconfig($Get_Data_Panel['name_panel'], $data_Output['public_key']);
+                // Creation succeeded! Get the actual peer object from WGDashboard
+                $peer_data = $response['data'][0];
+                // Map the server ID (public key) to public_key so database queries remain compatible
+                $peer_data['public_key'] = $peer_data['id'];
+                
+                // Add the jobs using the actual server-assigned peer ID
+                if ($data_limit != 0) {
+                    setjob($Get_Data_Panel['name_panel'], "total_data", $data_limit, $peer_data['id']);
+                }
+                if ($expire != 0) {
+                    setjob($Get_Data_Panel['name_panel'], "date", date('Y-m-d H:i:s', $expire), $peer_data['id']);
+                }
+                
+                // Save the correct server-assigned peer info into the database invoice
+                update("invoice", "user_info", json_encode($peer_data), "username", $usernameC);
+                
+                // Download configuration using the actual server ID
+                $download_config = downloadconfig($Get_Data_Panel['name_panel'], $peer_data['id']);
                 if (isset($download_config['status']) && ($download_config['status'] === false || $download_config['status'] != 200)) {
                     return array(
                         'status' => 'Unsuccessful',
@@ -1977,28 +1988,39 @@ class ManagePanel
             }
             allowAccessPeers($panel['name_panel'], $username);
             $datauser = get_userwg($username, $panel['name_panel']);
-            $count = 0;
-            foreach ($datauser['jobs'] as $jobsvolume) {
-                if ($jobsvolume['Field'] == "date") {
-                    break;
+            if (isset($datauser['jobs']) && is_array($datauser['jobs'])) {
+                $count = 0;
+                $found_date = false;
+                foreach ($datauser['jobs'] as $jobsvolume) {
+                    if ($jobsvolume['Field'] == "date") {
+                        $found_date = true;
+                        break;
+                    }
+                    $count += 1;
                 }
-                $count += 1;
-            }
-            $datam = array(
-                "Job" => $datauser['jobs'][$count],
-            );
-            deletejob($panel['name_panel'], $datam);
-            $count = 0;
-            foreach ($datauser['jobs'] as $jobsvolume) {
-                if ($jobsvolume['Field'] == "total_data") {
-                    break;
+                if ($found_date && isset($datauser['jobs'][$count])) {
+                    $datam = array(
+                        "Job" => $datauser['jobs'][$count],
+                    );
+                    deletejob($panel['name_panel'], $datam);
                 }
-                $count += 1;
+                
+                $count = 0;
+                $found_total = false;
+                foreach ($datauser['jobs'] as $jobsvolume) {
+                    if ($jobsvolume['Field'] == "total_data") {
+                        $found_total = true;
+                        break;
+                    }
+                    $count += 1;
+                }
+                if ($found_total && isset($datauser['jobs'][$count])) {
+                    $datam = array(
+                        "Job" => $datauser['jobs'][$count],
+                    );
+                    deletejob($panel['name_panel'], $datam);
+                }
             }
-            $datam = array(
-                "Job" => $datauser['jobs'][$count],
-            );
-            deletejob($panel['name_panel'], $datam);
             $time_new = date("Y-m-d H:i:s", $time_new);
             if ($time_day != 0) {
                 setjob($panel['name_panel'], "date", $time_new, $datauser['id']);

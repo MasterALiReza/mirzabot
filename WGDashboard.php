@@ -178,15 +178,16 @@ function updatepear($namepanel, array $config)
 {
 
     $marzban_list_get = select("marzban_panel", "*", "name_panel", $namepanel, "select");
-    $configpanel = json_encode($config, true);
+    $configpanel = json_encode($config);
     $url = $marzban_list_get['url_panel'] . '/api/updatePeerSettings/' . $marzban_list_get['inboundid'];
     $headers = array(
         'Accept: application/json',
+        'Content-Type: application/json',
         'wg-dashboard-apikey: ' . $marzban_list_get['password_panel']
     );
     $req = new CurlRequest($url);
     $req->setHeaders($headers);
-    $response = $req->post($config);
+    $response = $req->post($configpanel);
     return $response;
 }
 function deletejob($namepanel, array $config)
@@ -229,7 +230,12 @@ function remove_userwg($location, $username)
 {
     allowAccessPeers($location, $username);
     $marzban_list_get = select("marzban_panel", "*", "name_panel", $location, "select");
-    $data_user = json_decode(select("invoice", "user_info", "username", $username, "select")['user_info'], true)['public_key'];
+    $invoice = select("invoice", "user_info", "username", $username, "select");
+    $user_info = $invoice ? json_decode($invoice['user_info'], true) : null;
+    $data_user = $user_info['public_key'] ?? $user_info['id'] ?? null;
+    if (empty($data_user)) {
+        return false;
+    }
     $url = $marzban_list_get['url_panel'] . '/api/deletePeers/' . $marzban_list_get['inboundid'];
     $headers = array(
         'Accept: application/json',
@@ -249,7 +255,12 @@ function allowAccessPeers($location, $username)
 {
 
     $marzban_list_get = select("marzban_panel", "*", "name_panel", $location, "select");
-    $data_user = json_decode(select("invoice", "user_info", "username", $username, "select")['user_info'], true)['public_key'];
+    $invoice = select("invoice", "user_info", "username", $username, "select");
+    $user_info = $invoice ? json_decode($invoice['user_info'], true) : null;
+    $data_user = $user_info['public_key'] ?? $user_info['id'] ?? null;
+    if (empty($data_user)) {
+        return false;
+    }
     $url = $marzban_list_get['url_panel'] . '/api/allowAccessPeers/' . $marzban_list_get['inboundid'];
     $headers = array(
         'Accept: application/json',
@@ -269,7 +280,12 @@ function restrictPeers($location, $username)
 {
 
     $marzban_list_get = select("marzban_panel", "*", "name_panel", $location, "select");
-    $data_user = json_decode(select("invoice", "user_info", "username", $username, "select")['user_info'], true)['public_key'];
+    $invoice = select("invoice", "user_info", "username", $username, "select");
+    $user_info = $invoice ? json_decode($invoice['user_info'], true) : null;
+    $data_user = $user_info['public_key'] ?? $user_info['id'] ?? null;
+    if (empty($data_user)) {
+        return false;
+    }
     $curl = curl_init();
     curl_setopt_array($curl, array(
         CURLOPT_URL => $marzban_list_get['url_panel'] . '/api/restrictPeers/' . $marzban_list_get['inboundid'],
