@@ -787,6 +787,13 @@ try {
     $stmt_cats->execute();
     $cat_temp_row = [];
     while ($cat_result = $stmt_cats->fetch(PDO::FETCH_ASSOC)) {
+        $check_stmt = $pdo->prepare("SELECT COUNT(*) FROM marzban_panel WHERE panel_category_id = ? AND status = 'active' AND (agent = ? OR agent = 'all')");
+        $agent = $users['agent'] ?? null;
+        $check_stmt->execute([$cat_result['id'], $agent]);
+        if ($check_stmt->fetchColumn() == 0) {
+            continue;
+        }
+
         if (isset($users['step']) && $users['step'] == "getusernameinfo") {
             $cat_btn = ['text' => "دسته‌بندی: " . $cat_result['name'], 'callback_data' => "locationnotuser_category_" . $cat_result['id']];
         } else {
@@ -847,6 +854,12 @@ try {
     $stmt_cats_om = $pdo->prepare("SELECT * FROM panel_category WHERE status = 'active' ORDER BY name ASC");
     $stmt_cats_om->execute();
     while ($cat_result = $stmt_cats_om->fetch(PDO::FETCH_ASSOC)) {
+        $check_stmt = $pdo->prepare("SELECT COUNT(*) FROM marzban_panel WHERE panel_category_id = ? AND status = 'active' AND (agent = ? OR agent = 'all')");
+        $check_stmt->execute([$cat_result['id'], $users['agent']]);
+        if ($check_stmt->fetchColumn() == 0) {
+            continue;
+        }
+
         $list_marzban_panel_users_om['inline_keyboard'][] = [
             ['text' => "دسته‌بندی: " . $cat_result['name'], 'callback_data' => "locationom_category_" . $cat_result['id']]
         ];
