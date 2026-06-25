@@ -3600,27 +3600,14 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
     if ($datain != "backproduct") {
         if (strpos($dataget[1], 'category_') === 0) {
             $cat_id = str_replace('category_', '', $dataget[1]);
-            $stmt = $pdo->prepare("SELECT * FROM marzban_panel WHERE panel_category_id = ? AND status = 'active'");
-            $stmt->execute([$cat_id]);
-            $panels_in_cat = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            $location = null;
-            foreach ($panels_in_cat as $p) {
-                if ($p['limit_panel'] != "unlimited" && $p['limit_panel'] != "unlimted" && $p['limit_panel'] !== "") {
-                    $stmt_inv = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold') AND Service_location = ?");
-                    $stmt_inv->execute([$p['name_panel']]);
-                    if ($stmt_inv->fetchColumn() < $p['limit_panel']) {
-                        $location = $p['name_panel'];
-                        break;
-                    }
-                } else {
-                    $location = $p['name_panel'];
-                    break;
-                }
-            }
-            if (!$location) {
-                sendmessage($from_id, "❌ تمامی سرورهای این دسته‌بندی پر شده‌اند.", null, 'HTML');
-                return;
-            }
+            
+            $stmt_cat = $pdo->prepare("SELECT name FROM panel_category WHERE id = ?");
+            $stmt_cat->execute([$cat_id]);
+            $cat_name = $stmt_cat->fetchColumn() ?: "دسته‌بندی";
+            
+            $panels_kb = getCategoryPanelsKeyboard($pdo, $cat_id, $user['agent'], "location_", "buyback", $from_id);
+            Editmessagetext($from_id, $message_id, "📍 لطفاً یکی از سرورهای دسته‌بندی «" . $cat_name . "» را انتخاب کنید:", $panels_kb);
+            return;
         } else {
             $location = select("marzban_panel", "*", "code_panel", $dataget[1], "select")['name_panel'];
         }
@@ -4523,31 +4510,19 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
     sendmessage($from_id, $textbotlang['textbot']['selectLocation'], $list_marzban_panel_userom, 'HTML');
     update("user", "Processing_value_four", $text, "id", $from_id);
     step('home', $from_id);
+} elseif ($datain == "back_locationom") {
+    Editmessagetext($from_id, $message_id, $textbotlang['textbot']['selectLocation'], $list_marzban_panel_userom);
 } elseif (preg_match('/^locationom_(.*)/', $datain, $dataget)) {
     if (strpos($dataget[1], 'category_') === 0) {
         $cat_id = str_replace('category_', '', $dataget[1]);
-        $stmt = $pdo->prepare("SELECT * FROM marzban_panel WHERE panel_category_id = ? AND status = 'active'");
-        $stmt->execute([$cat_id]);
-        $panels_in_cat = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        $location = null;
-        foreach ($panels_in_cat as $p) {
-            if ($p['limit_panel'] != "unlimited" && $p['limit_panel'] != "unlimted" && $p['limit_panel'] !== "") {
-                $stmt_inv = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold') AND Service_location = ?");
-                $stmt_inv->execute([$p['name_panel']]);
-                if ($stmt_inv->fetchColumn() < $p['limit_panel']) {
-                    $location = $p['name_panel'];
-                    break;
-                }
-            } else {
-                $location = $p['name_panel'];
-                break;
-            }
-        }
-        if (!$location) {
-            sendmessage($from_id, "❌ تمامی سرورهای این دسته‌بندی پر شده‌اند.", null, 'HTML');
-            return;
-        }
-        $marzban_list_get = select("marzban_panel", "*", "name_panel", $location, "select");
+        
+        $stmt_cat = $pdo->prepare("SELECT name FROM panel_category WHERE id = ?");
+        $stmt_cat->execute([$cat_id]);
+        $cat_name = $stmt_cat->fetchColumn() ?: "دسته‌بندی";
+        
+        $panels_kb = getCategoryPanelsKeyboard($pdo, $cat_id, $user['agent'], "locationom_", "back_locationom", $from_id);
+        Editmessagetext($from_id, $message_id, "📍 لطفاً یکی از سرورهای دسته‌بندی «" . $cat_name . "» را انتخاب کنید:", $panels_kb);
+        return;
     } else {
         $location = select("marzban_panel", "*", "code_panel", $dataget[1], "select")['name_panel'];
         $marzban_list_get = select("marzban_panel", "*", "code_panel", $dataget[1], "select");

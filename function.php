@@ -2279,3 +2279,60 @@ function getLoadBalancedPanelFromCategory($pdo, $cat_id, $agent) {
     }
     return $best_panel ?: $panels[0]['name_panel'];
 }
+
+function getCategoryPanelsKeyboard($pdo, $cat_id, $agent, $callback_prefix, $back_callback, $from_id) {
+    $stmt = $pdo->prepare("SELECT * FROM marzban_panel WHERE panel_category_id = ? AND status = 'active' AND (agent = ? OR agent = 'all')");
+    $stmt->execute([$cat_id, $agent]);
+    $panels = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    $keyboard = ['inline_keyboard' => []];
+    $temp_row = [];
+    
+    foreach ($panels as $p) {
+        if ($p['type'] == "Manualsale") {
+            $stmts = $pdo->prepare("SELECT * FROM manualsell WHERE codepanel = ? AND status = 'active'");
+            $stmts->execute([$p['code_panel']]);
+            if ($stmts->rowCount() == 0) {
+                continue;
+            }
+        }
+        
+        if ($p['hide_user'] != null) {
+            $hide_users = json_decode($p['hide_user'], true);
+            if (is_array($hide_users) && in_array($from_id, $hide_users)) {
+                continue;
+            }
+        }
+        
+        $btn_text = $p['name_panel'];
+        // Check limit/capacity
+        if ($p['limit_panel'] != "unlimited" && $p['limit_panel'] != "unlimted" && $p['limit_panel'] !== "" && $p['limit_panel'] > 0) {
+            $countStmt = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE Service_location = ? AND (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold')");
+            $countStmt->execute([$p['name_panel']]);
+            $count = (int)$countStmt->fetchColumn();
+            $remaining = (int)$p['limit_panel'] - $count;
+            if ($remaining <= 0) {
+                $btn_text .= " (❌ تکمیل)";
+            } else {
+                $btn_text .= " (ظرفیت: $remaining)";
+            }
+        }
+        
+        $temp_row[] = ['text' => $btn_text, 'callback_data' => $callback_prefix . $p['code_panel']];
+        if (count($temp_row) == 2) {
+            $keyboard['inline_keyboard'][] = $temp_row;
+            $temp_row = [];
+        }
+    }
+    if (!empty($temp_row)) {
+        $keyboard['inline_keyboard'][] = $temp_row;
+    }
+    
+    // Back button
+    $keyboard['inline_keyboard'][] = [
+        ['text' => "بازگشت 🔙", 'callback_data' => $back_callback]
+    ];
+    
+    return json_encode($keyboard);
+}
+
