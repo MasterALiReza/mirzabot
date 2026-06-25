@@ -150,7 +150,7 @@ include __DIR__ . '/inc/layout_head.php';
         <?php else: ?>
           <tr>
             <td colspan="4" class="text-center text-muted" style="padding: 3rem;">
-              <?= icon('inbox', ['width' => '48', 'height' => '48', 'style' => 'opacity:0.3; margin-bottom:1rem;']) ?><br>
+              <span style="opacity:0.3; display:inline-block; margin-bottom:1rem;"><?= icon('inbox', 48) ?></span><br>
               هیچ دسته‌بندی پنلی یافت نشد.
             </td>
           </tr>
