@@ -246,7 +246,9 @@ window.closeModal = function (id) {
 };
 
 // ─── Category page UI ─────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', function() {
+if (!window._categoryEventsAttached) {
+    window._categoryEventsAttached = true;
+
     // Add Category button
     document.body.addEventListener('click', function(e) {
         var addBtn = e.target.closest('#btnAddCategory');
@@ -301,7 +303,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (modal) modal.classList.remove('open');
         }
     });
-});
+}
 
 window.closeCategoryModal = function () {
     var modal = document.getElementById('categoryModal');

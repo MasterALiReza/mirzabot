@@ -3,6 +3,17 @@ require_once __DIR__ . '/inc/config.php';
 require_once __DIR__ . '/inc/icons.php';
 require_auth();
 
+// Auto-create table if missing (for users who didn't run table.php updater)
+try {
+    $pdo->query("SELECT 1 FROM panel_category LIMIT 1");
+} catch (Exception $e) {
+    $pdo->exec("CREATE TABLE IF NOT EXISTS panel_category (
+        id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+        status VARCHAR(50) DEFAULT 'active'
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci");
+}
+
 // ─── POST: Add / Edit ────────────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     csrf_check_post();
