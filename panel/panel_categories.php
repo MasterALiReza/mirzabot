@@ -184,6 +184,48 @@ include __DIR__ . '/inc/layout_head.php';
   </div>
 </div>
 
+<script>
+(function() {
+    window.showAddCategoryModal = function () {
+        var modal    = document.getElementById('categoryModal');
+        var titleEl  = document.getElementById('catModalTitle');
+        var actionEl = document.getElementById('catAction');
+        var idEl     = document.getElementById('catId');
+        var nameEl   = document.getElementById('catName');
+        var statusEl = document.getElementById('catStatus');
+        if (!modal) return;
+        if (titleEl)  titleEl.innerText = 'افزودن دسته‌بندی';
+        if (actionEl) actionEl.value    = 'add';
+        if (idEl)     idEl.value        = '';
+        if (nameEl)   nameEl.value      = '';
+        if (statusEl) statusEl.value    = 'active';
+        modal.classList.add('open');
+        if (nameEl) nameEl.focus();
+    };
+
+    window.editCategory = function (cat) {
+        var modal    = document.getElementById('categoryModal');
+        var titleEl  = document.getElementById('catModalTitle');
+        var actionEl = document.getElementById('catAction');
+        var idEl     = document.getElementById('catId');
+        var nameEl   = document.getElementById('catName');
+        var statusEl = document.getElementById('catStatus');
+        if (!modal) return;
+        if (titleEl)  titleEl.innerText = 'ویرایش دسته‌بندی';
+        if (actionEl) actionEl.value    = 'edit';
+        if (idEl)     idEl.value        = cat.id;
+        if (nameEl)   nameEl.value      = cat.name;
+        if (statusEl) statusEl.value    = cat.status;
+        modal.classList.add('open');
+        if (nameEl) nameEl.focus();
+    };
+
+    window.closeCategoryModal = function () {
+        var modal = document.getElementById('categoryModal');
+        if (modal) modal.classList.remove('open');
+    };
+})();
+</script>
 
 <?php include __DIR__ . '/inc/layout_foot.php'; ?>
 
