@@ -377,7 +377,9 @@
             "btnKeyboard": {
                 "addPanel": "🖥 اضافه کردن پنل",
                 "manageUser": "👤 مدیریت کاربر",
-                "managementPanel": "✏️ مدیریت پنل"
+                "managementPanel": "✏️ مدیریت پنل",
+                "managePanelCategory": "🗂 مدیریت دسته‌بندی پنل‌ها",
+                "addPanelCategory": "➕ افزودن دسته‌بندی پنل"
             },
             "changeLocation": {
                 "confirm": "✅ تایید انتقال",

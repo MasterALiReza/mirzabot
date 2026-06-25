@@ -94,7 +94,7 @@ include __DIR__ . '/inc/layout_head.php';
     <h2><?= icon('folder') ?> دسته‌بندی پنل‌ها</h2>
     <p>مدیریت دسته‌بندی‌های پنل‌ها برای ساخت گروهی محصولات</p>
   </div>
-  <button class="btn btn-primary" id="btnAddCategory" onclick="showAddCategoryModal()">
+  <button class="btn btn-primary" id="btnAddCategory">
     <?= icon('plus') ?> افزودن دسته‌بندی
   </button>
 </div>
@@ -125,8 +125,7 @@ include __DIR__ . '/inc/layout_head.php';
                 </span>
               </td>
               <td>
-                <button class="btn btn-sm btn-outline"
-                        onclick="editCategory(<?= htmlspecialchars(json_encode($cat, JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8') ?>)">
+                <button class="btn btn-sm btn-outline" data-edit-cat="<?= htmlspecialchars(json_encode($cat, JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8') ?>">
                   <?= icon('edit') ?> ویرایش
                 </button>
                 <a href="?action=delete&id=<?= (int)$cat['id'] ?>&_csrf=<?= csrf_token() ?>"
@@ -184,48 +183,7 @@ include __DIR__ . '/inc/layout_head.php';
   </div>
 </div>
 
-<script>
-(function() {
-    window.showAddCategoryModal = function () {
-        var modal    = document.getElementById('categoryModal');
-        var titleEl  = document.getElementById('catModalTitle');
-        var actionEl = document.getElementById('catAction');
-        var idEl     = document.getElementById('catId');
-        var nameEl   = document.getElementById('catName');
-        var statusEl = document.getElementById('catStatus');
-        if (!modal) return;
-        if (titleEl)  titleEl.innerText = 'افزودن دسته‌بندی';
-        if (actionEl) actionEl.value    = 'add';
-        if (idEl)     idEl.value        = '';
-        if (nameEl)   nameEl.value      = '';
-        if (statusEl) statusEl.value    = 'active';
-        modal.classList.add('open');
-        if (nameEl) nameEl.focus();
-    };
 
-    window.editCategory = function (cat) {
-        var modal    = document.getElementById('categoryModal');
-        var titleEl  = document.getElementById('catModalTitle');
-        var actionEl = document.getElementById('catAction');
-        var idEl     = document.getElementById('catId');
-        var nameEl   = document.getElementById('catName');
-        var statusEl = document.getElementById('catStatus');
-        if (!modal) return;
-        if (titleEl)  titleEl.innerText = 'ویرایش دسته‌بندی';
-        if (actionEl) actionEl.value    = 'edit';
-        if (idEl)     idEl.value        = cat.id;
-        if (nameEl)   nameEl.value      = cat.name;
-        if (statusEl) statusEl.value    = cat.status;
-        modal.classList.add('open');
-        if (nameEl) nameEl.focus();
-    };
-
-    window.closeCategoryModal = function () {
-        var modal = document.getElementById('categoryModal');
-        if (modal) modal.classList.remove('open');
-    };
-})();
-</script>
 
 <?php include __DIR__ . '/inc/layout_foot.php'; ?>
 

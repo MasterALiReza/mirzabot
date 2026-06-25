@@ -246,39 +246,62 @@ window.closeModal = function (id) {
 };
 
 // ─── Category page UI ─────────────────────────────────────────────────────────
-window.showAddCategoryModal = function () {
-    var modal    = document.getElementById('categoryModal');
-    var titleEl  = document.getElementById('catModalTitle');
-    var actionEl = document.getElementById('catAction');
-    var idEl     = document.getElementById('catId');
-    var nameEl   = document.getElementById('catName');
-    var statusEl = document.getElementById('catStatus');
-    if (!modal) return;
-    if (titleEl)  titleEl.innerText = 'افزودن دسته‌بندی';
-    if (actionEl) actionEl.value    = 'add';
-    if (idEl)     idEl.value        = '';
-    if (nameEl)   nameEl.value      = '';
-    if (statusEl) statusEl.value    = 'active';
-    modal.classList.add('open');
-    if (nameEl) nameEl.focus();
-};
+document.addEventListener('DOMContentLoaded', function() {
+    // Add Category button
+    document.body.addEventListener('click', function(e) {
+        var addBtn = e.target.closest('#btnAddCategory');
+        if (addBtn) {
+            var modal    = document.getElementById('categoryModal');
+            var titleEl  = document.getElementById('catModalTitle');
+            var actionEl = document.getElementById('catAction');
+            var idEl     = document.getElementById('catId');
+            var nameEl   = document.getElementById('catName');
+            var statusEl = document.getElementById('catStatus');
+            if (!modal) return;
+            if (titleEl)  titleEl.innerText = 'افزودن دسته‌بندی';
+            if (actionEl) actionEl.value    = 'add';
+            if (idEl)     idEl.value        = '';
+            if (nameEl)   nameEl.value      = '';
+            if (statusEl) statusEl.value    = 'active';
+            modal.classList.add('open');
+            if (nameEl) nameEl.focus();
+        }
+    });
 
-window.editCategory = function (cat) {
-    var modal    = document.getElementById('categoryModal');
-    var titleEl  = document.getElementById('catModalTitle');
-    var actionEl = document.getElementById('catAction');
-    var idEl     = document.getElementById('catId');
-    var nameEl   = document.getElementById('catName');
-    var statusEl = document.getElementById('catStatus');
-    if (!modal) return;
-    if (titleEl)  titleEl.innerText = 'ویرایش دسته‌بندی';
-    if (actionEl) actionEl.value    = 'edit';
-    if (idEl)     idEl.value        = cat.id;
-    if (nameEl)   nameEl.value      = cat.name;
-    if (statusEl) statusEl.value    = cat.status;
-    modal.classList.add('open');
-    if (nameEl) nameEl.focus();
-};
+    // Edit Category button
+    document.body.addEventListener('click', function(e) {
+        var editBtn = e.target.closest('[data-edit-cat]');
+        if (editBtn) {
+            var modal    = document.getElementById('categoryModal');
+            var titleEl  = document.getElementById('catModalTitle');
+            var actionEl = document.getElementById('catAction');
+            var idEl     = document.getElementById('catId');
+            var nameEl   = document.getElementById('catName');
+            var statusEl = document.getElementById('catStatus');
+            if (!modal) return;
+            try {
+                var cat = JSON.parse(editBtn.getAttribute('data-edit-cat'));
+                if (titleEl)  titleEl.innerText = 'ویرایش دسته‌بندی';
+                if (actionEl) actionEl.value    = 'edit';
+                if (idEl)     idEl.value        = cat.id;
+                if (nameEl)   nameEl.value      = cat.name;
+                if (statusEl) statusEl.value    = cat.status;
+                modal.classList.add('open');
+                if (nameEl) nameEl.focus();
+            } catch(err) {
+                console.error("Could not parse category JSON", err);
+            }
+        }
+    });
+    
+    // Close modal on close button click
+    document.body.addEventListener('click', function(e) {
+        if (e.target.closest('#btnCloseCatModal') || e.target.closest('#btnCancelCatModal')) {
+            var modal = document.getElementById('categoryModal');
+            if (modal) modal.classList.remove('open');
+        }
+    });
+});
 
 window.closeCategoryModal = function () {
     var modal = document.getElementById('categoryModal');
@@ -286,7 +309,7 @@ window.closeCategoryModal = function () {
 };
 
 function initCategoryUI(context) {
-    // No-op: handled by global window functions via inline HTML onclicks.
+    // No-op: handled by event delegation in DOMContentLoaded.
 }
 
 

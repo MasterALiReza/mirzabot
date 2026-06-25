@@ -661,8 +661,17 @@ if (in_array($text, $textadmin, true) || $datain == "admin") {
     $userdata = json_decode($user['Processing_value'], true);
     savedata("save", "namepanel", $text);
     if ($userdata['type'] == "Manualsale") {
-        sendmessage($from_id, $textbotlang['Admin']['managepanel']['getLimitedPanel'], $backadmin, 'HTML');
-        step('getlimitedpanel', $from_id);
+        $categories = selectAll("panel_categories", "id");
+        $cat_kb = ['keyboard' => [], 'resize_keyboard' => true];
+        if (!empty($categories)) {
+            foreach ($categories as $cat) {
+                $cat_kb['keyboard'][] = [['text' => 'Cat: ' . $cat['name']]];
+            }
+        }
+        $cat_kb['keyboard'][] = [['text' => 'بدون دسته‌بندی']];
+        $cat_kb['keyboard'][] = [['text' => $textbotlang['Admin']['backAdminBtn']], ['text' => $textbotlang['Admin']['backMenuBtn']]];
+        sendmessage($from_id, "لطفا دسته‌بندی این پنل را انتخاب کنید:", json_encode($cat_kb), 'HTML');
+        step('select_panel_category', $from_id);
         savedata("save", "url_panel", "null");
         savedata("save", "username", "null");
         savedata("save", "password", "null");
@@ -678,8 +687,17 @@ if (in_array($text, $textadmin, true) || $datain == "admin") {
     savedata("save", "url_panel", $text);
     $userdata = json_decode($user['Processing_value'], true);
     if ($userdata['type'] == "hiddify") {
-        sendmessage($from_id, $textbotlang['Admin']['managepanel']['getLimitedPanel'], $backadmin, 'HTML');
-        step('getlimitedpanel', $from_id);
+        $categories = selectAll("panel_categories", "id");
+        $cat_kb = ['keyboard' => [], 'resize_keyboard' => true];
+        if (!empty($categories)) {
+            foreach ($categories as $cat) {
+                $cat_kb['keyboard'][] = [['text' => 'Cat: ' . $cat['name']]];
+            }
+        }
+        $cat_kb['keyboard'][] = [['text' => 'بدون دسته‌بندی']];
+        $cat_kb['keyboard'][] = [['text' => $textbotlang['Admin']['backAdminBtn']], ['text' => $textbotlang['Admin']['backMenuBtn']]];
+        sendmessage($from_id, "لطفا دسته‌بندی این پنل را انتخاب کنید:", json_encode($cat_kb), 'HTML');
+        step('select_panel_category', $from_id);
         savedata("save", "username", "null");
         savedata("save", "password", "null");
         return;
@@ -696,9 +714,28 @@ if (in_array($text, $textadmin, true) || $datain == "admin") {
     step('add_password_panel', $from_id);
     savedata("save", "username", $text);
 } elseif ($user['step'] == "add_password_panel") {
+    $categories = selectAll("panel_categories", "id");
+    $cat_kb = ['keyboard' => [], 'resize_keyboard' => true];
+    if (!empty($categories)) {
+        foreach ($categories as $cat) {
+            $cat_kb['keyboard'][] = [['text' => 'Cat: ' . $cat['name']]];
+        }
+    }
+    $cat_kb['keyboard'][] = [['text' => 'بدون دسته‌بندی']];
+    $cat_kb['keyboard'][] = [['text' => $textbotlang['Admin']['backAdminBtn']], ['text' => $textbotlang['Admin']['backMenuBtn']]];
+    sendmessage($from_id, "لطفا دسته‌بندی این پنل را انتخاب کنید:", json_encode($cat_kb), 'HTML');
+    step('select_panel_category', $from_id);
+    savedata("save", "password", $text);
+} elseif ($user['step'] == "select_panel_category") {
+    $cat_id = 0;
+    if (strpos($text, 'Cat: ') === 0) {
+        $cat_name = substr($text, 5);
+        $cat = select("panel_categories", "*", "name", $cat_name, "select");
+        if ($cat) $cat_id = $cat['id'];
+    }
+    savedata("save", "category_id", $cat_id);
     sendmessage($from_id, $textbotlang['Admin']['managepanel']['getLimitedPanel'], $backadmin, 'HTML');
     step('getlimitedpanel', $from_id);
-    savedata("save", "password", $text);
 } elseif ($user['step'] == "getlimitedpanel") {
     savedata("save", "limitpanel", $text);
     $userdata = json_decode($user['Processing_value'], true);
@@ -800,6 +837,11 @@ if (in_array($text, $textadmin, true) || $datain == "admin") {
     $stmt->bindParam(':customvolume', $VALUE);
     $stmt->bindParam(':on_hold_test', $stauts_on_holed);
     $stmt->execute();
+    if (isset($userdata['category_id']) && $userdata['category_id'] > 0) {
+        try {
+            update("marzban_panel", "category_id", $userdata['category_id'], "code_panel", $randomString);
+        } catch(Exception $e) { }
+    }
     sendmessage($from_id, $textbotlang['Admin']['managepanel']['addedPanel'], $keyboardadmin, 'HTML');
     sendmessage($from_id, "🥳", $keyboardadmin, 'HTML');
     step("home", $from_id);
@@ -3759,6 +3801,27 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
 } elseif ($user['step'] == "merchant_zarinpal") {
     sendmessage($from_id, $textbotlang['Admin']['SettingnowPayment']['saveApi'], $keyboardzarinpal, 'HTML');
     update("PaySetting", "ValuePay", $text, "NamePay", "merchant_zarinpal");
+    step('home', $from_id);
+} elseif ($text == $textbotlang['Admin']['btnKeyboard']['managePanelCategory'] && $adminrulecheck['rule'] == "administrator") {
+    $categories = selectAll("panel_categories", "id");
+    $msg = "🗂 مدیریت دسته‌بندی پنل‌ها\n\n";
+    if (empty($categories)) {
+        $msg .= "هیچ دسته‌بندی یافت نشد.";
+    } else {
+        foreach ($categories as $cat) {
+            $msg .= "🔹 " . $cat['name'] . " - وضعیت: " . ($cat['status'] == 'active' ? 'فعال' : 'غیرفعال') . "\n";
+        }
+    }
+    sendmessage($from_id, $msg, $keyboard_panel_category_mgmt, 'HTML');
+    step('home', $from_id);
+} elseif ($text == $textbotlang['Admin']['btnKeyboard']['addPanelCategory'] && $adminrulecheck['rule'] == "administrator") {
+    sendmessage($from_id, "لطفا نام دسته‌بندی جدید را ارسال کنید:", $backadmin, 'HTML');
+    step('add_panel_category_name', $from_id);
+} elseif ($user['step'] == "add_panel_category_name") {
+    $stmt = $pdo->prepare("INSERT INTO panel_categories (name, status) VALUES (:name, 'active')");
+    $stmt->bindParam(':name', $text);
+    $stmt->execute();
+    sendmessage($from_id, "✅ دسته‌بندی پنل با موفقیت اضافه شد.", $keyboardadmin, 'HTML');
     step('home', $from_id);
 } elseif ($text == $textbotlang['Admin']['btnKeyboard']['managementPanel'] && $adminrulecheck['rule'] == "administrator") {
     sendmessage($from_id, $textbotlang['Admin']['managepanel']['getLoc'], $json_list_marzban_panel, 'HTML');

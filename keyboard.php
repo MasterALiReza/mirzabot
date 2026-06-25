@@ -191,7 +191,15 @@ if ($adminrulecheck['rule'] == "administrator") {
     $keyboard_server_mgmt = json_encode([
         'keyboard' => [
             [['text' => $textbotlang['Admin']['btnKeyboard']['managementPanel']], ['text' => $textbotlang['Admin']['btnKeyboard']['addPanel']]],
+            [['text' => $textbotlang['Admin']['btnKeyboard']['managePanelCategory']]],
             [['text' => $textbotlang['keyboard']['panelFeatures']], ['text' => $textbotlang['keyboard']['syncPanels']]],
+            [['text' => $textbotlang['Admin']['backAdminBtn']], ['text' => $textbotlang['Admin']['backMenuBtn']]]
+        ],
+        'resize_keyboard' => true
+    ]);
+    $keyboard_panel_category_mgmt = json_encode([
+        'keyboard' => [
+            [['text' => $textbotlang['Admin']['btnKeyboard']['addPanelCategory']]],
             [['text' => $textbotlang['Admin']['backAdminBtn']], ['text' => $textbotlang['Admin']['backMenuBtn']]]
         ],
         'resize_keyboard' => true
