@@ -246,67 +246,79 @@ window.closeModal = function (id) {
 };
 
 // ─── Category page UI ─────────────────────────────────────────────────────────
-// Called from initUI on every page load & HTMX swap
-function initCategoryUI(context) {
-    context = context || document;
+// Uses document-level event delegation so it survives HTMX swaps.
+// The one-time setup guard prevents double-binding.
+(function setupCategoryUI() {
+    // Only run once per page lifetime using a flag on document.body
+    if (document.body.__catUIReady) return;
 
-    var addBtn   = context.getElementById ? context.getElementById('btnAddCategory') : context.querySelector('#btnAddCategory');
-    var modal    = context.getElementById ? context.getElementById('categoryModal')  : context.querySelector('#categoryModal');
-    var closeBtn = context.getElementById ? context.getElementById('btnCloseCatModal')  : context.querySelector('#btnCloseCatModal');
-    var cancelBtn = context.getElementById ? context.getElementById('btnCancelCatModal') : context.querySelector('#btnCancelCatModal');
+    // Use event delegation on document so buttons added/replaced by HTMX are always covered
+    document.addEventListener('click', function (e) {
+        // ── Add button ────────────────────────────────────────────────────────
+        var addBtn = e.target.closest('#btnAddCategory');
+        if (addBtn) {
+            var modal    = document.getElementById('categoryModal');
+            var titleEl  = document.getElementById('catModalTitle');
+            var actionEl = document.getElementById('catAction');
+            var idEl     = document.getElementById('catId');
+            var nameEl   = document.getElementById('catName');
+            var statusEl = document.getElementById('catStatus');
+            if (!modal) return;
+            if (titleEl)  titleEl.innerText = 'افزودن دسته‌بندی';
+            if (actionEl) actionEl.value    = 'add';
+            if (idEl)     idEl.value        = '';
+            if (nameEl)   nameEl.value      = '';
+            if (statusEl) statusEl.value    = 'active';
+            modal.classList.add('open');
+            if (nameEl) nameEl.focus();
+            return;
+        }
 
-    if (!modal) return;   // not on the category page – bail out
+        // ── Edit button ───────────────────────────────────────────────────────
+        var editBtn = e.target.closest('[data-edit-cat]');
+        if (editBtn) {
+            var modal    = document.getElementById('categoryModal');
+            var titleEl  = document.getElementById('catModalTitle');
+            var actionEl = document.getElementById('catAction');
+            var idEl     = document.getElementById('catId');
+            var nameEl   = document.getElementById('catName');
+            var statusEl = document.getElementById('catStatus');
+            if (!modal) return;
+            try {
+                var cat = JSON.parse(editBtn.getAttribute('data-edit-cat'));
+                if (titleEl)  titleEl.innerText = 'ویرایش دسته‌بندی';
+                if (actionEl) actionEl.value    = 'edit';
+                if (idEl)     idEl.value        = cat.id;
+                if (nameEl)   nameEl.value      = cat.name;
+                if (statusEl) statusEl.value    = cat.status;
+                modal.classList.add('open');
+                if (nameEl) nameEl.focus();
+            } catch(err) { console.error('Category parse error', err); }
+            return;
+        }
 
-    function openAdd() {
-        var titleEl  = document.getElementById('catModalTitle');
-        var actionEl = document.getElementById('catAction');
-        var idEl     = document.getElementById('catId');
-        var nameEl   = document.getElementById('catName');
-        var statusEl = document.getElementById('catStatus');
-        if (titleEl)  titleEl.innerText  = 'افزودن دسته‌بندی';
-        if (actionEl) actionEl.value = 'add';
-        if (idEl)     idEl.value     = '';
-        if (nameEl)   nameEl.value   = '';
-        if (statusEl) statusEl.value = 'active';
-        modal.classList.add('open');
-        if (nameEl) nameEl.focus();
-    }
+        // ── Close / Cancel buttons ────────────────────────────────────────────
+        if (e.target.closest('#btnCloseCatModal') || e.target.closest('#btnCancelCatModal')) {
+            var modal = document.getElementById('categoryModal');
+            if (modal) modal.classList.remove('open');
+            return;
+        }
 
-    function openEdit(cat) {
-        var titleEl  = document.getElementById('catModalTitle');
-        var actionEl = document.getElementById('catAction');
-        var idEl     = document.getElementById('catId');
-        var nameEl   = document.getElementById('catName');
-        var statusEl = document.getElementById('catStatus');
-        if (titleEl)  titleEl.innerText  = 'ویرایش دسته‌بندی';
-        if (actionEl) actionEl.value = 'edit';
-        if (idEl)     idEl.value     = cat.id;
-        if (nameEl)   nameEl.value   = cat.name;
-        if (statusEl) statusEl.value = cat.status;
-        modal.classList.add('open');
-        if (nameEl) nameEl.focus();
-    }
-
-    function closeThisModal() { modal.classList.remove('open'); }
-
-    if (addBtn   && !addBtn.dataset.catInit)   { addBtn.dataset.catInit = '1';   addBtn.addEventListener('click', openAdd); }
-    if (closeBtn && !closeBtn.dataset.catInit) { closeBtn.dataset.catInit = '1'; closeBtn.addEventListener('click', closeThisModal); }
-    if (cancelBtn && !cancelBtn.dataset.catInit) { cancelBtn.dataset.catInit = '1'; cancelBtn.addEventListener('click', closeThisModal); }
-
-    if (!modal.dataset.catInit) {
-        modal.dataset.catInit = '1';
-        modal.addEventListener('click', function(e) { if (e.target === modal) closeThisModal(); });
-    }
-
-    // Edit buttons
-    context.querySelectorAll('[data-edit-cat]:not([data-cat-init])').forEach(function(btn) {
-        btn.dataset.catInit = '1';
-        btn.addEventListener('click', function() {
-            try { openEdit(JSON.parse(this.getAttribute('data-edit-cat'))); }
-            catch(err) { console.error('Category parse error', err); }
-        });
+        // ── Click on veil backdrop ────────────────────────────────────────────
+        var veil = e.target.closest('#categoryModal');
+        if (veil && e.target === veil) {
+            veil.classList.remove('open');
+        }
     });
+
+    document.body.__catUIReady = true;
+})();
+
+function initCategoryUI(context) {
+    // No-op: logic moved to document-level delegation above.
+    // Kept for backwards compatibility so initUI() call doesn't throw.
 }
+
 
 
 
