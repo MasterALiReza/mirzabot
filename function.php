@@ -2318,14 +2318,9 @@ function getCategoryPanelsKeyboard($pdo, $cat_id, $agent, $callback_prefix, $bac
             }
         }
         
-        $temp_row[] = ['text' => $btn_text, 'callback_data' => $callback_prefix . $p['code_panel']];
-        if (count($temp_row) == 2) {
-            $keyboard['inline_keyboard'][] = $temp_row;
-            $temp_row = [];
-        }
-    }
-    if (!empty($temp_row)) {
-        $keyboard['inline_keyboard'][] = $temp_row;
+        $keyboard['inline_keyboard'][] = [
+            ['text' => $btn_text, 'callback_data' => $callback_prefix . $p['code_panel']]
+        ];
     }
     
     // Back button
