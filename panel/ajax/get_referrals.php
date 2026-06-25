@@ -20,7 +20,7 @@ try {
         exit;
     }
     ?>
-    <div class="tbl-wrap dash-users" style="margin: 10px 0; background: var(--sf2); border: 1px solid var(--bd); border-radius: 8px; padding: 8px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
+    <div class="tbl-wrap" style="margin: 10px 0; background: var(--sf2); border: 1px solid var(--bd); border-radius: 8px; padding: 8px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
         <h4 style="margin: 4px 8px 12px; font-size: 0.85rem; color: var(--mute); display: flex; align-items: center; gap: 6px;">
             <?= icon('users', 14) ?> لیست زیرمجموعه‌ها
         </h4>

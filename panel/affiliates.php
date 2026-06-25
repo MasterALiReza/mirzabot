@@ -148,7 +148,7 @@ include __DIR__ . '/inc/layout_head.php';
     <div class="toolbar">
         <div class="toolbar-title" style="color: var(--amber);">درخواست‌های تسویه حساب پورسانت (در انتظار تایید)</div>
     </div>
-    <div class="tbl-wrap dash-unified">
+    <div class="tbl-wrap">
         <table class="tbl-lg">
             <thead>
                 <tr>
@@ -162,11 +162,11 @@ include __DIR__ . '/inc/layout_head.php';
             <tbody>
                 <?php foreach ($pending_withdrawals as $w): ?>
                 <tr>
-                    <td><?= htmlspecialchars($w['user_id']) ?></td>
-                    <td style="color: var(--emerald); font-weight: bold;"><?= number_format($w['amount']) ?></td>
-                    <td style="font-family: monospace; letter-spacing: 1px;"><?= htmlspecialchars($w['card_number']) ?></td>
-                    <td style="color: var(--mute);"><?= htmlspecialchars($w['created_at']) ?></td>
-                    <td style="text-align: center;">
+                    <td data-label="کاربر" class="cell-mono"><?= htmlspecialchars($w['user_id']) ?></td>
+                    <td data-label="مبلغ" style="color: var(--emerald); font-weight: bold;"><?= number_format($w['amount']) ?></td>
+                    <td data-label="شماره کارت" style="font-family: monospace; letter-spacing: 1px;"><?= htmlspecialchars($w['card_number']) ?></td>
+                    <td data-label="تاریخ" style="color: var(--mute);"><?= htmlspecialchars($w['created_at']) ?></td>
+                    <td data-label="عملیات" style="text-align: center;">
                         <form method="POST" style="display:inline-block;" onsubmit="return confirm('آیا از تایید این درخواست و واریز مبلغ اطمینان دارید؟');">
                             <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
                             <input type="hidden" name="action" value="approve">
@@ -209,7 +209,7 @@ include __DIR__ . '/inc/layout_head.php';
         </form>
     </div>
 
-    <div class="tbl-wrap dash-unified">
+    <div class="tbl-wrap">
         <table class="tbl-lg" id="affiliatesTbl">
             <thead>
                 <tr>
@@ -426,6 +426,9 @@ function toggleReferrals(referrerId) {
     .stats {
         grid-template-columns: 1fr !important;
         gap: 12px !important;
+    }
+    .stats > * {
+        grid-column: auto !important;
     }
     
     /* 2. Toolbar layout for mobile */
