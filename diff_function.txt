@@ -1,0 +1,948 @@
+--- temp_mirzabot/function.php
++++ function.php
+@@ -13,19 +13,6 @@
+ use Endroid\QrCode\Writer\PngWriter;
+ 
+ #-----------shell helper utilities------------#
+-function assertSqlIdentifier($name, $allowFieldExpr = false)
+-{
+-    if ($name === null) {
+-        return;
+-    }
+-    // Identifiers (table/column names) cannot be bound as parameters, so they
+-    // are validated against a strict allow-list to prevent SQL injection.
+-    $pattern = $allowFieldExpr ? '/^[\p{L}\p{N}_*,()\s.`]+$/u' : '/^[\p{L}\p{N}_.`]+$/u';
+-    if (!preg_match($pattern, (string) $name)) {
+-        error_log('Blocked unsafe SQL identifier: ' . $name);
+-        throw new InvalidArgumentException('Invalid SQL identifier');
+-    }
+-}
+ function isShellExecAvailable()
+ {
+     static $isAvailable;
+@@ -177,26 +164,36 @@
+ 
+ function ensureCardNumberTableSupportsUnicode()
+ {
+-    global $pdo;
+-
+-    if (!isset($pdo) || !($pdo instanceof PDO)) {
++    global $connect;
++
++    if (!isset($connect) || !($connect instanceof mysqli)) {
+         return;
+     }
+ 
+     try {
+-        $pdo->exec("SET NAMES 'utf8mb4' COLLATE 'utf8mb4_unicode_ci'");
++        if (method_exists($connect, 'character_set_name') && $connect->character_set_name() !== 'utf8mb4') {
++            if (!$connect->set_charset('utf8mb4')) {
++                error_log('Failed to enforce utf8mb4 charset on mysqli connection: ' . $connect->error);
++            }
++        }
++
++        if (!$connect->query("SET NAMES 'utf8mb4' COLLATE 'utf8mb4_unicode_ci'")) {
++            error_log('Failed to execute SET NAMES utf8mb4 for card_number table: ' . $connect->error);
++        }
+ 
+         $createQuery = "CREATE TABLE IF NOT EXISTS card_number (" .
+             "cardnumber varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci PRIMARY KEY," .
+             "namecard varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL" .
+             ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+-        $pdo->exec($createQuery);
++        if (!$connect->query($createQuery)) {
++            error_log('Failed to create card_number table with utf8mb4 charset: ' . $connect->error);
++        }
+ 
+         ensureTableUtf8mb4('card_number');
+ 
+-        $columnInfo = $pdo->query("SHOW FULL COLUMNS FROM card_number WHERE Field IN ('cardnumber', 'namecard')");
+-        if ($columnInfo instanceof PDOStatement) {
+-            while ($column = $columnInfo->fetch(PDO::FETCH_ASSOC)) {
++        $columnInfo = $connect->query("SHOW FULL COLUMNS FROM card_number WHERE Field IN ('cardnumber', 'namecard')");
++        if ($columnInfo instanceof mysqli_result) {
++            while ($column = $columnInfo->fetch_assoc()) {
+                 $collation = $column['Collation'] ?? '';
+                 if (!is_string($collation) || stripos($collation, 'utf8mb4') === false) {
+                     $field = $column['Field'];
+@@ -207,9 +204,14 @@
+                         $type,
+                         $field === 'cardnumber' ? ' PRIMARY KEY' : ' NOT NULL'
+                     );
+-                    $pdo->exec($alter);
++                    if (!$connect->query($alter)) {
++                        error_log('Failed to update card_number column collation: ' . $connect->error);
++                    }
+                 }
+             }
++            $columnInfo->free();
++        } else {
++            error_log('Unable to inspect card_number column collations: ' . $connect->error);
+         }
+     } catch (\Throwable $e) {
+         error_log('Unexpected error while ensuring card_number utf8mb4 compatibility: ' . $e->getMessage());
+@@ -336,10 +338,6 @@
+ function update($table, $field, $newValue, $whereField = null, $whereValue = null)
+ {
+     global $pdo, $user;
+-
+-    assertSqlIdentifier($table);
+-    assertSqlIdentifier($field, true);
+-    assertSqlIdentifier($whereField);
+ 
+     $valueToStore = normaliseUpdateValue($newValue);
+ 
+@@ -387,7 +385,7 @@
+     }
+     $logValue = is_scalar($valueToStore) ? $valueToStore : json_encode($valueToStore, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+     $logss = "{$table}_{$field}_{$logValue}_{$whereField}_{$whereValue}_{$user['step']}_$date";
+-    if ($field != "message_count" && $field != "last_message_time") {
++    if ($field != "message_count" || $field != "last_message_time") {
+         file_put_contents('log.txt', "\n" . $logss, FILE_APPEND);
+     }
+ 
+@@ -427,10 +425,6 @@
+ function select($table, $field, $whereField = null, $whereValue = null, $type = "select", $options = [])
+ {
+     global $pdo;
+-
+-    assertSqlIdentifier($table);
+-    assertSqlIdentifier($field, true);
+-    assertSqlIdentifier($whereField);
+ 
+     $useCache = true;
+     if (is_array($options) && array_key_exists('cache', $options)) {
+@@ -492,7 +486,8 @@
+             $result = $fetched === false ? null : $fetched;
+         }
+     } catch (PDOException $e) {
+-        error_log("Query failed: " . $e->getMessage());
++        error_log($e->getMessage());
++        die("Query failed: " . $e->getMessage());
+     }
+ 
+     if ($useCache && $cacheKey !== null) {
+@@ -529,14 +524,59 @@
+ function rate_arze()
+ {
+     $arze_rate = [];
+-    $requests_tron = json_decode(file_get_contents('https://api.diadata.org/v1/assetQuotation/Tron/0x0000000000000000000000000000000000000000'), true);
+-    $html_read = file_get_contents("https://www.bon-bast.com/");
+-    preg_match('/<span>\s*([\d,]+)\s*<\/span>/', $html_read, $matches);
+-    if (!empty($matches[1])) {
+-        $requestsusd = str_replace(',', '', $matches[1]);
+-    }
++    $requests_tron = @json_decode(file_get_contents('https://api.diadata.org/v1/assetQuotation/Tron/0x0000000000000000000000000000000000000000'), true);
++    
++    // Default fallback rate to prevent crashes
++    $requestsusd = 60000;
++    
++    // First try AbanTether API
++    $abantether = @json_decode(file_get_contents('https://abantether.com/api/v1/coins/'), true);
++    $found = false;
++    if (is_array($abantether)) {
++        foreach($abantether as $coin) {
++            if (isset($coin['symbol']) && $coin['symbol'] === 'USDT') {
++                $requestsusd = intval($coin['priceSell']);
++                $found = true;
++                break;
++            }
++        }
++    }
++    
++    // Fallback to Nobitex if AbanTether fails
++    if (!$found) {
++        $nobitex = @json_decode(file_get_contents('https://api.nobitex.ir/v2/orderbook/USDTIRT'), true);
++        if (isset($nobitex['lastTradePrice'])) {
++            $requestsusd = intval($nobitex['lastTradePrice']) / 10;
++            $found = true;
++        }
++    }
++    
++    // Old bon-bast logic as final fallback
++    if (!$found) {
++        $context = stream_context_create([
++            'http' => [
++                'header' => "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)\r\n"
++            ]
++        ]);
++        $html_read = @file_get_contents("https://www.bon-bast.com/", false, $context);
++        if ($html_read) {
++            preg_match('/<span>\s*([\d,]+)\s*<\/span>/', $html_read, $matches);
++            if (!empty($matches[1])) {
++                $requestsusd = str_replace(',', '', $matches[1]);
++            }
++        }
++    }
++    
+     $arze_rate['USD'] = intval($requestsusd);
+-    $arze_rate['TRX'] = intval($requests_tron['Price'] * $arze_rate['USD']);
++    if ($arze_rate['USD'] <= 0) {
++        $arze_rate['USD'] = 60000;
++    }
++    
++    $tron_price = isset($requests_tron['Price']) ? $requests_tron['Price'] : 0.12; // fallback to 0.12$
++    $arze_rate['TRX'] = intval($tron_price * $arze_rate['USD']);
++    if ($arze_rate['TRX'] <= 0) {
++        $arze_rate['TRX'] = intval(0.12 * $arze_rate['USD']);
++    }
+ 
+     return $arze_rate;
+ }
+@@ -746,7 +786,9 @@
+ }
+ function DirectPayment($order_id, $image = 'images.jpg')
+ {
+-    global $pdo, $ManagePanel, $textbotlang, $keyboardextendfnished, $keyboard, $Confirm_pay, $from_id, $message_id;
++    @ignore_user_abort(true);
++    @set_time_limit(120);
++    global $pdo, $ManagePanel, $textbotlang, $keyboardextendfnished, $keyboard, $Confirm_pay, $from_id, $message_id, $chat_id;
+     $buyreport = select("topicid", "idreport", "report", "buyreport", "select")['idreport'];
+     $admin_ids = select("admin", "id_admin", null, null, "FETCH_COLUMN");
+     $otherservice = select("topicid", "idreport", "report", "otherservice", "select")['idreport'];
+@@ -755,6 +797,9 @@
+     $porsantreport = select("topicid", "idreport", "report", "porsantreport", "select")['idreport'];
+     $setting = select("setting", "*");
+     $Payment_report = select("Payment_report", "*", "id_order", $order_id, "select");
++    if (!$Payment_report || $Payment_report['payment_Status'] === 'paid' || $Payment_report['payment_Status'] === 'reject' || $Payment_report['payment_Status'] === 'expire') {
++        return false;
++    }
+     $format_price_cart = number_format($Payment_report['price']);
+     $Balance_id = select("user", "*", "id", $Payment_report['id_user'], "select");
+     $steppay = explode("|", $Payment_report['id_invoice']);
+@@ -814,7 +859,7 @@
+                     'parse_mode' => "HTML"
+                 ]);
+             }
+-            return;
++            return false;
+         }
+         $Shoppinginfo = json_encode([
+             'inline_keyboard' => [
+@@ -868,54 +913,25 @@
+             }
+         }
+         $affiliatescommission = select("affiliates", "*", null, null, "select");
+-        $marzbanporsant_one_buy = select("affiliates", "*", null, null, "select");
+-        $stmt = $pdo->prepare("SELECT * FROM invoice WHERE name_product != :name_product  AND id_user = :id_user AND Status != 'Unpaid'");
++        $stmt = $pdo->prepare("SELECT * FROM invoice WHERE name_product != '{$textbotlang['Admin']['adminphp']['db_test_service_name']}'  AND id_user = :id_user AND Status != 'Unpaid'");
+         $stmt->bindParam(':id_user', $Balance_id['id']);
+-        $stmt->bindParam(':name_product', $textbotlang['Admin']['adminphp']['db_test_service_name']);
+         $stmt->execute();
+         $countinvoice = $stmt->rowCount();
+-        if ($affiliatescommission['status_commission'] == "oncommission" && ($Balance_id['affiliates'] != null && intval($Balance_id['affiliates']) != 0)) {
+-            if ($marzbanporsant_one_buy['porsant_one_buy'] == "on_buy_porsant") {
+-                if ($countinvoice <= 1) {
+-                    $result = ($Payment_report['price'] * $setting['affiliatespercentage']) / 100;
+-                    $user_Balance = select("user", "*", "id", $Balance_id['affiliates'], "select");
+-                    if (intval($setting['scorestatus']) == 1 and !in_array($Balance_id['affiliates'], $admin_ids)) {
+-                        sendmessage($Balance_id['affiliates'], $textbotlang['extracted']['index_php']['earned2Points'], null, 'html');
+-                        $scorenew = $user_Balance['score'] + 2;
+-                        update("user", "score", $scorenew, "id", $Balance_id['affiliates']);
+-                    }
+-                    $Balance_prim = $user_Balance['Balance'] + $result;
+-                    $dateacc = date('Y/m/d H:i:s');
+-                    update("user", "Balance", $Balance_prim, "id", $Balance_id['affiliates']);
+-                    $result = number_format($result);
+-                    $textadd = sprintf($textbotlang['hardcoded']['affiliateCommissionPaidUserFn'], $result);
+-                    $textreportport = sprintf($textbotlang['hardcoded']['affiliateCommissionPaidLogFn'], $result, $Balance_id['affiliates'], $Balance_id['id'], $dateacc);
+-                    if (strlen($setting['Channel_Report']) > 0) {
+-                        telegram('sendmessage', [
+-                            'chat_id' => $setting['Channel_Report'],
+-                            'message_thread_id' => $porsantreport,
+-                            'text' => $textreportport,
+-                            'parse_mode' => "HTML"
+-                        ]);
+-                    }
+-                    sendmessage($Balance_id['affiliates'], $textadd, null, 'HTML');
+-                }
+-            } else {
+-
+-                $result = ($Payment_report['price'] * $setting['affiliatespercentage']) / 100;
+-                $user_Balance = select("user", "*", "id", $Balance_id['affiliates'], "select");
++        if ($get_invoice['name_product'] != $textbotlang['Admin']['adminphp']['db_test_service_name']) {
++            $reward_amount = awardAffiliateCommission($Balance_id['id'], $Payment_report['price'], ($countinvoice == 0));
++            
++            if ($reward_amount > 0) {
+                 if (intval($setting['scorestatus']) == 1 and !in_array($Balance_id['affiliates'], $admin_ids)) {
+                     sendmessage($Balance_id['affiliates'], $textbotlang['extracted']['index_php']['earned2Points'], null, 'html');
+-                    $scorenew = $user_Balance['score'] + 2;
++                    $user_Balance = select("user", "*", "id", $Balance_id['affiliates'], "select");
++                    $scorenew = intval($user_Balance['score']) + 2;
+                     update("user", "score", $scorenew, "id", $Balance_id['affiliates']);
+                 }
+-                $Balance_prim = $user_Balance['Balance'] + $result;
+-                $dateacc = date('Y/m/d H:i:s');
+-                update("user", "Balance", $Balance_prim, "id", $Balance_id['affiliates']);
+-                $result = number_format($result);
+-                $textadd = sprintf($textbotlang['hardcoded']['affiliateCommissionPaidUserFn2'], $result);
+-                $textreportport = sprintf($textbotlang['hardcoded']['affiliateCommissionPaidLogFn2'], $result, $Balance_id['affiliates'], $Balance_id['id'], $dateacc);
++
+                 if (strlen($setting['Channel_Report']) > 0) {
++                    $result_formatted = number_format($reward_amount);
++                    $dateacc = date('Y/m/d H:i:s');
++                    $textreportport = sprintf($textbotlang['hardcoded']['affiliateCommissionPaidLogFn'], $result_formatted, $Balance_id['affiliates'], $Balance_id['id'], $dateacc);
+                     telegram('sendmessage', [
+                         'chat_id' => $setting['Channel_Report'],
+                         'message_thread_id' => $porsantreport,
+@@ -923,7 +939,6 @@
+                         'parse_mode' => "HTML"
+                     ]);
+                 }
+-                sendmessage($Balance_id['affiliates'], $textadd, null, 'HTML');
+             }
+         }
+         if ($marzban_list_get['MethodUsername'] == $textbotlang['keyboard']['customTextSequential'] || $marzban_list_get['MethodUsername'] == $textbotlang['keyboard']['usernameSequential'] || $marzban_list_get['MethodUsername'] == $textbotlang['keyboard']['numericIdSequential'] || $marzban_list_get['MethodUsername'] == $textbotlang['keyboard']['agentCustomTextSequential']) {
+@@ -971,9 +986,14 @@
+         update("invoice", "Status", "active", "username", $get_invoice['username']);
+         if ($Payment_report['Payment_Method'] == "cart to cart" or $Payment_report['Payment_Method'] == "arze digital offline") {
+             update("invoice", "Status", "active", "id_invoice", $get_invoice['id_invoice']);
+-            $textconfrom = sprintf($textbotlang['hardcoded']['paymentConfirmedNewService'], $username_ac, $get_invoice['Service_location'], $Balance_id['id'], $Payment_report['id_order'], $Balance_id['username'], $Balance_id['Balance'], $format_price_cart, $Payment_report['dec_not_confirmed']);
+-            Editmessagetext($from_id, $message_id, $textconfrom, $Confirm_pay);
+-        }
++            $safe_username_ac = htmlspecialchars($username_ac ?? '', ENT_QUOTES, 'UTF-8');
++            $safe_location = htmlspecialchars($get_invoice['Service_location'] ?? '', ENT_QUOTES, 'UTF-8');
++            $safe_dec = htmlspecialchars($Payment_report['dec_not_confirmed'] ?? '', ENT_QUOTES, 'UTF-8');
++            $textconfrom = sprintf($textbotlang['hardcoded']['paymentConfirmedNewService'], $safe_username_ac, $safe_location, $Balance_id['id'], $Payment_report['id_order'], $Balance_id['username'], $Balance_id['Balance'], $format_price_cart, $safe_dec);
++            Editmessagetext($chat_id, $message_id, $textconfrom, $Confirm_pay);
++        }
++        update("Payment_report", "payment_Status", "paid", "id_order", $Payment_report['id_order']);
++        return true;
+     } elseif ($steppay[0] == "getextenduser") {
+         $balanceformatsell = number_format(select("user", "Balance", "id", $Balance_id['id'], "select")['Balance'], 0);
+         $partsdic = explode("%", $steppay[1]);
+@@ -988,7 +1008,7 @@
+         $service_other = $data_order;
+         if ($service_other == false) {
+             sendmessage($Balance_id['id'], $textbotlang['hardcoded']['renewGenericError'], $keyboard, 'HTML');
+-            return;
++            return false;
+         }
+         $service_other = json_decode($service_other['value'], true);
+         $codeproduct = $service_other['code_product'];
+@@ -1001,8 +1021,8 @@
+             $prodcut['Service_time'] = $service_other['Service_time'];
+             $prodcut['Volume_constraint'] = $service_other['volumebuy'];
+         } else {
+-            $stmt = $pdo->prepare("SELECT * FROM product WHERE (Location = :mp2 OR Location = '/all') AND agent= :mp3 AND code_product = :mp4");
+-            $stmt->execute([':mp2' => $nameloc['Service_location'], ':mp3' => $Balance_id['agent'], ':mp4' => $codeproduct]);
++            $stmt = $pdo->prepare("SELECT * FROM product WHERE (Location = '{$nameloc['Service_location']}' OR Location = '/all') AND agent= '{$Balance_id['agent']}' AND code_product = '$codeproduct'");
++            $stmt->execute();
+             $prodcut = $stmt->fetch(PDO::FETCH_ASSOC);
+         }
+         if ($nameloc['name_product'] == $textbotlang['hardcoded']['testServiceNameFn']) {
+@@ -1030,7 +1050,7 @@
+                     'parse_mode' => "HTML"
+                 ]);
+             }
+-            return;
++            return false;
+         }
+ 
+         update("service_other", "output", json_encode($extend), "id", $data_order['id']);
+@@ -1066,7 +1086,7 @@
+         if ($Balance_id['agent'] == "f") {
+             $valurcashbackextend = select("shopSetting", "*", "Namevalue", "chashbackextend", "select")['value'];
+         } else {
+-            $valurcashbackextend = (json_decode(select("shopSetting", "*", "Namevalue", "chashbackextend_agent", "select")['value'], true) ?: [])[$Balance_id['agenr']] ?? null;
++            $valurcashbackextend = json_decode(select("shopSetting", "*", "Namevalue", "chashbackextend_agent", "select")['value'], true)[$Balance_id['agent']];
+         }
+         if (intval($valurcashbackextend) != 0) {
+             $result = ($prodcut['price_product'] * $valurcashbackextend) / 100;
+@@ -1094,10 +1114,15 @@
+         }
+         update("invoice", "Status", "active", "id_invoice", $nameloc['id_invoice']);
+         if ($Payment_report['Payment_Method'] == "cart to cart" or $Payment_report['Payment_Method'] == "arze digital offline") {
+-
+-            $textconfrom = sprintf($textbotlang['hardcoded']['paymentConfirmedRenew'], $usernamepanel, $prodcut['name_product'], $nameloc['Service_location'], $Balance_id['id'], $Payment_report['id_order'], $Balance_id['username'], $Balance_id['Balance'], $format_price_cart, $Payment_report['dec_not_confirmed']);
+-            Editmessagetext($from_id, $message_id, $textconfrom, $Confirm_pay);
+-        }
++            $safe_usernamepanel = htmlspecialchars($usernamepanel ?? '', ENT_QUOTES, 'UTF-8');
++            $safe_name_product = htmlspecialchars($prodcut['name_product'] ?? '', ENT_QUOTES, 'UTF-8');
++            $safe_location = htmlspecialchars($nameloc['Service_location'] ?? '', ENT_QUOTES, 'UTF-8');
++            $safe_dec = htmlspecialchars($Payment_report['dec_not_confirmed'] ?? '', ENT_QUOTES, 'UTF-8');
++            $textconfrom = sprintf($textbotlang['hardcoded']['paymentConfirmedRenew'], $safe_usernamepanel, $safe_name_product, $safe_location, $Balance_id['id'], $Payment_report['id_order'], $Balance_id['username'], $Balance_id['Balance'], $format_price_cart, $safe_dec);
++            Editmessagetext($chat_id, $message_id, $textconfrom, $Confirm_pay);
++        }
++        update("Payment_report", "payment_Status", "paid", "id_order", $Payment_report['id_order']);
++        return true;
+     } elseif ($steppay[0] == "getextravolumeuser") {
+         $steppay = explode("%", $steppay[1]);
+         $volume = $steppay[1];
+@@ -1130,7 +1155,7 @@
+                     'parse_mode' => "HTML"
+                 ]);
+             }
+-            return;
++            return false;
+         }
+         $stmt = $pdo->prepare("INSERT IGNORE INTO service_other (id_user, username,value,type,time,price,output) VALUES (:id_user,:username,:value,:type,:time,:price,:output)");
+         $stmt->bindParam(':id_user', $Balance_id['id']);
+@@ -1158,8 +1183,9 @@
+         sendmessage($Balance_id['id'], $textvolume, $keyboardextrafnished, 'HTML');
+         $volumes = $volume;
+         if ($Payment_report['Payment_Method'] == "cart to cart") {
+-            $textconfrom = sprintf($textbotlang['hardcoded']['paymentConfirmedExtraVolume'], $volumes, $steppay[0], $Balance_id['id'], $Payment_report['id_order'], $Balance_id['username'], $Balance_id['Balance'], $format_price_cart);
+-            Editmessagetext($from_id, $message_id, $textconfrom, $Confirm_pay);
++            $safe_steppay = htmlspecialchars($steppay[0] ?? '', ENT_QUOTES, 'UTF-8');
++            $textconfrom = sprintf($textbotlang['hardcoded']['paymentConfirmedExtraVolume'], $volumes, $safe_steppay, $Balance_id['id'], $Payment_report['id_order'], $Balance_id['username'], $Balance_id['Balance'], $format_price_cart);
++            Editmessagetext($chat_id, $message_id, $textconfrom, $Confirm_pay);
+         }
+         update("invoice", "Status", "active", "id_invoice", $nameloc['id_invoice']);
+         $text_report = sprintf($textbotlang['hardcoded']['extraVolumeReportAdminFn'], $Balance_id['id'], $volumes, $Payment_report['price'], $steppay[0], $Balance_id['Balance']);
+@@ -1171,6 +1197,8 @@
+                 'parse_mode' => "HTML"
+             ]);
+         }
++        update("Payment_report", "payment_Status", "paid", "id_order", $Payment_report['id_order']);
++        return true;
+     } elseif ($steppay[0] == "getextratimeuser") {
+         $steppay = explode("%", $steppay[1]);
+         $tmieextra = $steppay[1];
+@@ -1205,7 +1233,7 @@
+                     'parse_mode' => "HTML"
+                 ]);
+             }
+-            return;
++            return false;
+         }
+         $stmt = $pdo->prepare("INSERT IGNORE INTO service_other (id_user, username,value,type,time,price,output) VALUES (:id_user,:username,:value,:type,:time,:price,:output)");
+         $stmt->bindParam(':id_user', $Balance_id['id']);
+@@ -1233,8 +1261,9 @@
+         sendmessage($Balance_id['id'], $textextratime, $keyboardextrafnished, 'HTML');
+         if ($Payment_report['Payment_Method'] == "cart to cart") {
+             $volumes = $tmieextra;
+-            $textconfrom = sprintf($textbotlang['hardcoded']['paymentConfirmedExtraTime'], $volumes, $steppay[0], $Balance_id['id'], $Payment_report['id_order'], $Balance_id['username'], $Balance_id['Balance'], $format_price_cart);
+-            Editmessagetext($from_id, $message_id, $textconfrom, $Confirm_pay);
++            $safe_steppay = htmlspecialchars($steppay[0] ?? '', ENT_QUOTES, 'UTF-8');
++            $textconfrom = sprintf($textbotlang['hardcoded']['paymentConfirmedExtraTime'], $volumes, $safe_steppay, $Balance_id['id'], $Payment_report['id_order'], $Balance_id['username'], $Balance_id['Balance'], $format_price_cart);
++            Editmessagetext($chat_id, $message_id, $textconfrom, $Confirm_pay);
+         }
+         update("invoice", "Status", "active", "id_invoice", $nameloc['id_invoice']);
+         $text_report = sprintf($textbotlang['hardcoded']['extraTimeReportAdminFn'], $Balance_id['id'], $volumes, $Payment_report['price'], $steppay[0]);
+@@ -1245,6 +1274,8 @@
+                 'text' => $text_report,
+             ]);
+         }
++        update("Payment_report", "payment_Status", "paid", "id_order", $Payment_report['id_order']);
++        return true;
+     } else {
+         $Balance_confrim = intval($Balance_id['Balance']) + intval($Payment_report['price']);
+         update("user", "Balance", $Balance_confrim, "id", $Payment_report['id_user']);
+@@ -1252,10 +1283,12 @@
+         $Payment_report['price'] = number_format($Payment_report['price'], 0);
+         $format_price_cart = $Payment_report['price'];
+         if ($Payment_report['Payment_Method'] == "cart to cart" or $Payment_report['Payment_Method'] == "arze digital offline") {
+-            $textconfrom = sprintf($textbotlang['hardcoded']['newPaymentBalanceChargeFn'], $Balance_id['id'], $Payment_report['id_order'], $Balance_id['username'], $format_price_cart, $Balance_id['Balance'], $Payment_report['dec_not_confirmed']);
+-            Editmessagetext($from_id, $message_id, $textconfrom, $Confirm_pay);
++            $safe_dec = htmlspecialchars($Payment_report['dec_not_confirmed'] ?? '', ENT_QUOTES, 'UTF-8');
++            $textconfrom = sprintf($textbotlang['hardcoded']['newPaymentBalanceChargeFn'], $Balance_id['id'], $Payment_report['id_order'], $Balance_id['username'], $format_price_cart, $Balance_id['Balance'], $safe_dec);
++            Editmessagetext($chat_id, $message_id, $textconfrom, $Confirm_pay);
+         }
+         sendmessage($Payment_report['id_user'], sprintf($textbotlang['hardcoded']['balanceChargedThanks'], $Payment_report['price'], $Payment_report['id_order']), null, 'HTML');
++        return true;
+     }
+ }
+ function plisio($order_id, $price)
+@@ -1305,9 +1338,6 @@
+ function addFieldToTable($tableName, $fieldName, $defaultValue = null, $datatype = "VARCHAR(500)")
+ {
+     global $pdo;
+-
+-    assertSqlIdentifier($tableName);
+-    assertSqlIdentifier($fieldName);
+     $stmt = $pdo->prepare("SELECT COUNT(*) as count FROM information_schema.tables WHERE table_name = :tableName");
+     $stmt->bindParam(':tableName', $tableName);
+     $stmt->execute();
+@@ -1331,9 +1361,11 @@
+ }
+ function outtypepanel($typepanel, $message)
+ {
+-    global $from_id, $optionMarzban, $optionX_ui_single, $optionhiddfy, $option_mirza, $optionalireza_single, $optionmarzneshin, $option_mikrotik, $optionwg, $options_ui, $optionibsng;
++    global $from_id, $optionMarzban, $optionX_ui_single, $optionMHSanaei, $optionhiddfy, $optionalireza, $optionalireza_single, $optionmarzneshin, $option_mikrotik, $optionwg, $options_ui, $optioneylanpanel, $optionibsng;
+     if ($typepanel == "marzban") {
+         sendmessage($from_id, $message, $optionMarzban, 'HTML');
++    } elseif ($typepanel == "MHSanaei-3.2") {
++        sendmessage($from_id, $message, $optionMHSanaei, 'HTML');
+     } elseif ($typepanel == "x-ui_single") {
+         sendmessage($from_id, $message, $optionX_ui_single, 'HTML');
+     } elseif ($typepanel == "hiddify") {
+@@ -1350,21 +1382,25 @@
+         sendmessage($from_id, $message, $optionibsng, 'HTML');
+     } elseif ($typepanel == "mikrotik") {
+         sendmessage($from_id, $message, $option_mikrotik, 'HTML');
+-    } elseif ($typepanel == "mirza_agent") {
+-        sendmessage($from_id, $message, $option_mirza, 'HTML');
+     }
+ }
+ 
+ function addBackgroundImage($urlimage, $qrCodeResult, $backgroundPath)
+ {
+-    if (!file_exists($backgroundPath)) {
+-        error_log("addBackgroundImage: File not found at $backgroundPath");
+-        file_put_contents($urlimage, $qrCodeResult->getString());
+-        return;
++    $resolvedPath = __DIR__ . '/' . basename($backgroundPath);
++
++    if (!file_exists($resolvedPath)) {
++        if (file_exists($backgroundPath)) {
++            $resolvedPath = $backgroundPath;
++        } else {
++            error_log("addBackgroundImage: File not found at $backgroundPath or $resolvedPath");
++            file_put_contents($urlimage, $qrCodeResult->getString());
++            return;
++        }
+     }
+ 
+     $qrString = $qrCodeResult->getString();
+-    $qrCodeImage = imagecreatefromstring($qrString);
++    $qrCodeImage = @imagecreatefromstring($qrString);
+     if (!$qrCodeImage) {
+         error_log("addBackgroundImage: Failed to create QR Code resource");
+         return;
+@@ -1373,14 +1409,17 @@
+     $backgroundImage = null;
+ 
+     try {
+-        $backgroundImage = imagecreatefromjpeg($backgroundPath);
++        $file_data = file_get_contents($resolvedPath);
++        if ($file_data !== false) {
++            $backgroundImage = @imagecreatefromstring($file_data);
++        }
+     } catch (Throwable $t) {
+         error_log("addBackgroundImage::EXCEPTION loading image: " . $t->getMessage());
+     }
+ 
+     if (!$backgroundImage) {
+         $lastError = error_get_last();
+-        error_log("addBackgroundImage::System Error: " . $lastError['message']);
++        error_log("addBackgroundImage::System Error: " . ($lastError['message'] ?? 'Unknown error'));
+ 
+         imagepng($qrCodeImage, $urlimage);
+         imagedestroy($qrCodeImage);
+@@ -1659,16 +1698,20 @@
+         'preshared_key' => $presharedKey
+     ];
+ }
+-
+-function languagechange($path_dir = null, string $lang = 'fa')
+-{
+-    global $from_id;
+-    $user_lang = select("user", "*", "id", $from_id);
+-    $lang = $user_lang ? $user_lang['lang'] : $lang;
+-    $allowed = ['fa', 'en', 'ar', 'ru', 'zh'];
+-    if (!in_array($lang, $allowed, true))
+-        $lang = 'fa';
+-    return require __DIR__ . '/lang/' . $lang . '.php';
++function languagechange($path_dir = null)
++{
++    if ($path_dir === null) {
++        $path_dir = __DIR__ . '/text.json';
++    }
++    $setting = select("setting", "*");
++    return json_decode(file_get_contents($path_dir), true)['fa'];
++    if (intval($setting['languageen']) == 1) {
++        return json_decode(file_get_contents($path_dir), true)['en'];
++    } elseif (intval($setting['languageru']) == 1) {
++        return json_decode(file_get_contents($path_dir), true)['ru'];
++    } else {
++        return json_decode(file_get_contents($path_dir), true)['fa'];
++    }
+ }
+ function generateAuthStr($length = 10)
+ {
+@@ -1714,7 +1757,7 @@
+ 
+ function check_active_btn($keyboard, $text_var)
+ {
+-    $trace_keyboard = (json_decode($keyboard, true) ?: [])['keyboard'] ?? null;
++    $trace_keyboard = json_decode($keyboard, true)['keyboard'];
+     $status = false;
+     foreach ($trace_keyboard as $key => $callback_set) {
+         foreach ($callback_set as $keyboard_key => $keyboard) {
+@@ -1757,7 +1800,10 @@
+     if (!check_active_btn($setting['keyboardmain'], "text_help"))
+         $reply_markup = null;
+     $user_id = $user_id == null ? $from_id : $user_id;
+-    $STATUS_SEND_MESSAGE_PHOTO = $panel_info['config'] == "onconfig" && count($config) != 1 ? false : true;
++    $STATUS_SEND_MESSAGE_PHOTO = true;
++    if ($panel_info['type'] != "WGDashboard" && $panel_info['config'] == "onconfig" && is_array($config) && count($config) != 1) {
++        $STATUS_SEND_MESSAGE_PHOTO = false;
++    }
+     $out_put_qrcode = "";
+     if ($panel_info['type'] == "Manualsale" || $panel_info['type'] == "ibsng" || $panel_info['type'] == "mikrotik") {
+     }
+@@ -1766,39 +1812,60 @@
+     } elseif ($panel_info['sublink'] == "onsublink") {
+         $out_put_qrcode = $sub_link;
+     } elseif ($panel_info['config'] == "onconfig") {
+-        $out_put_qrcode = $config[0];
++        $out_put_qrcode = is_array($config) ? ($config[0] ?? "") : $config;
+     }
+     if ($STATUS_SEND_MESSAGE_PHOTO) {
+         if ($panel_info['type'] == "WGDashboard") {
+-            $urlimage = "{$panel_info['inboundid']}_{$invoice_id}.conf";
+-            file_put_contents($urlimage, $sub_link);
+-            telegram('senddocument', [
+-                'chat_id' => $user_id,
+-                'document' => new CURLFile($urlimage),
+-                'reply_markup' => $reply_markup,
+-                'caption' => $caption,
+-                'parse_mode' => "HTML",
+-            ]);
+-            unlink($urlimage);
++            if (!isset($panel_info['config']) || $panel_info['config'] == 'onconfig') {
++                $urlimage = "{$panel_info['inboundid']}_{$invoice_id}.conf";
++                file_put_contents($urlimage, $sub_link);
++                telegram('senddocument', [
++                    'chat_id' => $user_id,
++                    'document' => new CURLFile($urlimage),
++                    'reply_markup' => $reply_markup,
++                    'caption' => $caption,
++                    'parse_mode' => "HTML",
++                ]);
++                unlink($urlimage);
++            } else {
++                sendmessage($user_id, $caption, $reply_markup, 'HTML');
++            }
++            if (isset($panel_info['qr_wgd']) && $panel_info['qr_wgd'] == 'onqrwgd' && !empty($sub_link)) {
++                $urlimage = "$user_id$invoice_id.png";
++                $qrCode = createqrcode($sub_link);
++                file_put_contents($urlimage, $qrCode->getString());
++                addBackgroundImage($urlimage, $qrCode, $image);
++                telegram('sendphoto', [
++                    'chat_id' => $user_id,
++                    'photo' => new CURLFile($urlimage),
++                    'caption' => "کد QR اتصال",
++                    'parse_mode' => "HTML",
++                ]);
++                unlink($urlimage);
++            }
+         } else {
+-            $urlimage = "$user_id$invoice_id.png";
+-            $qrCode = createqrcode($out_put_qrcode);
+-            file_put_contents($urlimage, $qrCode->getString());
+-            addBackgroundImage($urlimage, $qrCode, $image);
+-            telegram('sendphoto', [
+-                'chat_id' => $user_id,
+-                'photo' => new CURLFile($urlimage),
+-                'reply_markup' => $reply_markup,
+-                'caption' => $caption,
+-                'parse_mode' => "HTML",
+-            ]);
+-            unlink($urlimage);
++            if (!empty($out_put_qrcode)) {
++                $urlimage = "$user_id$invoice_id.png";
++                $qrCode = createqrcode($out_put_qrcode);
++                file_put_contents($urlimage, $qrCode->getString());
++                addBackgroundImage($urlimage, $qrCode, $image);
++                telegram('sendphoto', [
++                    'chat_id' => $user_id,
++                    'photo' => new CURLFile($urlimage),
++                    'reply_markup' => $reply_markup,
++                    'caption' => $caption,
++                    'parse_mode' => "HTML",
++                ]);
++                unlink($urlimage);
++            } else {
++                sendmessage($user_id, $caption, $reply_markup, 'HTML');
++            }
+         }
+     } else {
+         sendmessage($user_id, $caption, $reply_markup, 'HTML');
+     }
+     if ($panel_info['config'] == "onconfig" && $setting['status_keyboard_config'] == "1") {
+-        if (is_array($config)) {
++        if (is_array($config) && count($config) > 0) {
+             sendmessage($user_id, $textbotlang['hardcoded']['getConfigHint'], keyboard_config($config, $invoice_id, false), 'HTML');
+         }
+     }
+@@ -1909,4 +1976,288 @@
+     }
+ 
+     return $configs;
+-}+}
++
++function formatServiceDeliveryLinks($panel_info, $dataoutput)
++{
++    global $setting;
++    $configs = array();
++    if (isset($dataoutput['configs']) && is_array($dataoutput['configs'])) {
++        foreach ($dataoutput['configs'] as $link) {
++            $link = trim((string)$link);
++            if ($link !== '') {
++                $configs[] = $link;
++            }
++        }
++    }
++
++    $subscription_url = trim((string)($dataoutput['subscription_url'] ?? ''));
++    $sublink_mode = $panel_info['sublink'] ?? '';
++    $config_mode = $panel_info['config'] ?? '';
++    
++    $inline_configs = ($setting['status_keyboard_config'] ?? '0') == '1' && $config_mode == 'onconfig';
++
++    $main = '';
++    $extra = '';
++
++    if ($sublink_mode == 'onsublink') {
++        $main = $subscription_url;
++    } elseif ($sublink_mode == 'bothsubandconfig') {
++        $main = $subscription_url;
++        if (!empty($configs) && !$inline_configs) {
++            $main .= "\n\n" . implode("\n\n", $configs);
++        }
++    }
++
++    if ($config_mode == 'onconfig' && !empty($configs)) {
++        if ($main === '') {
++            if (!$inline_configs) {
++                $main = implode("\n\n", $configs);
++            }
++        } else {
++            if (!$inline_configs) {
++                $extra = "\n" . implode("\n", $configs);
++            }
++        }
++    }
++
++    // Fallbacks
++    if (($panel_info['type'] ?? '') == 'WGDashboard') {
++        if ($config_mode == 'onconfig') {
++            $main = $subscription_url;
++        }
++    } elseif ($main === '' && $subscription_url !== '') {
++        $main = $subscription_url;
++    }
++    if ($main === '' && !empty($configs) && !$inline_configs) {
++        $main = implode("\n\n", $configs);
++    }
++
++    return array('main' => $main, 'extra' => $extra, 'configs' => $configs);
++}
++
++function awardAffiliateCommission($user_id, $price, $is_first_buy) {
++    global $pdo;
++
++    // Fetch user details
++    $stmt = $pdo->prepare("SELECT affiliates FROM user WHERE id = :user_id");
++    $stmt->execute([':user_id' => $user_id]);
++    $user = $stmt->fetch(PDO::FETCH_ASSOC);
++
++    if (!$user || empty($user['affiliates']) || $user['affiliates'] == '0' || $user['affiliates'] == 'none') {
++        return false; // No referrer
++    }
++    
++    $referrer_id = $user['affiliates'];
++
++    // Fetch referrer details
++    $stmt = $pdo->prepare("SELECT active_referrals_count FROM user WHERE id = :ref_id");
++    $stmt->execute([':ref_id' => $referrer_id]);
++    $referrer = $stmt->fetch(PDO::FETCH_ASSOC);
++
++    if (!$referrer) {
++        return false;
++    }
++
++    // Process new referral logic if it's the first purchase
++    if ($is_first_buy) {
++        // Mark user as having purchased and increment referrer's active count
++        $stmt = $pdo->prepare("UPDATE user SET has_purchased = 1 WHERE id = :user_id AND has_purchased = 0");
++        $stmt->execute([':user_id' => $user_id]);
++        if ($stmt->rowCount() > 0) {
++            $pdo->prepare("UPDATE user SET active_referrals_count = active_referrals_count + 1 WHERE id = :ref_id")
++                ->execute([':ref_id' => $referrer_id]);
++            // Refresh referrer active count
++            $referrer['active_referrals_count']++;
++        }
++    }
++
++    // Fetch global affiliates settings
++    $stmt = $pdo->prepare("SELECT affiliatesstatus, affiliatespercentage FROM setting LIMIT 1");
++    $stmt->execute();
++    $setting = $stmt->fetch(PDO::FETCH_ASSOC);
++
++    if ($setting['affiliatesstatus'] != 'onaffiliates') {
++        return false; // Affiliate system is off
++    }
++
++    // Fetch tier settings
++    $stmt = $pdo->prepare("SELECT status_commission, porsant_one_buy, first_buy_reward, silver_threshold, silver_percentage, gold_threshold, gold_percentage FROM affiliates LIMIT 1");
++    $stmt->execute();
++    $affSettings = $stmt->fetch(PDO::FETCH_ASSOC);
++
++    if ($affSettings['status_commission'] != 'oncommission') {
++        return false; // Commission is off
++    }
++
++    // Check one_buy limit
++    if ($affSettings['porsant_one_buy'] == 'on_buy_porsant' && !$is_first_buy) {
++        return false; // Only pays on first buy
++    }
++
++    // Check flat reward first
++    $flat_reward = intval($affSettings['first_buy_reward']);
++    if ($is_first_buy && $flat_reward > 0) {
++        $rewardAmount = $flat_reward;
++    } else {
++        // Calculate Tiered Percentage
++        $active_count = intval($referrer['active_referrals_count']);
++        $percentage = floatval($setting['affiliatespercentage']); // Bronze (default)
++        
++        if ($active_count >= intval($affSettings['gold_threshold'])) {
++            $percentage = floatval($affSettings['gold_percentage']);
++        } elseif ($active_count >= intval($affSettings['silver_threshold'])) {
++            $percentage = floatval($affSettings['silver_percentage']);
++        }
++        
++        $rewardAmount = ($price * $percentage) / 100;
++    }
++
++    if ($rewardAmount > 0) {
++        $stmt = $pdo->prepare("UPDATE user SET affiliate_balance = affiliate_balance + :reward WHERE id = :ref_id");
++        $stmt->execute([':reward' => $rewardAmount, ':ref_id' => $referrer_id]);
++        
++        if (function_exists('telegram')) {
++            global $textbotlang;
++            // Send notification to referrer
++            $text = "🎉 تبریک!\n\nزیرمجموعه شما یک خرید موفق انجام داد و مبلغ *" . number_format($rewardAmount) . "* تومان به موجودی کیف پول بازاریابی شما اضافه شد.";
++            telegram("sendMessage", [
++                'chat_id' => $referrer_id,
++                'text' => $text,
++                'parse_mode' => "Markdown"
++            ]);
++        }
++
++        return $rewardAmount;
++    }
++    
++    return false;
++}
++
++function generateUserBanner($user_id) {
++    global $pdo, $usernamebot;
++
++    $ref_link = "https://t.me/" . $usernamebot . "?start=" . $user_id;
++
++    $banners_dir = __DIR__ . '/assets/banners';
++    if (!is_dir($banners_dir)) {
++        mkdir($banners_dir, 0777, true);
++    }
++    $banners_dir = realpath($banners_dir);
++    $output_path = $banners_dir . DIRECTORY_SEPARATOR . 'user_' . $user_id . '.jpg';
++
++    // Helper to fetch URL using cURL or file_get_contents
++    $fetch_url = function($url) {
++        if (ini_get('allow_url_fopen')) {
++            return @file_get_contents($url);
++        }
++        $ch = curl_init();
++        curl_setopt($ch, CURLOPT_URL, $url);
++        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
++        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
++        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
++        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
++        $res = curl_exec($ch);
++        curl_close($ch);
++        return $res;
++    };
++
++    // Check for custom base banner
++    $base_banner_path = __DIR__ . '/assets/banner_base.jpg';
++
++    // If base banner doesn't exist, create a generic placeholder
++    if (!file_exists($base_banner_path)) {
++        if (!function_exists('imagecreatetruecolor')) {
++            return false;
++        }
++        $img = imagecreatetruecolor(800, 600);
++        $bg_color = imagecolorallocate($img, 30, 30, 30);
++        $text_color = imagecolorallocate($img, 255, 255, 255);
++        $accent_color = imagecolorallocate($img, 0, 150, 255);
++        
++        imagefilledrectangle($img, 0, 0, 800, 600, $bg_color);
++        
++        imagestring($img, 5, 250, 50, "Invite Friends and Earn!", $text_color);
++        imagestring($img, 5, 250, 100, "Your ID: " . $user_id, $accent_color);
++    } else {
++        if (!function_exists('imagecreatefromjpeg')) {
++            return false;
++        }
++        $img = @imagecreatefromjpeg($base_banner_path);
++        if (!$img) {
++            $img = imagecreatetruecolor(800, 600);
++            $bg_color = imagecolorallocate($img, 30, 30, 30);
++            $text_color = imagecolorallocate($img, 255, 255, 255);
++            imagefilledrectangle($img, 0, 0, 800, 600, $bg_color);
++            imagestring($img, 5, 250, 50, "Invite Friends and Earn!", $text_color);
++        }
++    }
++
++    if ($img) {
++        $img_width = imagesx($img);
++        $img_height = imagesy($img);
++        
++        // QR size: 50% of image width (about 512px on 1024px canvas)
++        $qr_size = (int)round($img_width * 0.50);
++        if ($qr_size < 150) $qr_size = 150;
++        
++        // Generate QR Code from qrserver
++        $qr_url = "https://api.qrserver.com/v1/create-qr-code/?size=" . $qr_size . "x" . $qr_size . "&data=" . urlencode($ref_link);
++        $qr_data = $fetch_url($qr_url);
++        if ($qr_data) {
++            $qr_img = @imagecreatefromstring($qr_data);
++            if ($qr_img) {
++                $qr_x = ($img_width - $qr_size) / 2;
++                $qr_y = (($img_height - $qr_size) / 2) + ($img_height * 0.05);
++                
++                if ($qr_y < 0) $qr_y = 10;
++                if ($qr_x < 0) $qr_x = 10;
++                
++                imagecopy($img, $qr_img, $qr_x, $qr_y, 0, 0, $qr_size, $qr_size);
++                imagedestroy($qr_img);
++            }
++        }
++
++        imagejpeg($img, $output_path, 90);
++        imagedestroy($img);
++        return $output_path;
++    }
++    return false;
++}
++/**
++ * Deduct balance atomically and securely.
++ * Checks for n2 reseller maxbuyagent negative credit limit.
++ * Returns true if successful, false otherwise.
++ */
++function deduct_balance_atomic($pdo, $user_id, $price) {
++    if ($price <= 0) return true;
++    
++    // Fetch user details first to know agent type
++    $stmt = $pdo->prepare("SELECT Balance, agent, maxbuyagent FROM user WHERE id = :id");
++    $stmt->execute([':id' => $user_id]);
++    $user = $stmt->fetch(PDO::FETCH_ASSOC);
++    if (!$user) return false;
++    
++    $agentType = $user['agent'];
++    $maxbuyagent = (float)($user['maxbuyagent'] ?? 0);
++    
++    if ($agentType === 'n2') {
++        $stmtW = $pdo->prepare("UPDATE user SET Balance = Balance - :p WHERE id = :id AND (Balance >= :p OR (Balance - :p) >= -:max)");
++        $stmtW->execute([':p' => $price, ':id' => $user_id, ':max' => $maxbuyagent]);
++    } else {
++        $stmtW = $pdo->prepare("UPDATE user SET Balance = Balance - :p WHERE id = :id AND Balance >= :p");
++        $stmtW->execute([':p' => $price, ':id' => $user_id]);
++    }
++    
++    return $stmtW->rowCount() > 0;
++}
++
++/**
++ * Refund balance atomically if API fails.
++ */
++function refund_balance_atomic($pdo, $user_id, $price) {
++    if ($price <= 0) return true;
++    $stmt = $pdo->prepare("UPDATE user SET Balance = Balance + :p WHERE id = :id");
++    $stmt->execute([':p' => $price, ':id' => $user_id]);
++    return $stmt->rowCount() > 0;
++}

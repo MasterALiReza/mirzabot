@@ -1,0 +1,324 @@
+﻿commit 17102a8009309f0921961ca8d766c892a78bdef4
+Author: MasterALiReza <AliRezanazari998@gmail.com>
+Date:   Tue Jun 16 02:28:28 2026 +0330
+
+    Remove migrate to pro option (Option 10)
+
+diff --git a/install.sh b/install.sh
+index e914ed6..4089846 100644
+--- a/install.sh
++++ b/install.sh
+@@ -138,10 +138,9 @@ function show_menu() {
+         echo -e "\e[90m7) Renew SSL Certificates (Not Installed)\033[0m"
+         echo -e "\e[90m8) Change Domain (Not Installed)\033[0m"
+     fi
+-    echo -e "\033[1;36m10)\033[0m Migrate Free Old Version to Free New Version (Beta)"
+-    echo -e "\033[1;36m11)\033[0m Exit"
++    echo -e "\033[1;36m9)\033[0m Exit"
+     echo ""
+-    read -p "Select an option [1-11]: " option
++    read -p "Select an option [1-9]: " option
+     case $option in
+         1) install_bot ;;
+         2) [ -f "/var/www/html/mirzaprobotconfig/config.php" ] && update_bot || { echo -e "\033[31mBot is not installed.\033[0m"; sleep 2; show_menu; } ;;
+@@ -151,8 +150,7 @@ function show_menu() {
+         6) [ -f "/var/www/html/mirzaprobotconfig/config.php" ] && auto_backup || { echo -e "\033[31mBot is not installed.\033[0m"; sleep 2; show_menu; } ;;
+         7) [ -f "/var/www/html/mirzaprobotconfig/config.php" ] && renew_ssl || { echo -e "\033[31mBot is not installed.\033[0m"; sleep 2; show_menu; } ;;
+         8) [ -f "/var/www/html/mirzaprobotconfig/config.php" ] && change_domain || { echo -e "\033[31mBot is not installed.\033[0m"; sleep 2; show_menu; } ;;
+-        10) migrate_to_pro ;;
+-        11)
++        9)
+             echo -e "\033[32mExiting...\033[0m"
+             exit 0
+             ;;
+@@ -2468,290 +2466,6 @@ Added Function for Installing Additional Bot
+ #     echo -e "\033[32mAutomated backup configured successfully for $SELECTED_BOT.\033[0m"
+ # }
+ 
+-# Migration Function from Free to Pro
+-function migrate_to_pro() {
+-    clear
+-    echo -e "\033[1;33mStarting Migration from Free to Pro Version...\033[0m"
+-
+-    # 1. Check Previous Installation Source
+-    OLD_BOT_DIR="/var/www/html/mirzaprobotconfig"
+-    if [ ! -d "$OLD_BOT_DIR" ]; then
+-        echo -e "\033[31m[ERROR] Free version source code not found in $OLD_BOT_DIR.\033[0m"
+-        echo -e "\033[33mMake sure the free version is installed.\033[0m"
+-        exit 1
+-    fi
+-
+-    # 2. Check MySQL Status
+-    if ! systemctl is-active --quiet mysql; then
+-        echo -e "\033[31m[ERROR] MySQL service is not active or not installed.\033[0m"
+-        echo -e "\033[33mPlease ensure MySQL is running locally.\033[0m"
+-        exit 1
+-    else
+-        echo -e "\033[32mMySQL is running.\033[0m"
+-    fi
+-
+-    # 3. User Confirmation & Backup Check
+-    echo ""
+-    read -p "Are you sure you want to migrate to the Pro version? (y/n): " confirm_mig
+-    if [[ "$confirm_mig" != "y" && "$confirm_mig" != "Y" ]]; then
+-        echo -e "\033[31mMigration aborted.\033[0m"
+-        exit 0
+-    fi
+-
+-    echo ""
+-    read -p "Have you created a backup of your database? (y/n): " confirm_backup
+-    if [[ "$confirm_backup" != "y" && "$confirm_backup" != "Y" ]]; then
+-        echo -e "\033[31mPlease create a backup first!\033[0m"
+-        exit 1
+-    fi
+-
+-    BACKUP_FILE="/root/mirzabot_backup.sql"
+-    if [ ! -f "$BACKUP_FILE" ]; then
+-        echo -e "\033[31m[ERROR] Backup file not found at $BACKUP_FILE\033[0m"
+-        echo -e "\033[33mPlease run the 'mirza' command (Free Version Script) and use option 4 to create a backup.\033[0m"
+-        exit 1
+-    else
+-        echo -e "\033[32mBackup file found.\033[0m"
+-    fi
+-
+-    # 4. Warning about Additional Bots
+-    echo ""
+-    echo -e "\033[43;30m[WARNING] Additional Bots Notice\033[0m"
+-    echo -e "\033[33mThis migration process will reconfigure Apache for the Pro version.\033[0m"
+-    echo -e "\033[33mOnly the main bot (mirzaprobotconfig) will be migrated.\033[0m"
+-    echo -e "\033[33mExisting Additional Bots in /var/www/html/ might stop working.\033[0m"
+-    echo -e "\033[36mFound directories:\033[0m"
+-    ls -d /var/www/html/*/ 2>/dev/null | grep -v "mirzaprobotconfig"
+-    echo ""
+-    read -p "Do you understand and want to proceed? (y/n): " confirm_add
+-    if [[ "$confirm_add" != "y" && "$confirm_add" != "Y" ]]; then
+-        echo -e "\033[31mMigration aborted.\033[0m"
+-        exit 0
+-    fi
+-
+-    # 5. Database Credentials (Root)
+-    echo -e "\n\033[36mChecking Database Credentials...\033[0m"
+-    ROOT_CRED_FILE="/root/confmirza/dbrootmirza.txt"
+-    ROOT_PASS=""
+-    ROOT_USER="root"
+-
+-    if [ -f "$ROOT_CRED_FILE" ]; then
+-        ROOT_PASS=$(grep '$pass' "$ROOT_CRED_FILE" | cut -d"'" -f2)
+-    fi
+-
+-    # Check if we got the password, if not, ask user
+-    if [ -z "$ROOT_PASS" ]; then
+-        echo -e "\033[33mRoot password not found in config file.\033[0m"
+-        read -s -p "Please enter MySQL root password: " ROOT_PASS
+-        echo ""
+-    fi
+-
+-    # Validate MySQL Connection
+-    if ! mysql -u "$ROOT_USER" -p"$ROOT_PASS" -e "SELECT 1;" &>/dev/null; then
+-        echo -e "\033[31m[ERROR] Incorrect MySQL root password. Migration stopped.\033[0m"
+-        exit 1
+-    fi
+-    echo -e "\033[32mDatabase connection successful.\033[0m"
+-
+-    # 6. Database Operations (Cleanup & Rename)
+-    OLD_DB="mirzabot"
+-    NEW_DB="mirzaprobot"
+-
+-    # Check if old DB exists
+-    if ! mysql -u "$ROOT_USER" -p"$ROOT_PASS" -e "USE $OLD_DB;" &>/dev/null; then
+-        echo -e "\033[31m[ERROR] Database '$OLD_DB' not found!\033[0m"
+-        exit 1
+-    fi
+-
+-    echo -e "\033[33mCleaning up old tables (setting, admin, channels)...\033[0m"
+-    mysql -u "$ROOT_USER" -p"$ROOT_PASS" "$OLD_DB" -e "DROP TABLE IF EXISTS setting, admin, channels;"
+-
+-    echo -e "\033[33mUpdating panel status...\033[0m"
+-    # Check if table marzban_panel exists before updating to avoid errors
+-    if mysql -u "$ROOT_USER" -p"$ROOT_PASS" "$OLD_DB" -e "DESCRIBE marzban_panel;" &>/dev/null; then
+-         mysql -u "$ROOT_USER" -p"$ROOT_PASS" "$OLD_DB" -e "UPDATE marzban_panel SET status = 'active';"
+-    fi
+-
+-    echo -e "\033[33mMigrating Database from $OLD_DB to $NEW_DB...\033[0m"
+-    # Create new DB
+-    mysql -u "$ROOT_USER" -p"$ROOT_PASS" -e "CREATE DATABASE IF NOT EXISTS $NEW_DB;"
+-    
+-    # Move tables (Renaming tables is safer and faster than dump/restore for migration)
+-    TABLES=$(mysql -u "$ROOT_USER" -p"$ROOT_PASS" -N -e "SHOW TABLES FROM $OLD_DB")
+-    for t in $TABLES; do
+-        mysql -u "$ROOT_USER" -p"$ROOT_PASS" -e "RENAME TABLE $OLD_DB.$t TO $NEW_DB.$t"
+-    done
+-
+-    # Drop old DB
+-    mysql -u "$ROOT_USER" -p"$ROOT_PASS" -e "DROP DATABASE IF EXISTS $OLD_DB;"
+-    echo -e "\033[32mDatabase migrated successfully.\033[0m"
+-
+-    # 7. Create New Database User & Delete Old User
+-    # Extract old user from config to delete it
+-    OLD_CONFIG="/var/www/html/mirzaprobotconfig/config.php"
+-    OLD_DB_USER=$(grep '$usernamedb' "$OLD_CONFIG" | cut -d"'" -f2)
+-    
+-    if [ -n "$OLD_DB_USER" ]; then
+-        echo -e "\033[33mRemoving old database user ($OLD_DB_USER)...\033[0m"
+-        mysql -u "$ROOT_USER" -p"$ROOT_PASS" -e "DROP USER IF EXISTS '$OLD_DB_USER'@'localhost';"
+-        mysql -u "$ROOT_USER" -p"$ROOT_PASS" -e "DROP USER IF EXISTS '$OLD_DB_USER'@'%';"
+-    fi
+-
+-    # Create New User
+-    NEW_DB_USER=$(openssl rand -base64 10 | tr -dc 'a-zA-Z' | cut -c1-8)
+-    NEW_DB_PASS=$(openssl rand -base64 12 | tr -dc 'a-zA-Z0-9' | cut -c1-10)
+-
+-    echo -e "\033[33mCreating new database user...\033[0m"
+-    mysql -u "$ROOT_USER" -p"$ROOT_PASS" -e "CREATE USER '$NEW_DB_USER'@'localhost' IDENTIFIED BY '$NEW_DB_PASS';"
+-    mysql -u "$ROOT_USER" -p"$ROOT_PASS" -e "GRANT ALL PRIVILEGES ON $NEW_DB.* TO '$NEW_DB_USER'@'localhost';"
+-    mysql -u "$ROOT_USER" -p"$ROOT_PASS" -e "CREATE USER '$NEW_DB_USER'@'%' IDENTIFIED BY '$NEW_DB_PASS';"
+-    mysql -u "$ROOT_USER" -p"$ROOT_PASS" -e "GRANT ALL PRIVILEGES ON $NEW_DB.* TO '$NEW_DB_USER'@'%';"
+-    mysql -u "$ROOT_USER" -p"$ROOT_PASS" -e "FLUSH PRIVILEGES;"
+-
+-    # 8. Extract Data from Old Config & Prepare New Config
+-    echo -e "\033[33mReading old configuration...\033[0m"
+-    OLD_API_KEY=$(grep '$APIKEY' "$OLD_CONFIG" | cut -d"'" -f2)
+-    OLD_ADMIN_ID=$(grep '$adminnumber' "$OLD_CONFIG" | cut -d"'" -f2)
+-    OLD_BOT_NAME=$(grep '$usernamebot' "$OLD_CONFIG" | cut -d"'" -f2)
+-    OLD_DOMAIN_FULL=$(grep '$domainhosts' "$OLD_CONFIG" | cut -d"'" -f2)
+-    
+-    # Extract pure domain (remove /mirzaprobotconfig)
+-    DOMAIN_NAME=$(echo "$OLD_DOMAIN_FULL" | cut -d'/' -f1)
+-
+-    echo -e "\033[32mDomain detected: $DOMAIN_NAME\033[0m"
+-
+-    # 9. Install New Source Code
+-    NEW_BOT_DIR="/var/www/html/mirzaprobotconfig"
+-    
+-    # Remove old directory
+-    rm -rf "$OLD_BOT_DIR"
+-    
+-    # Create new directory
+-    mkdir -p "$NEW_BOT_DIR"
+-
+-    # Download Pro Source
+-    echo -e "\033[33mDownloading Mirza Pro Source...\033[0m"
+-    ZIP_URL="https://github.com/MasterALiReza/mirzabot/archive/refs/heads/main.zip"
+-    TEMP_DIR="/tmp/mirza_pro_mig"
+-    mkdir -p "$TEMP_DIR"
+-    wget -q -O "$TEMP_DIR/bot.zip" "$ZIP_URL"
+-    unzip -q "$TEMP_DIR/bot.zip" -d "$TEMP_DIR"
+-    EXTRACTED_DIR=$(find "$TEMP_DIR" -mindepth 1 -maxdepth 1 -type d)
+-    mv "$EXTRACTED_DIR"/* "$NEW_BOT_DIR"
+-    rm -rf "$TEMP_DIR"
+-
+-    # 10. Generate New Config File
+-    NEW_SECRET_TOKEN=$(openssl rand -base64 10 | tr -dc 'a-zA-Z0-9' | cut -c1-8)
+-    
+-    cat <<EOF > "$NEW_BOT_DIR/config.php"
+-<?php
+-// This variable added for high load panels which their response time is long and bot can't communicate with online panel!
+-// null for default settings
+-\$request_exec_timeout = null;
+-\$dbhost = 'localhost';
+-\$dbname = '$NEW_DB';
+-\$usernamedb = '$NEW_DB_USER';
+-\$passworddb = '$NEW_DB_PASS';
+-\$connect = mysqli_connect(\$dbhost, \$usernamedb, \$passworddb, \$dbname);
+-if (\$connect->connect_error) { die("error" . \$connect->connect_error); }
+-mysqli_set_charset(\$connect, "utf8mb4");
+-\$options = [ PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, PDO::ATTR_EMULATE_PREPARES => false, ];
+-\$dsn = "mysql:host=\$dbhost;dbname=\$dbname;charset=utf8mb4";
+-try { \$pdo = new PDO(\$dsn, \$usernamedb, \$passworddb, \$options); } catch (\PDOException \$e) { error_log("Database connection failed: " . \$e->getMessage()); }
+-\$APIKEY = '${OLD_API_KEY}';
+-\$adminnumber = '${OLD_ADMIN_ID}';
+-\$domainhosts = '${DOMAIN_NAME}';
+-\$usernamebot = '${OLD_BOT_NAME}';
+-?>
+-EOF
+-
+-    # Set Permissions
+-    chown -R www-data:www-data "$NEW_BOT_DIR"
+-    chmod -R 755 "$NEW_BOT_DIR"
+-
+-    # 11. Reconfigure Apache (Clean Default & Set New VHost)
+-    echo -e "\033[33mReconfiguring Apache...\033[0m"
+-    
+-    # Clean defaults
+-    a2dissite 000-default.conf 2>/dev/null || true
+-    a2dissite 000-default-le-ssl.conf 2>/dev/null || true
+-    rm -f /etc/apache2/sites-enabled/000-default* 2>/dev/null
+-    rm -f /etc/apache2/sites-available/000-default* 2>/dev/null
+-
+-    # Create New VHost for HTTP (80)
+-    VHOST_FILE="/etc/apache2/sites-available/${DOMAIN_NAME}.conf"
+-    cat <<EOF > "$VHOST_FILE"
+-<VirtualHost *:80>
+-    ServerName $DOMAIN_NAME
+-    DocumentRoot $NEW_BOT_DIR
+-    <Directory $NEW_BOT_DIR>
+-        Options Indexes FollowSymLinks
+-        AllowOverride All
+-        Require all granted
+-    </Directory>
+-    Include /etc/apache2/conf-available/phpmyadmin.conf
+-    ErrorLog \${APACHE_LOG_DIR}/${DOMAIN_NAME}-error.log
+-    CustomLog \${APACHE_LOG_DIR}/${DOMAIN_NAME}-access.log combined
+-</VirtualHost>
+-EOF
+-
+-    # Create New VHost for HTTPS (443)
+-    VHOST_SSL_FILE="/etc/apache2/sites-available/${DOMAIN_NAME}-ssl.conf"
+-    cat <<EOF > "$VHOST_SSL_FILE"
+-<VirtualHost *:443>
+-    ServerName $DOMAIN_NAME
+-    DocumentRoot $NEW_BOT_DIR
+-    SSLEngine on
+-    SSLCertificateFile /etc/letsencrypt/live/$DOMAIN_NAME/fullchain.pem
+-    SSLCertificateKeyFile /etc/letsencrypt/live/$DOMAIN_NAME/privkey.pem
+-    <Directory $NEW_BOT_DIR>
+-        Options Indexes FollowSymLinks
+-        AllowOverride All
+-        Require all granted
+-    </Directory>
+-    Include /etc/apache2/conf-available/phpmyadmin.conf
+-    ErrorLog \${APACHE_LOG_DIR}/${DOMAIN_NAME}-error.log
+-    CustomLog \${APACHE_LOG_DIR}/${DOMAIN_NAME}-access.log combined
+-</VirtualHost>
+-EOF
+-
+-    # Enable Sites & Modules
+-    a2ensite "${DOMAIN_NAME}.conf"
+-    a2ensite "${DOMAIN_NAME}-ssl.conf"
+-    a2enmod ssl
+-    a2enmod rewrite
+-    systemctl restart apache2
+-
+-    # 12. Update Webhook & Run Table Update
+-    echo -e "\033[33mUpdating Webhook and Tables...\033[0m"
+-    
+-    # Update Webhook (New URL structure: https://domain/index.php)
+-    curl -F "url=https://${DOMAIN_NAME}/index.php" \
+-         -F "secret_token=${NEW_SECRET_TOKEN}" \
+-         "https://api.telegram.org/bot${OLD_API_KEY}/setWebhook"
+-
+-    sleep 2
+-
+-    # Run Table Setup Script
+-    curl -k "https://${DOMAIN_NAME}/table.php" > /dev/null 2>&1
+-
+-    # 13. Update CLI Shortcut (mirza)
+-    cp /root/install.sh /usr/local/bin/mirza
+-    chmod +x /usr/local/bin/mirza
+-
+-    # Final Message
+-    clear
+-    echo -e "\033[32m====================================================\033[0m"
+-    echo -e "\033[32m       MIGRATION SUCCESSFUL (Free -> Pro)           \033[0m"
+-    echo -e "\033[32m====================================================\033[0m"
+-    echo -e "\033[36mNew Database:\033[0m $NEW_DB"
+-    echo -e "\033[36mNew User:\033[0m     $NEW_DB_USER"
+-    echo -e "\033[36mNew Pass:\033[0m     $NEW_DB_PASS"
+-    echo -e "\033[36mBot Domain:\033[0m   https://$DOMAIN_NAME"
+-    echo -e "\033[33mUse command 'mirza' to manage the bot from now on.\033[0m"
+-    echo ""
+-}
+-
+ # Main Argument Processing
+ process_arguments() {
+     case "$1" in

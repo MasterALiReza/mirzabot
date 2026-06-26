@@ -1,0 +1,1019 @@
+﻿diff --git a/cronbot/uptime_panel.php b/cronbot/uptime_panel.php
+index cfef89f..d88b14c 100644
+--- a/cronbot/uptime_panel.php
++++ b/cronbot/uptime_panel.php
+@@ -15,15 +15,23 @@ $status_cron = json_decode($setting['cron_status'],true);
+ if(!$status_cron['uptime_panel'])return;
+ $inbounds = [];
+ foreach($marzbanlist as $location){
+-    $parsed_url = parse_url($location['url_panel']);
+-    if ($parsed_url && isset($parsed_url['host'])) {
+-    $address = $parsed_url['host'];
+-    $port = empty($parsed_url['port']) ? ((isset($parsed_url['scheme']) && strtolower($parsed_url['scheme']) === 'http') ? 80 : 443) : $parsed_url['port'];
+-    if (!checkConnection($address, $port)) {
+-       foreach ($admin_ids as $admin) {
++    $url = rtrim($location['url_panel'], '/');
++    $ch = curl_init($url);
++    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
++    curl_setopt($ch, CURLOPT_TIMEOUT, 5);
++    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
++    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
++    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
++    curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
++    curl_exec($ch);
++    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
++    $curlError = curl_errno($ch);
++    curl_close($ch);
++
++    if ($httpCode == 0 && $curlError != 0) {
++        foreach ($admin_ids as $admin) {
+             $textnode = sprintf($textbotlang['hardcoded']['panelDownNotice'], $location['name_panel']);
+-        sendmessage($admin, $textnode, null, 'html');
+-    }
+-    }
++            sendmessage($admin, $textnode, null, 'html');
++        }
+     }
+ }
+diff --git a/function.php b/function.php
+index 7ffdc71..8fc1418 100644
+--- a/function.php
++++ b/function.php
+@@ -2224,3 +2224,35 @@ function generateUserBanner($user_id) {
+     }
+     return false;
+ }
++
++function getProductLocCondition($panel_name) {
++    global $pdo;
++    $stmt = $pdo->prepare("SELECT panel_category_id FROM marzban_panel WHERE name_panel = ?");
++    $stmt->execute([$panel_name]);
++    $cat_id = $stmt->fetchColumn();
++    $cat_cond = $cat_id > 0 ? " OR Location = 'category_$cat_id'" : "";
++    return "(Location = '$panel_name' OR Location = '/all'$cat_cond)";
++}
++
++function getLoadBalancedPanelFromCategory($pdo, $cat_id, $agent) {
++    $stmt = $pdo->prepare("SELECT name_panel FROM marzban_panel WHERE panel_category_id = ? AND status = 'active' AND (agent = ? OR agent = 'all')");
++    $stmt->execute([$cat_id, $agent]);
++    $panels = $stmt->fetchAll(PDO::FETCH_ASSOC);
++    if (empty($panels)) return false;
++    
++    $best_panel = false;
++    $min_users = PHP_INT_MAX;
++    
++    foreach ($panels as $panel) {
++        $name = $panel['name_panel'];
++        $countStmt = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE Service_location = ? AND status = 'active'");
++        $countStmt->execute([$name]);
++        $count = (int)$countStmt->fetchColumn();
++        
++        if ($count < $min_users) {
++            $min_users = $count;
++            $best_panel = $name;
++        }
++    }
++    return $best_panel ?: $panels[0]['name_panel'];
++}
+diff --git a/index.php b/index.php
+index 2c7acd5..a5b1eb7 100644
+--- a/index.php
++++ b/index.php
+@@ -660,9 +660,50 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
+     sendmessage($from_id, $textbotlang['textbot']['selectLocation'], $list_marzban_panel_user, 'html');
+     step('getdata', $from_id);
+ } elseif (preg_match('/locationnotuser_(.*)/', $datain, $dataget)) {
+-    $marzban_list_get = select("marzban_panel", "*", "code_panel", $dataget[1]);
++    if (strpos($dataget[1], 'category_') === 0) {
++        $cat_id = str_replace('category_', '', $dataget[1]);
++        
++        $stmt_loc = $pdo->prepare("SELECT Service_location FROM invoice WHERE username = ?");
++        $stmt_loc->execute([$user['Processing_value']]);
++        $local_loc = $stmt_loc->fetchColumn();
++        
++        $found_user = false;
++        if ($local_loc) {
++            $stmt_check = $pdo->prepare("SELECT * FROM marzban_panel WHERE name_panel = ? AND panel_category_id = ? AND status = 'active'");
++            $stmt_check->execute([$local_loc, $cat_id]);
++            $p = $stmt_check->fetch(PDO::FETCH_ASSOC);
++            if ($p) {
++                $DataUserOut = $ManagePanel->DataUser($p['name_panel'], $user['Processing_value']);
++                if ($DataUserOut['status'] != "Unsuccessful") {
++                    $marzban_list_get = $p;
++                    $found_user = true;
++                }
++            }
++        }
++        
++        if (!$found_user) {
++            $stmt = $pdo->prepare("SELECT * FROM marzban_panel WHERE panel_category_id = ? AND status = 'active'");
++            $stmt->execute([$cat_id]);
++            $panels_in_cat = $stmt->fetchAll(PDO::FETCH_ASSOC);
++            foreach ($panels_in_cat as $p) {
++                $DataUserOut = $ManagePanel->DataUser($p['name_panel'], $user['Processing_value']);
++                if ($DataUserOut['status'] != "Unsuccessful") {
++                    $marzban_list_get = $p;
++                    $found_user = true;
++                    break;
++                }
++            }
++        }
++        if (!$found_user) {
++            sendmessage($from_id, $textbotlang['users']['status']['notUsernameGet'], $keyboard, 'html');
++            step('home', $from_id);
++            return;
++        }
++    } else {
++        $marzban_list_get = select("marzban_panel", "*", "code_panel", $dataget[1]);
++        $DataUserOut = $ManagePanel->DataUser($marzban_list_get['name_panel'], $user['Processing_value']);
++    }
+     update("user", "Processing_value_four", $marzban_list_get['code_panel'], "id", $from_id);
+-    $DataUserOut = $ManagePanel->DataUser($marzban_list_get['name_panel'], $user['Processing_value']);
+     if ($DataUserOut['status'] == "Unsuccessful") {
+         if ($DataUserOut['msg'] == "User not found") {
+             sendmessage($from_id, $textbotlang['users']['status']['notUsernameGet'], $keyboard, 'html');
+@@ -1420,9 +1461,9 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
+     $mainvolume = $mainvolume[$user['agent']];
+     $maxvolume = json_decode($marzban_list_get['maxvolume'], true);
+     $maxvolume = $maxvolume[$user['agent']];
+-    $stmt = $pdo->prepare("SELECT * FROM product WHERE (Location = :service_location OR Location = '/all') AND agent = :agent AND one_buy_status = '0'");
++    $loc_cond = getProductLocCondition($marzban_list_get['name_panel']);
++    $stmt = $pdo->prepare("SELECT * FROM product WHERE $loc_cond AND agent = :agent AND one_buy_status = '0'");
+     $stmt->execute([
+-        ':service_location' => $marzban_list_get['name_panel'],
+         ':agent' => $user['agent'],
+     ]);
+     $product = $stmt->rowCount();
+@@ -1442,9 +1483,9 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
+         return;
+     }
+     if ($setting['statuscategory'] == "offcategory") {
+-        $stmt = $pdo->prepare("SELECT * FROM product WHERE (Location = :service_location OR Location = '/all') AND agent = :agent AND one_buy_status = '0'");
++        $loc_cond = getProductLocCondition($nameloc['Service_location']);
++        $stmt = $pdo->prepare("SELECT * FROM product WHERE $loc_cond AND agent = :agent AND one_buy_status = '0'");
+         $stmt->execute([
+-            ':service_location' => $nameloc['Service_location'],
+             ':agent' => $user['agent'],
+         ]);
+         $productextend = ['inline_keyboard' => []];
+@@ -1511,11 +1552,11 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
+     $monthenumber = $dataget[1];
+     $userdate = json_decode($user['Processing_value'], true);
+     $nameloc = select("invoice", "*", "id_invoice", $userdate['id_invoice'], "select");
+-    $stmt = $pdo->prepare("SELECT * FROM product WHERE (Location = :service_location OR Location = '/all') AND agent = :agent AND Service_time = :monthe AND one_buy_status = '0'");
++    $loc_cond = getProductLocCondition($nameloc['Service_location']);
++    $stmt = $pdo->prepare("SELECT * FROM product WHERE $loc_cond AND agent = :agent AND Service_time = :monthe AND one_buy_status = '0'");
+     $stmt->execute([
+-        ':service_location' => $nameloc['Service_location'],
+         ':agent' => $user['agent'],
+-        'monthe' => $monthenumber
++        ':monthe' => $monthenumber,
+     ]);
+     $productextend = ['inline_keyboard' => []];
+     $marzban_list_get = select("marzban_panel", "*", "name_panel", $nameloc['Service_location'], "select");
+@@ -1602,9 +1643,9 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
+         $product['Volume_constraint'] = $userdate['volume'];
+         step("home", $from_id);
+     } else {
+-        $stmt = $pdo->prepare("SELECT * FROM product WHERE (Location = :service_location OR Location = '/all') AND agent = :agent AND code_product = :code_product");
++        $loc_cond = getProductLocCondition($nameloc['Service_location']);
++        $stmt = $pdo->prepare("SELECT * FROM product WHERE $loc_cond AND agent = :agent AND code_product = :code_product");
+         $stmt->execute([
+-            ':service_location' => $nameloc['Service_location'],
+             ':agent' => $user['agent'],
+             ':code_product' => $codeproduct,
+         ]);
+@@ -1702,9 +1743,9 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
+         $info_product['Service_time'] = $userdate['time'];
+         $info_product['Volume_constraint'] = $userdate['data_limit'];
+     } else {
+-        $stmt = $pdo->prepare("SELECT * FROM product WHERE code_product = :code_product AND (Location = :Location or Location = '/all') LIMIT 1");
++        $loc_cond = getProductLocCondition($marzban_list_get['name_panel']);
++        $stmt = $pdo->prepare("SELECT * FROM product WHERE code_product = :code_product AND $loc_cond LIMIT 1");
+         $stmt->bindParam(':code_product', $userdate['code_product'], PDO::PARAM_STR);
+-        $stmt->bindParam(':Location', $marzban_list_get['name_panel'], PDO::PARAM_STR);
+         $stmt->execute();
+         $info_product = $stmt->fetch(PDO::FETCH_ASSOC);
+     }
+@@ -1755,9 +1796,9 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
+         $prodcut['Volume_constraint'] = $userdata['data_limit'];
+         $prodcut['inbounds'] = $marzban_list_get['inboundid'];
+     } else {
+-        $stmt = $pdo->prepare("SELECT * FROM product WHERE (Location = :service_location OR Location = '/all') AND agent = :agent AND code_product = :code_product");
++        $loc_cond = getProductLocCondition($nameloc['Service_location']);
++        $stmt = $pdo->prepare("SELECT * FROM product WHERE $loc_cond AND agent = :agent AND code_product = :code_product");
+         $stmt->execute([
+-            ':service_location' => $nameloc['Service_location'],
+             ':agent' => $user['agent'],
+             ':code_product' => $userdata['code_product'],
+         ]);
+@@ -2231,11 +2272,11 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
+         $prodcut['code_product'] = $textbotlang['extracted']['index_php']['customVolumeButton'];
+         $product['inbounds'] = null;
+     } else {
+-        $stmt = $pdo->prepare("SELECT * FROM product WHERE (Location = :service_location OR Location = '/all') AND agent= :agent AND name_product = :name_product");
++        $loc_cond = getProductLocCondition($nameloc['Service_location']);
++        $stmt = $pdo->prepare("SELECT * FROM product WHERE $loc_cond AND agent = :agent AND name_product = :name_product");
+         $stmt->execute([
+-            ':service_location' => $nameloc['Service_location'],
+             ':agent' => $user['agent'],
+-            'name_product' => $nameloc['name_product']
++            ':name_product' => $nameloc['name_product']
+         ]);
+         $prodcut = $stmt->fetch(PDO::FETCH_ASSOC);
+     }
+@@ -3463,7 +3504,8 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
+                     sendmessage($from_id, $textbotlang['extracted']['index_php']['selectCategory'], KeyboardCategory($location, $user['agent'], $backuser), 'HTML');
+                 }
+             } else {
+-                $query = "SELECT * FROM product WHERE (Location = '$location' OR Location = '/all')AND agent= '{$user['agent']}'";
++                $loc_cond = getProductLocCondition($location);
++                $query = "SELECT * FROM product WHERE $loc_cond AND agent= '{$user['agent']}'";
+                 $marzban_list_get = select("marzban_panel", "*", "name_panel", $location, "select");
+                 $statuscustomvolume = json_decode($marzban_list_get['customvolume'], true)[$user['agent']];
+                 if ($marzban_list_get['MethodUsername'] == $textbotlang['users']['customusername'] || $marzban_list_get['MethodUsername'] == $textbotlang['keyboard']['customUsernameRandom']) {
+@@ -3524,7 +3566,32 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
+ } elseif (preg_match('/^location_(.*)/', $datain, $dataget) || $datain == "backproduct") {
+     $userdate = json_decode($user['Processing_value'], true);
+     if ($datain != "backproduct") {
+-        $location = select("marzban_panel", "*", "code_panel", $dataget[1], "select")['name_panel'];
++        if (strpos($dataget[1], 'category_') === 0) {
++            $cat_id = str_replace('category_', '', $dataget[1]);
++            $stmt = $pdo->prepare("SELECT * FROM marzban_panel WHERE panel_category_id = ? AND status = 'active'");
++            $stmt->execute([$cat_id]);
++            $panels_in_cat = $stmt->fetchAll(PDO::FETCH_ASSOC);
++            $location = null;
++            foreach ($panels_in_cat as $p) {
++                if ($p['limit_panel'] != "unlimited" && $p['limit_panel'] != "unlimted" && $p['limit_panel'] !== "") {
++                    $stmt_inv = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold') AND Service_location = ?");
++                    $stmt_inv->execute([$p['name_panel']]);
++                    if ($stmt_inv->fetchColumn() < $p['limit_panel']) {
++                        $location = $p['name_panel'];
++                        break;
++                    }
++                } else {
++                    $location = $p['name_panel'];
++                    break;
++                }
++            }
++            if (!$location) {
++                sendmessage($from_id, "Γ¥î ╪¬┘à╪º┘à█î ╪│╪▒┘ê╪▒┘ç╪º█î ╪º█î┘å ╪»╪│╪¬┘çΓÇî╪¿┘å╪»█î ┘╛╪▒ ╪┤╪»┘çΓÇî╪º┘å╪».", null, 'HTML');
++                return;
++            }
++        } else {
++            $location = select("marzban_panel", "*", "code_panel", $dataget[1], "select")['name_panel'];
++        }
+     } else {
+         $location = $userdate['name_panel'];
+     }
+@@ -3562,7 +3629,8 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
+             $marzban_list_get = select("marzban_panel", "*", "name_panel", $location, "select");
+             Editmessagetext($from_id, $message_id, $textbotlang['extracted']['index_php']['selectCategory'], KeyboardCategory($location, $user['agent'], "buybacktow"));
+         } else {
+-            $query = "SELECT * FROM product WHERE (Location = '$location' OR Location = '/all')AND agent= '{$user['agent']}'";
++            $loc_cond = getProductLocCondition($location);
++            $query = "SELECT * FROM product WHERE $loc_cond AND agent= '{$user['agent']}'";
+             $statuscustomvolume = json_decode($marzban_list_get['customvolume'], true)[$user['agent']];
+             if ($marzban_list_get['MethodUsername'] == $textbotlang['users']['customusername'] || $marzban_list_get['MethodUsername'] == $textbotlang['keyboard']['customUsernameRandom']) {
+                 $datakeyboard = "prodcutservices_";
+@@ -3606,14 +3674,25 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
+         }
+     }
+     
+-    $loc_condition = !empty($userdate['name_panel']) ? "(Location = '{$userdate['name_panel']}' OR Location = '/all')" : "1=1";
++    $loc_condition = !empty($userdate['name_panel']) ? getProductLocCondition($userdate['name_panel']) : "1=1";
+     
+     if (isset($userdate['monthproduct'])) {
+         $query = "SELECT * FROM product WHERE $loc_condition AND agent= '{$user['agent']}' AND category = '$categorynames' AND Service_time = '{$userdate['monthproduct']}'";
+     } else {
+         $query = "SELECT * FROM product WHERE $loc_condition AND agent= '{$user['agent']}' AND category = '$categorynames'";
+     }
+-    $marzban_list_get = !empty($userdate['name_panel']) ? select("marzban_panel", "*", "name_panel", $userdate['name_panel'], "select") : false;
++    if (!empty($userdate['name_panel'])) {
++        if (strpos($userdate['name_panel'], 'category_') === 0) {
++            $cat_id = str_replace('category_', '', $userdate['name_panel']);
++            $stmt_cat_panel = $pdo->prepare("SELECT * FROM marzban_panel WHERE panel_category_id = ? AND status = 'active' LIMIT 1");
++            $stmt_cat_panel->execute([$cat_id]);
++            $marzban_list_get = $stmt_cat_panel->fetch(PDO::FETCH_ASSOC) ?: false;
++        } else {
++            $marzban_list_get = select("marzban_panel", "*", "name_panel", $userdate['name_panel'], "select");
++        }
++    } else {
++        $marzban_list_get = false;
++    }
+     $statuscustomvolume = $marzban_list_get ? json_decode($marzban_list_get['customvolume'], true)[$user['agent']] : 0;
+     if ($marzban_list_get && ($marzban_list_get['MethodUsername'] == $textbotlang['users']['customusername'] || $marzban_list_get['MethodUsername'] == $textbotlang['keyboard']['customUsernameRandom'])) {
+         $datakeyboard = "prodcutservices_";
+@@ -3643,7 +3722,8 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
+         }
+         Editmessagetext($from_id, $message_id, $textbotlang['extracted']['index_php']['selectCategory'], KeyboardCategory($marzban_list_get['name_panel'], $user['agent'], $back));
+     } else {
+-        $query = "SELECT * FROM product WHERE (Location = '{$userdate['name_panel']}' OR Location = '/all') AND agent= '{$user['agent']}' AND Service_time = '$monthenumber'";
++        $loc_cond = getProductLocCondition($userdate['name_panel']);
++        $query = "SELECT * FROM product WHERE $loc_cond AND agent= '{$user['agent']}' AND Service_time = '$monthenumber'";
+         $marzban_list_get = select("marzban_panel", "*", "name_panel", $userdate['name_panel'], "select");
+         $statuscustomvolume = json_decode($marzban_list_get['customvolume'], true)[$user['agent']];
+         if ($marzban_list_get['MethodUsername'] == $textbotlang['users']['customusername'] || $marzban_list_get['MethodUsername'] == $textbotlang['keyboard']['customUsernameRandom']) {
+@@ -3712,6 +3792,16 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
+             update("user", "Processing_value", json_encode($userdate, JSON_UNESCAPED_UNICODE), "id", $from_id);
+         }
+     }
++    if (strpos($userdate['name_panel'], 'category_') === 0) {
++        $cat_id = str_replace('category_', '', $userdate['name_panel']);
++        $assigned_panel = getLoadBalancedPanelFromCategory($pdo, $cat_id, $user['agent']);
++        if (!$assigned_panel) {
++            sendmessage($from_id, $textbotlang['extracted']['index_php']['panelUnavailableUseAnother'], $backuser, 'html');
++            return;
++        }
++        $userdate['name_panel'] = $assigned_panel;
++        update("user", "Processing_value", json_encode($userdate, JSON_UNESCAPED_UNICODE), "id", $from_id);
++    }
+     if ($user['step'] == "getvolumecustomusername") {
+         if (!ctype_digit($text)) {
+             sendmessage($from_id, $textbotlang['Admin']['Product']['invalidTime'], $backuser, 'HTML');
+@@ -3766,6 +3856,17 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
+             update("user", "Processing_value", json_encode($userdate, JSON_UNESCAPED_UNICODE), "id", $from_id);
+         }
+     }
++    if (strpos($userdate['name_panel'], 'category_') === 0) {
++        $cat_id = str_replace('category_', '', $userdate['name_panel']);
++        $assigned_panel = getLoadBalancedPanelFromCategory($pdo, $cat_id, $user['agent']);
++        if (!$assigned_panel) {
++            sendmessage($from_id, $textbotlang['extracted']['index_php']['panelUnavailableUseAnother'], $backuser, 'html');
++            step("home", $from_id);
++            return;
++        }
++        $userdate['name_panel'] = $assigned_panel;
++        update("user", "Processing_value", json_encode($userdate, JSON_UNESCAPED_UNICODE), "id", $from_id);
++    }
+     $marzban_list_get = select("marzban_panel", "*", "name_panel", $userdate['name_panel'], "select");
+     if ($marzban_list_get['status'] == "disable") {
+         sendmessage($from_id, $textbotlang['extracted']['index_php']['panelUnavailableUseAnother'], $backuser, 'html');
+@@ -3794,7 +3895,8 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
+         $info_product['Service_time'] = $parts[1];
+         $info_product['price_product'] = ($parts[2] * $custompricevalue) + ($parts[1] * $customtimevalueprice);
+     } else {
+-        $info_product = mysqli_fetch_assoc(mysqli_query($connect, "SELECT * FROM product WHERE code_product = '$loc' AND (Location = '{$userdate['name_panel']}'or Location = '/all') LIMIT 1"));
++        $loc_cond = getProductLocCondition($userdate['name_panel']);
++        $info_product = mysqli_fetch_assoc(mysqli_query($connect, "SELECT * FROM product WHERE code_product = '$loc' AND $loc_cond LIMIT 1"));
+     }
+     if (!isset($info_product['price_product'])) {
+         sendmessage($from_id, $textbotlang['extracted']['index_php']['confirmError'], $keyboard, 'HTML');
+@@ -3865,10 +3967,10 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
+         $info_product['price_product'] = ($parts[2] * $custompricevalue) + ($parts[1] * $customtimevalueprice);
+         $info_product['data_limit_reset'] = "no_reset";
+     } else {
+-        $stmt = $pdo->prepare("SELECT * FROM product WHERE code_product = :code_product AND (Location = :location OR Location = '/all') LIMIT 1");
++        $loc_cond = getProductLocCondition($userdate['name_panel']);
++        $stmt = $pdo->prepare("SELECT * FROM product WHERE code_product = :code_product AND $loc_cond LIMIT 1");
+         $stmt->execute([
+-            ':code_product' => $user['Processing_value_one'],
+-            ':location' => $userdate['name_panel']
++            ':code_product' => $user['Processing_value_one']
+         ]);
+         $info_product = $stmt->fetch(PDO::FETCH_ASSOC);
+     }
+@@ -4261,9 +4363,9 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
+         sendmessage($from_id, $textbotlang['extracted']['index_php']['purchaseRestartFromStart'], $keyboard, 'HTML');
+         return;
+     }
+-    $stmt = $pdo->prepare("SELECT * FROM product WHERE code_product = :code_product AND (Location = :Location or Location = '/all') LIMIT 1");
++    $loc_cond = getProductLocCondition($userdate['name_panel']);
++    $stmt = $pdo->prepare("SELECT * FROM product WHERE code_product = :code_product AND $loc_cond LIMIT 1");
+     $stmt->bindParam(':code_product', $user['Processing_value_one'], PDO::PARAM_STR);
+-    $stmt->bindParam(':Location', $userdate['name_panel'], PDO::PARAM_STR);
+     $stmt->execute();
+     $info_product = $stmt->fetch(PDO::FETCH_ASSOC);
+     $marzban_list_get = select("marzban_panel", "*", "name_panel", $userdate['name_panel'], "select");
+@@ -4322,7 +4424,8 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
+         $info_product['Service_time'] = $parts[1];
+         $info_product['price_product'] = ($parts[2] * $custompricevalue) + ($parts[1] * $customtimevalueprice);
+     } else {
+-        $info_product = mysqli_fetch_assoc(mysqli_query($connect, "SELECT * FROM product WHERE code_product = '{$user['Processing_value_one']}' AND (Location = '{$userdate['name_panel']}'or Location = '/all') LIMIT 1"));
++        $loc_cond = getProductLocCondition($userdate['name_panel']);
++        $info_product = mysqli_fetch_assoc(mysqli_query($connect, "SELECT * FROM product WHERE code_product = '{$user['Processing_value_one']}' AND $loc_cond LIMIT 1"));
+     }
+     $result = ($SellDiscountlimit['price'] / 100) * $info_product['price_product'];
+ 
+@@ -4382,8 +4485,35 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
+     update("user", "Processing_value_four", $text, "id", $from_id);
+     step('home', $from_id);
+ } elseif (preg_match('/^locationom_(.*)/', $datain, $dataget)) {
+-    $location = select("marzban_panel", "*", "code_panel", $dataget[1], "select")['name_panel'];
+-    $marzban_list_get = select("marzban_panel", "*", "code_panel", $dataget[1], "select");
++    if (strpos($dataget[1], 'category_') === 0) {
++        $cat_id = str_replace('category_', '', $dataget[1]);
++        $stmt = $pdo->prepare("SELECT * FROM marzban_panel WHERE panel_category_id = ? AND status = 'active'");
++        $stmt->execute([$cat_id]);
++        $panels_in_cat = $stmt->fetchAll(PDO::FETCH_ASSOC);
++        $location = null;
++        foreach ($panels_in_cat as $p) {
++            if ($p['limit_panel'] != "unlimited" && $p['limit_panel'] != "unlimted" && $p['limit_panel'] !== "") {
++                $stmt_inv = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold') AND Service_location = ?");
++                $stmt_inv->execute([$p['name_panel']]);
++                if ($stmt_inv->fetchColumn() < $p['limit_panel']) {
++                    $location = $p['name_panel'];
++                    break;
++                }
++            } else {
++                $location = $p['name_panel'];
++                break;
++            }
++        }
++        if (!$location) {
++            sendmessage($from_id, "Γ¥î ╪¬┘à╪º┘à█î ╪│╪▒┘ê╪▒┘ç╪º█î ╪º█î┘å ╪»╪│╪¬┘çΓÇî╪¿┘å╪»█î ┘╛╪▒ ╪┤╪»┘çΓÇî╪º┘å╪».", null, 'HTML');
++            return;
++        }
++        $marzban_list_get = select("marzban_panel", "*", "name_panel", $location, "select");
++    } else {
++        $location = select("marzban_panel", "*", "code_panel", $dataget[1], "select")['name_panel'];
++        $marzban_list_get = select("marzban_panel", "*", "code_panel", $dataget[1], "select");
++    }
++    
+     $nullproduct = select("product", "*", null, null, "count");
+     if ($nullproduct == 0) {
+         sendmessage($from_id, $textbotlang['Admin']['Product']['nullProduct'], null, 'HTML');
+@@ -4401,7 +4531,8 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
+     } else {
+         $statuscustom = false;
+     }
+-    $query = "SELECT * FROM product WHERE (Location = '$location' OR Location = '/all')AND agent= '{$user['agent']}'";
++    $loc_cond = getProductLocCondition($location);
++    $query = "SELECT * FROM product WHERE $loc_cond AND agent= '{$user['agent']}'";
+     Editmessagetext($from_id, $message_id, $textbotlang['users']['sell']['serviceSelect'], KeyboardProduct($marzban_list_get['name_panel'], $query, $user['pricediscount'], $datakeyboard, $statuscustom, "backuser", null, "customsellvolumeom"));
+ } elseif ($datain == "customsellvolumeom") {
+     $marzban_list_get = select("marzban_panel", "*", "name_panel", $user['Processing_value'], "select");
+@@ -4511,7 +4642,8 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
+         $info_product['Service_time'] = $parts[1];
+         $info_product['price_product'] = ($parts[2] * $custompricevalue) + ($parts[1] * $customtimevalueprice);
+     } else {
+-        $info_product = mysqli_fetch_assoc(mysqli_query($connect, "SELECT * FROM product WHERE code_product = '$loc' AND (Location = '{$user['Processing_value']}'or Location = '/all') LIMIT 1"));
++        $loc_cond = getProductLocCondition($user['Processing_value']);
++        $info_product = mysqli_fetch_assoc(mysqli_query($connect, "SELECT * FROM product WHERE code_product = '$loc' AND $loc_cond LIMIT 1"));
+     }
+     $randomString = bin2hex(random_bytes(2));
+     $username_ac = generateUsername($from_id, $marzban_list_get['MethodUsername'], $username, $randomString, $text, $marzban_list_get['namecustom'], $user['namecustom']);
+@@ -4542,7 +4674,8 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
+         $info_product['price_product'] = ($parts[2] * $custompricevalue) + ($parts[1] * $customtimevalueprice);
+         $info_product['data_limit_reset'] = "no_reset";
+     } else {
+-        $info_product = mysqli_fetch_assoc(mysqli_query($connect, "SELECT * FROM product WHERE code_product = '{$user['Processing_value_one']}' AND (Location = '{$user['Processing_value']}'  or Location = '/all') LIMIT 1"));
++        $loc_cond = getProductLocCondition($user['Processing_value']);
++        $info_product = mysqli_fetch_assoc(mysqli_query($connect, "SELECT * FROM product WHERE code_product = '{$user['Processing_value_one']}' AND $loc_cond LIMIT 1"));
+     }
+     if (empty($info_product['price_product']) || empty($info_product['price_product']))
+         return;
+@@ -5645,7 +5778,8 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
+             $prodcut['Volume_constraint'] = $service_other['volumebuy'];
+         } else {
+             $nameloc = select("invoice", "*", "username", $usernamepanel, "select");
+-            $prodcut = mysqli_fetch_assoc(mysqli_query($connect, "SELECT * FROM product WHERE (Location = '{$nameloc['Service_location']}' OR Location = '/all') AND agent= '{$user['agent']}' AND code_product = '$codeproduct'"));
++            $loc_cond = getProductLocCondition($nameloc['Service_location']);
++            $prodcut = mysqli_fetch_assoc(mysqli_query($connect, "SELECT * FROM product WHERE $loc_cond AND agent= '{$user['agent']}' AND code_product = '$codeproduct'"));
+         }
+         $Confirm_pay = json_encode([
+             'inline_keyboard' => [
+@@ -5766,7 +5900,8 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
+             $prodcut['Volume_constraint'] = $service_other['volumebuy'];
+         } else {
+             $nameloc = select("invoice", "*", "username", $usernamepanel, "select");
+-            $prodcut = mysqli_fetch_assoc(mysqli_query($connect, "SELECT * FROM product WHERE (Location = '{$nameloc['Service_location']}' OR Location = '/all') AND agent= '{$user['agent']}' AND code_product = '$codeproduct'"));
++            $loc_cond = getProductLocCondition($nameloc['Service_location']);
++            $prodcut = mysqli_fetch_assoc(mysqli_query($connect, "SELECT * FROM product WHERE $loc_cond AND agent= '{$user['agent']}' AND code_product = '$codeproduct'"));
+         }
+         $Confirm_pay = json_encode([
+             'inline_keyboard' => [
+@@ -6734,7 +6869,8 @@ if (isset($update['message']['successful_payment'])) {
+     }
+     $location = $location['name_panel'];
+     update("user", "Processing_value", $location, "id", $from_id);
+-    $query = "SELECT * FROM product WHERE (Location = '$location' OR Location = '/all') AND agent= '{$user['agent']}'";
++    $loc_cond = getProductLocCondition($location);
++    $query = "SELECT * FROM product WHERE $loc_cond AND agent= '{$user['agent']}'";
+     $marzban_list_get = select("marzban_panel", "*", "code_panel", $location, "select");
+     $statuscustomvolume = json_decode($marzban_list_get['customvolume'], true)[$user['agent']];
+     if ($marzban_list_get['MethodUsername'] == $textbotlang['users']['customusername'] || $marzban_list_get['MethodUsername'] == $textbotlang['keyboard']['customUsernameRandom']) {
+@@ -6752,9 +6888,9 @@ if (isset($update['message']['successful_payment'])) {
+     deletemessage($from_id, $message_id);
+     $codeproduct = $dataget[1];
+     $username = $dataget[2];
+-    $stmt = $pdo->prepare("SELECT * FROM product WHERE (Location = :processing_value OR Location = '/all') AND agent = :agent AND code_product = :code_product");
++    $loc_cond = getProductLocCondition($user['Processing_value']);
++    $stmt = $pdo->prepare("SELECT * FROM product WHERE $loc_cond AND agent = :agent AND code_product = :code_product");
+     $stmt->execute([
+-        ':processing_value' => $user['Processing_value'],
+         ':agent' => $user['agent'],
+         ':code_product' => $codeproduct,
+     ]);
+@@ -6775,9 +6911,9 @@ if (isset($update['message']['successful_payment'])) {
+     $codeproduct = $dataget[1];
+     $usernamePanelExtends = $dataget[2];
+     deletemessage($from_id, $message_id);
+-    $stmt = $pdo->prepare("SELECT * FROM product WHERE (Location = :processing_value OR Location = '/all') AND agent = :agent AND code_product = :code_product");
++    $loc_cond = getProductLocCondition($user['Processing_value']);
++    $stmt = $pdo->prepare("SELECT * FROM product WHERE $loc_cond AND agent = :agent AND code_product = :code_product");
+     $stmt->execute([
+-        ':processing_value' => $user['Processing_value'],
+         ':agent' => $user['agent'],
+         ':code_product' => $codeproduct,
+     ]);
+diff --git a/keyboard.php b/keyboard.php
+index 1c5a145..45f9664 100644
+--- a/keyboard.php
++++ b/keyboard.php
+@@ -704,7 +704,7 @@ $helpappremove['keyboard'][] = [
+ ];
+ $json_list_remove_help┘Çlink = json_encode($helpappremove);
+ //------------------  [ listpanelusers ]----------------//
+-$stmt = $pdo->prepare("SELECT * FROM marzban_panel WHERE status = 'active' AND (agent = :agent OR agent = 'all')");
++$stmt = $pdo->prepare("SELECT * FROM marzban_panel WHERE status = 'active' AND (agent = :agent OR agent = 'all') AND (panel_category_id IS NULL OR panel_category_id = 0)");
+ $stmt->bindParam(':agent', $users['agent']);
+ $stmt->execute();
+ $list_marzban_panel_users = ['inline_keyboard' => []];
+@@ -758,6 +758,31 @@ if ($panelcount > 10) {
+         }
+     }
+ }
++
++// Add panel categories to the keyboard
++$stmt_cats = $pdo->prepare("SELECT * FROM panel_category WHERE status = 'active' ORDER BY name ASC");
++$stmt_cats->execute();
++$cat_temp_row = [];
++while ($cat_result = $stmt_cats->fetch(PDO::FETCH_ASSOC)) {
++    if ($users['step'] == "getusernameinfo") {
++        $cat_btn = ['text' => "╪»╪│╪¬┘çΓÇî╪¿┘å╪»█î: " . $cat_result['name'], 'callback_data' => "locationnotuser_category_" . $cat_result['id']];
++    } else {
++        $cat_btn = ['text' => "╪»╪│╪¬┘çΓÇî╪¿┘å╪»█î: " . $cat_result['name'], 'callback_data' => "location_category_" . $cat_result['id']];
++    }
++
++    if ($panelcount > 10) {
++        $cat_temp_row[] = $cat_btn;
++        if (count($cat_temp_row) == 2) {
++            $list_marzban_panel_users['inline_keyboard'][] = $cat_temp_row;
++            $cat_temp_row = [];
++        }
++    } else {
++        $list_marzban_panel_users['inline_keyboard'][] = [$cat_btn];
++    }
++}
++if (!empty($cat_temp_row)) {
++    $list_marzban_panel_users['inline_keyboard'][] = $cat_temp_row;
++}
+ $statusnote = false;
+ if ($setting['statusnamecustom'] == 'onnamecustom')
+     $statusnote = true;
+@@ -776,7 +801,7 @@ $list_marzban_panel_user = json_encode($list_marzban_panel_users);
+ 
+ 
+ //------------------  [ listpanelusers omdhe ]----------------//
+-$stmt = $pdo->prepare("SELECT * FROM marzban_panel WHERE status = 'active' AND (agent = :agent OR agent = 'all')");
++$stmt = $pdo->prepare("SELECT * FROM marzban_panel WHERE status = 'active' AND (agent = :agent OR agent = 'all') AND (panel_category_id IS NULL OR panel_category_id = 0)");
+ $stmt->bindParam(':agent', $users['agent']);
+ $stmt->execute();
+ $list_marzban_panel_users_om = ['inline_keyboard' => []];
+@@ -787,6 +812,15 @@ while ($result = $stmt->fetch(PDO::FETCH_ASSOC)) {
+         ['text' => $result['name_panel'], 'callback_data' => "locationom_{$result['code_panel']}"]
+     ];
+ }
++
++$stmt_cats_om = $pdo->prepare("SELECT * FROM panel_category WHERE status = 'active' ORDER BY name ASC");
++$stmt_cats_om->execute();
++while ($cat_result = $stmt_cats_om->fetch(PDO::FETCH_ASSOC)) {
++    $list_marzban_panel_users_om['inline_keyboard'][] = [
++        ['text' => "╪»╪│╪¬┘çΓÇî╪¿┘å╪»█î: " . $cat_result['name'], 'callback_data' => "locationom_category_" . $cat_result['id']]
++    ];
++}
++
+ $list_marzban_panel_users_om['inline_keyboard'][] = [
+     ['text' => $textbotlang['users']['backbtn'], 'callback_data' => "backuser"],
+ ];
+diff --git a/panel/inc/layout_head.php b/panel/inc/layout_head.php
+index c6cfd42..014a7b0 100644
+--- a/panel/inc/layout_head.php
++++ b/panel/inc/layout_head.php
+@@ -228,8 +228,8 @@ $initials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
+           </div>
+ 
+           <!-- ┘ü╪▒┘ê╪┤┌»╪º┘ç ┘ê ╪«╪»┘à╪º╪¬ -->
+-          <div class="nav-group <?= in_array($activeNav, ['product', 'service', 'panels_manage', 'categories_manage', 'settings_shop']) ? 'open' : '' ?>">
+-            <button class="nav-group-btn <?= in_array($activeNav, ['product', 'service', 'panels_manage', 'categories_manage', 'settings_shop']) ? 'active' : '' ?>">
++          <div class="nav-group <?= in_array($activeNav, ['product', 'service', 'panels_manage', 'panel_categories', 'categories_manage', 'settings_shop']) ? 'open' : '' ?>">
++            <button class="nav-group-btn <?= in_array($activeNav, ['product', 'service', 'panels_manage', 'panel_categories', 'categories_manage', 'settings_shop']) ? 'active' : '' ?>">
+               <div class="nav-group-title">
+                 <span class="nav-icon"><?= icon('package') ?></span>
+                 <span class="nav-label">┘ü╪▒┘ê╪┤┌»╪º┘ç ┘ê ┘à╪¡╪╡┘ê┘ä╪º╪¬</span>
+@@ -246,6 +246,9 @@ $initials = mb_strtoupper(mb_substr($currentUser, 0, 1, 'UTF-8'), 'UTF-8');
+               <a href="panels_manage.php" class="nav-sub-item <?= $activeNav === 'panels_manage' ? 'active' : '' ?>" title="<?= $textbotlang['panel']['layoutPageTitlePanels'] ?? '┘à╪»█î╪▒█î╪¬ ┘╛┘å┘äΓÇî┘ç╪º' ?>">
+                 <div class="nav-sub-dot"></div><?= $textbotlang['panel']['layoutNavPanels'] ?? '┘à╪»█î╪▒█î╪¬ ┘╛┘å┘äΓÇî┘ç╪º' ?>
+               </a>
++              <a href="panel_categories.php" class="nav-sub-item <?= $activeNav === 'panel_categories' ? 'active' : '' ?>" title="╪»╪│╪¬┘çΓÇî╪¿┘å╪»█î ┘╛┘å┘äΓÇî┘ç╪º">
++                <div class="nav-sub-dot"></div>╪»╪│╪¬┘çΓÇî╪¿┘å╪»█î ┘╛┘å┘äΓÇî┘ç╪º
++              </a>
+               <a href="settings_shop.php" class="nav-sub-item <?= $activeNav === 'settings_shop' ? 'active' : '' ?>" title="╪¬┘å╪╕█î┘à╪º╪¬ ┘ü╪▒┘ê╪┤┌»╪º┘ç">
+                 <div class="nav-sub-dot"></div>╪¬┘å╪╕█î┘à╪º╪¬ ┘ü╪▒┘ê╪┤┌»╪º┘ç
+               </a>
+diff --git a/panel/panel_categories.php b/panel/panel_categories.php
+new file mode 100644
+index 0000000..3632a02
+--- /dev/null
++++ b/panel/panel_categories.php
+@@ -0,0 +1,177 @@
++<?php
++require_once __DIR__ . '/inc/config.php';
++require_once __DIR__ . '/inc/icons.php';
++require_auth();
++
++// Add/Edit
++if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
++    $action = $_POST['action'];
++    $name = trim($_POST['name'] ?? '');
++    $status = trim($_POST['status'] ?? 'active');
++
++    if ($action === 'add') {
++        try {
++            db_query($pdo, "INSERT INTO panel_category (name, status) VALUES (?, ?)", [$name, $status]);
++            flash('success', '╪»╪│╪¬┘çΓÇî╪¿┘å╪»█î ┘╛┘å┘ä ╪¿╪º ┘à┘ê┘ü┘é█î╪¬ ╪º╪╢╪º┘ü┘ç ╪┤╪».');
++        } catch (Exception $e) {
++            flash('error', '╪«╪╖╪º ╪»╪▒ ╪º┘ü╪▓┘ê╪»┘å ╪»╪│╪¬┘çΓÇî╪¿┘å╪»█î: ' . $e->getMessage());
++        }
++        header('Location: panel_categories.php');
++        exit;
++    } elseif ($action === 'edit' && isset($_POST['id'])) {
++        $id = (int)$_POST['id'];
++        try {
++            db_query($pdo, "UPDATE panel_category SET name = ?, status = ? WHERE id = ?", [$name, $status, $id]);
++            flash('success', '╪»╪│╪¬┘çΓÇî╪¿┘å╪»█î ┘╛┘å┘ä ╪¿╪º ┘à┘ê┘ü┘é█î╪¬ ┘ê█î╪▒╪º█î╪┤ ╪┤╪».');
++        } catch (Exception $e) {
++            flash('error', '╪«╪╖╪º ╪»╪▒ ┘ê█î╪▒╪º█î╪┤ ╪»╪│╪¬┘çΓÇî╪¿┘å╪»█î: ' . $e->getMessage());
++        }
++        header('Location: panel_categories.php');
++        exit;
++    }
++}
++
++// Delete
++if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['id'])) {
++    $id = (int)$_GET['id'];
++    try {
++        db_query($pdo, "DELETE FROM panel_category WHERE id = ?", [$id]);
++        db_query($pdo, "UPDATE marzban_panel SET panel_category_id = NULL WHERE panel_category_id = ?", [$id]);
++        flash('success', "╪»╪│╪¬┘çΓÇî╪¿┘å╪»█î ╪¿╪º ┘à┘ê┘ü┘é█î╪¬ ╪¡╪░┘ü ╪┤╪».");
++    } catch (Exception $e) {
++        flash('error', "╪«╪╖╪º ╪»╪▒ ╪¡╪░┘ü ╪»╪│╪¬┘çΓÇî╪¿┘å╪»█î.");
++    }
++    header('Location: panel_categories.php');
++    exit;
++}
++
++try {
++    $categories = db_fetchAll($pdo, "SELECT * FROM panel_category ORDER BY id DESC");
++} catch (Exception $e) {
++    $categories = [];
++}
++
++$pageTitle = '╪»╪│╪¬┘çΓÇî╪¿┘å╪»█î ┘╛┘å┘äΓÇî┘ç╪º';
++$activeNav = 'panel_categories';
++include __DIR__ . '/inc/layout_head.php';
++?>
++
++<div class="header-actions">
++  <div class="header-title">
++    <h2><?= icon('folder') ?> ╪»╪│╪¬┘çΓÇî╪¿┘å╪»█î ┘╛┘å┘äΓÇî┘ç╪º</h2>
++    <p>┘à╪»█î╪▒█î╪¬ ╪»╪│╪¬┘çΓÇî╪¿┘å╪»█îΓÇî┘ç╪º█î ┘╛┘å┘äΓÇî┘ç╪º ╪¿╪▒╪º█î ╪│╪º╪«╪¬ ┌»╪▒┘ê┘ç█î ┘à╪¡╪╡┘ê┘ä╪º╪¬</p>
++  </div>
++  <button class="btn btn-primary" onclick="openModal('addCategoryModal')">
++    <?= icon('plus') ?> ╪º┘ü╪▓┘ê╪»┘å ╪»╪│╪¬┘çΓÇî╪¿┘å╪»█î
++  </button>
++</div>
++
++<?php display_flash(); ?>
++
++<div class="card">
++  <div class="card-header">
++    <h3 class="card-title">┘ä█î╪│╪¬ ╪»╪│╪¬┘çΓÇî╪¿┘å╪»█îΓÇî┘ç╪º</h3>
++  </div>
++  <div class="table-responsive">
++    <table class="table">
++      <thead>
++        <tr>
++          <th>╪┤┘å╪º╪│┘ç</th>
++          <th>┘å╪º┘à ╪»╪│╪¬┘çΓÇî╪¿┘å╪»█î</th>
++          <th>┘ê╪╢╪╣█î╪¬</th>
++          <th>╪╣┘à┘ä█î╪º╪¬</th>
++        </tr>
++      </thead>
++      <tbody>
++        <?php if (count($categories) > 0): ?>
++          <?php foreach ($categories as $cat): ?>
++            <tr>
++              <td><?= htmlspecialchars($cat['id']) ?></td>
++              <td><?= htmlspecialchars($cat['name']) ?></td>
++              <td>
++                <span class="badge <?= $cat['status'] === 'active' ? 'badge-success' : 'badge-danger' ?>">
++                  <?= $cat['status'] === 'active' ? '┘ü╪╣╪º┘ä' : '╪║█î╪▒┘ü╪╣╪º┘ä' ?>
++                </span>
++              </td>
++              <td>
++                <button class="btn btn-sm btn-outline" onclick='editCategory(<?= json_encode($cat) ?>)'>
++                  <?= icon('edit') ?> ┘ê█î╪▒╪º█î╪┤
++                </button>
++                <a href="?action=delete&id=<?= $cat['id'] ?>" class="btn btn-sm btn-outline btn-danger" onclick="return confirm('╪ó█î╪º ╪º╪▓ ╪¡╪░┘ü ╪º█î┘å ╪»╪│╪¬┘çΓÇî╪¿┘å╪»█î ╪º╪╖┘à█î┘å╪º┘å ╪»╪º╪▒█î╪»╪ƒ');">
++                  <?= icon('trash') ?> ╪¡╪░┘ü
++                </a>
++              </td>
++            </tr>
++          <?php endforeach; ?>
++        <?php else: ?>
++          <tr>
++            <td colspan="4" class="text-center text-muted" style="padding: 3rem;">
++              <?= icon('inbox', ['width' => '48', 'height' => '48', 'style' => 'opacity:0.3; margin-bottom:1rem;']) ?><br>
++              ┘ç█î┌å ╪»╪│╪¬┘çΓÇî╪¿┘å╪»█î ┘╛┘å┘ä█î █î╪º┘ü╪¬ ┘å╪┤╪».
++            </td>
++          </tr>
++        <?php endif; ?>
++      </tbody>
++    </table>
++  </div>
++</div>
++
++<!-- Modal Add/Edit -->
++<div class="modal" id="categoryModal">
++  <div class="modal-content" style="max-width: 500px;">
++    <div class="modal-header">
++      <h3 class="modal-title" id="catModalTitle">╪º┘ü╪▓┘ê╪»┘å ╪»╪│╪¬┘çΓÇî╪¿┘å╪»█î</h3>
++      <button class="modal-close" onclick="closeModal('categoryModal')"><?= icon('x') ?></button>
++    </div>
++    <div class="modal-body">
++      <form id="catForm" method="POST" action="panel_categories.php">
++        <input type="hidden" name="action" id="catAction" value="add">
++        <input type="hidden" name="id" id="catId" value="">
++        
++        <div class="form-group">
++          <label class="form-label">┘å╪º┘à ╪»╪│╪¬┘çΓÇî╪¿┘å╪»█î <span class="text-danger">*</span></label>
++          <input type="text" name="name" id="catName" class="input" required>
++        </div>
++        
++        <div class="form-group">
++          <label class="form-label">┘ê╪╢╪╣█î╪¬</label>
++          <select name="status" id="catStatus" class="input">
++            <option value="active">┘ü╪╣╪º┘ä</option>
++            <option value="inactive">╪║█î╪▒┘ü╪╣╪º┘ä</option>
++          </select>
++        </div>
++        
++        <div class="form-actions" style="margin-top: 1.5rem; justify-content: flex-end;">
++          <button type="button" class="btn btn-outline" onclick="closeModal('categoryModal')">╪º┘å╪╡╪▒╪º┘ü</button>
++          <button type="submit" class="btn btn-primary">╪░╪«█î╪▒┘ç ╪»╪│╪¬┘çΓÇî╪¿┘å╪»█î</button>
++        </div>
++      </form>
++    </div>
++  </div>
++</div>
++
++<script>
++function openModal(id) {
++    document.getElementById('categoryModal').classList.add('active');
++    document.getElementById('catModalTitle').innerText = '╪º┘ü╪▓┘ê╪»┘å ╪»╪│╪¬┘çΓÇî╪¿┘å╪»█î';
++    document.getElementById('catAction').value = 'add';
++    document.getElementById('catId').value = '';
++    document.getElementById('catName').value = '';
++    document.getElementById('catStatus').value = 'active';
++}
++
++function closeModal(id) {
++    document.getElementById(id).classList.remove('active');
++}
++
++function editCategory(cat) {
++    document.getElementById('categoryModal').classList.add('active');
++    document.getElementById('catModalTitle').innerText = '┘ê█î╪▒╪º█î╪┤ ╪»╪│╪¬┘çΓÇî╪¿┘å╪»█î';
++    document.getElementById('catAction').value = 'edit';
++    document.getElementById('catId').value = cat.id;
++    document.getElementById('catName').value = cat.name;
++    document.getElementById('catStatus').value = cat.status;
++}
++</script>
++
++<?php include __DIR__ . '/inc/layout_foot.php'; ?>
+diff --git a/panel/panels_manage.php b/panel/panels_manage.php
+index 8a6ca6e..d0b04fe 100644
+--- a/panel/panels_manage.php
++++ b/panel/panels_manage.php
+@@ -13,6 +13,13 @@ try {
+     } catch (Exception $ex) {}
+ }
+ 
++// Fetch Panel Categories
++try {
++    $panel_categories = db_fetchAll($pdo, "SELECT * FROM panel_category WHERE status = 'active' ORDER BY name ASC");
++} catch (Exception $e) {
++    $panel_categories = [];
++}
++
+ // TEST CONNECTION AJAX
+ if (isset($_GET['action']) && $_GET['action'] === 'test_connection' && isset($_GET['id'])) {
+     header('Content-Type: application/json');
+@@ -101,6 +108,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+     $priceextratime = json_encode(['f' => $_POST['priceextratime_f'] ?? "4000", 'n' => $_POST['priceextratime_n'] ?? "4000", 'n2' => $_POST['priceextratime_n2'] ?? "4000"]);
+     
+     $priceChangeloc = trim($_POST['priceChangeloc'] ?? '0');
++    
++    $panel_category_id = trim($_POST['panel_category_id'] ?? '');
++    if ($panel_category_id === '') $panel_category_id = null;
+ 
+     if ($action === 'add') {
+         try {
+@@ -111,14 +121,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+             $code_panel = '7e' . ($max_num + 1);
+ 
+             db_query($pdo, "INSERT INTO marzban_panel 
+-                (name_panel, url_panel, username_panel, password_panel, type, status, code_panel, MethodUsername, inboundstatus, inbound_deactive, agent, inboundid, conecton, Methodextend, namecustom, limit_panel, TestAccount, sublink, config, qr_wgd, version_panel, on_hold_test, subvip, changeloc, status_extend, priceChangeloc, sanaei_group, mainvolume, maxvolume, maintime, maxtime, customvolume, priceextravolume, pricecustomvolume, pricecustomtime, priceextratime, val_usertest, time_usertest) 
+-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '0', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
++                (name_panel, url_panel, username_panel, password_panel, type, status, code_panel, MethodUsername, inboundstatus, inbound_deactive, agent, inboundid, conecton, Methodextend, namecustom, limit_panel, TestAccount, sublink, config, qr_wgd, version_panel, on_hold_test, subvip, changeloc, status_extend, priceChangeloc, sanaei_group, mainvolume, maxvolume, maintime, maxtime, customvolume, priceextravolume, pricecustomvolume, pricecustomtime, priceextratime, val_usertest, time_usertest, panel_category_id) 
++                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '0', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+                 [
+                     $name_panel, $url_panel, $username_panel, $password_panel, $type, $status, $code_panel,
+                     $MethodUsername, $inboundstatus, $inbound_deactive, $agent, $inboundid, $conecton, $Methodextend,
+                     $namecustom, $limit_panel, $TestAccount, $sublink, $config, $qr_wgd, $on_hold_test, $subvip, $changeloc,
+                     $status_extend, $priceChangeloc, $sanaei_group, $mainvolume, $maxvolume, $maintime, $maxtime,
+-                    $customvolume, $priceextravolume, $pricecustomvolume, $pricecustomtime, $priceextratime, $val_usertest, $time_usertest
++                    $customvolume, $priceextravolume, $pricecustomvolume, $pricecustomtime, $priceextratime, $val_usertest, $time_usertest, $panel_category_id
+                 ]
+             );
+             flash('success', '┘╛┘å┘ä ╪¼╪»█î╪» ╪¿╪º ┘à┘ê┘ü┘é█î╪¬ ╪º╪╢╪º┘ü┘ç ╪┤╪».');
+@@ -145,7 +155,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+                 namecustom = ?, limit_panel = ?, TestAccount = ?, sublink = ?, config = ?, qr_wgd = ?, on_hold_test = ?, subvip = ?,
+                 changeloc = ?, status_extend = ?, priceChangeloc = ?, sanaei_group = ?, mainvolume = ?, maxvolume = ?,
+                 maintime = ?, maxtime = ?, customvolume = ?, priceextravolume = ?, pricecustomvolume = ?, pricecustomtime = ?,
+-                priceextratime = ?, val_usertest = ?, time_usertest = ?
++                priceextratime = ?, val_usertest = ?, time_usertest = ?, panel_category_id = ?
+                 WHERE id = ?",
+                 [
+                     $name_panel, $url_panel, $username_panel, $password_panel, $type, $status, $agent,
+@@ -153,7 +163,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+                     $namecustom, $limit_panel, $TestAccount, $sublink, $config, $qr_wgd, $on_hold_test, $subvip,
+                     $changeloc, $status_extend, $priceChangeloc, $sanaei_group, $mainvolume, $maxvolume,
+                     $maintime, $maxtime, $customvolume, $priceextravolume, $pricecustomvolume, $pricecustomtime,
+-                    $priceextratime, $val_usertest, $time_usertest, $id
++                    $priceextratime, $val_usertest, $time_usertest, $panel_category_id, $id
+                 ]
+             );
+             
+@@ -300,8 +310,9 @@ include __DIR__ . '/inc/layout_head.php';
+                             'mainvolume' => $p['mainvolume'], 'maxvolume' => $p['maxvolume'],
+                             'maintime' => $p['maintime'], 'maxtime' => $p['maxtime'], 'customvolume' => $p['customvolume'],
+                             'priceextravolume' => $p['priceextravolume'], 'pricecustomvolume' => $p['pricecustomvolume'],
+-                            'pricecustomtime' => $p['pricecustomtime'], 'priceextratime' => $p['priceextratime'],
+-                            'priceChangeloc' => $p['priceChangeloc']
++                            'priceextratime' => $p['priceextratime'],
++                            'priceChangeloc' => $p['priceChangeloc'],
++                            'panel_category_id' => $p['panel_category_id']
+                         ]);
+                         ?>
+                         <tr>
+@@ -392,8 +403,9 @@ include __DIR__ . '/inc/layout_head.php';
+                 .tab-btn:hover { background: var(--bg); color: var(--fg); border-color: var(--bd); }
+                 .tab-btn.active { background: rgba(var(--ac-rgb, 59,130,246), 0.1) !important; color: var(--ac) !important; border-color: rgba(var(--ac-rgb, 59,130,246), 0.2) !important; }
+                 .field-group label { display:flex; align-items:center; gap:6px; font-weight:600; color:var(--fg); margin-bottom:8px; font-size:0.9rem; }
+-                .field-group .input { border-radius: 12px; background: var(--bg-sec); border: 1px solid var(--bd); padding: 10px 14px; transition: all 0.3s; }
++                .field-group .input { width: 100%; box-sizing: border-box; border-radius: 12px; background: var(--bg-sec); border: 1px solid var(--bd); padding: 10px 14px; font-family: inherit; font-size: 0.95rem; color: var(--fg); transition: all 0.3s; }
+                 .field-group .input:focus { border-color: var(--ac); box-shadow: 0 0 0 3px rgba(var(--ac-rgb, 59,130,246), 0.15); background: var(--bg); outline:none; }
++                .field-group select.input { appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: left 12px center; background-size: 16px; padding-left: 36px; }
+                 @media (max-width: 600px) {
+                     .field-grid { grid-template-columns: 1fr !important; }
+                 }
+@@ -445,6 +457,15 @@ include __DIR__ . '/inc/layout_head.php';
+                                 <option value="n2">┘ü┘é╪╖ ┘å┘à╪º█î┘å╪»┘ç (╪»╪▒╪╡╪»╪»┘ç█î ╪╣┘à╪»┘ç)</option>
+                             </select>
+                         </div>
++                        <div class="field-group">
++                            <label>╪»╪│╪¬┘çΓÇî╪¿┘å╪»█î ┘╛┘å┘ä (╪º╪«╪¬█î╪º╪▒█î)</label>
++                            <select name="panel_category_id" id="panelCategoryId" class="input">
++                                <option value="">╪¿╪»┘ê┘å ╪»╪│╪¬┘çΓÇî╪¿┘å╪»█î</option>
++                                <?php foreach ($panel_categories as $cat): ?>
++                                    <option value="<?= $cat['id'] ?>"><?= htmlspecialchars($cat['name']) ?></option>
++                                <?php endforeach; ?>
++                            </select>
++                        </div>
+                     </div>
+                     
+                     <div class="field-group" style="margin-top:15px">
+@@ -891,6 +912,7 @@ function openPanelModal(action, btn = null) {
+         document.getElementById('panelType').value = 'marzban';
+         document.getElementById('panelStatus').value = 'active';
+         document.getElementById('panelAgent').value = 'all';
++        document.getElementById('panelCategoryId').value = '';
+         
+         document.getElementById('panelInboundStatus').value = 'offinbounddisable';
+         document.getElementById('panelInboundDeactive').value = '0';
+@@ -938,6 +960,7 @@ function openPanelModal(action, btn = null) {
+         document.getElementById('panelType').value = data.type || 'marzban';
+         document.getElementById('panelStatus').value = data.status || 'active';
+         document.getElementById('panelAgent').value = data.agent || 'all';
++        document.getElementById('panelCategoryId').value = data.panel_category_id || '';
+         
+         document.getElementById('panelInboundStatus').value = data.inboundstatus || 'offinbounddisable';
+         document.getElementById('panelInboundDeactive').value = data.inbound_deactive || '0';
+diff --git a/panel/product.php b/panel/product.php
+index 1c9634a..3556da1 100644
+--- a/panel/product.php
++++ b/panel/product.php
+@@ -145,6 +145,11 @@ try {
+   $panels = db_fetchAll($pdo, "SELECT * FROM marzban_panel");
+ } catch (Exception $e) {
+ }
++$panel_categories = [];
++try {
++  $panel_categories = db_fetchAll($pdo, "SELECT * FROM panel_category WHERE status = 'active' ORDER BY name ASC");
++} catch (Exception $e) {
++}
+ $products = db_fetchAll($pdo, "SELECT * FROM product ORDER BY id");
+ 
+ // Auto-sync missing categories from product table to category table
+@@ -377,10 +382,19 @@ $panelsCount = count(array_unique(array_filter(array_column($products, 'Location
+             <label>┘╛┘å┘ä/╪│╪▒┘ê╪▒</label>
+             <select name="namepanel" class="select">
+               <option value="">-- ╪º┘å╪¬╪«╪º╪¿ ┘╛┘å┘ä --</option>
++              <optgroup label="┘╛┘å┘äΓÇî┘ç╪º">
+               <?php foreach ($panels as $pl): ?>
+                 <option value="<?= htmlspecialchars($pl['name_panel'] ?? $pl['id']) ?>">
+                   <?= htmlspecialchars($pl['name_panel'] ?? $pl['id']) ?>
+                 </option><?php endforeach; ?>
++              </optgroup>
++              <?php if (!empty($panel_categories)): ?>
++              <optgroup label="╪»╪│╪¬┘çΓÇî╪¿┘å╪»█îΓÇî┘ç╪º█î ┘╛┘å┘ä">
++              <?php foreach ($panel_categories as $pcat): ?>
++                <option value="category_<?= $pcat['id'] ?>">╪»╪│╪¬┘çΓÇî╪¿┘å╪»█î: <?= htmlspecialchars($pcat['name']) ?></option>
++              <?php endforeach; ?>
++              </optgroup>
++              <?php endif; ?>
+             </select>
+           </div>
+           <div class="field">
+@@ -470,10 +484,19 @@ $panelsCount = count(array_unique(array_filter(array_column($products, 'Location
+             <label>┘╛┘å┘ä/╪│╪▒┘ê╪▒</label>
+             <select name="namepanel" id="edit_panel" class="select">
+               <option value="">-- ╪º┘å╪¬╪«╪º╪¿ ┘╛┘å┘ä --</option>
++              <optgroup label="┘╛┘å┘äΓÇî┘ç╪º">
+               <?php foreach ($panels as $pl): ?>
+                 <option value="<?= htmlspecialchars($pl['name_panel'] ?? $pl['id']) ?>">
+                   <?= htmlspecialchars($pl['name_panel'] ?? $pl['id']) ?>
+                 </option><?php endforeach; ?>
++              </optgroup>
++              <?php if (!empty($panel_categories)): ?>
++              <optgroup label="╪»╪│╪¬┘çΓÇî╪¿┘å╪»█îΓÇî┘ç╪º█î ┘╛┘å┘ä">
++              <?php foreach ($panel_categories as $pcat): ?>
++                <option value="category_<?= $pcat['id'] ?>">╪»╪│╪¬┘çΓÇî╪¿┘å╪»█î: <?= htmlspecialchars($pcat['name']) ?></option>
++              <?php endforeach; ?>
++              </optgroup>
++              <?php endif; ?>
+             </select>
+           </div>
+           <div class="field">
+diff --git a/table.php b/table.php
+index 9e25c75..fe7ba5d 100644
+--- a/table.php
++++ b/table.php
+@@ -374,7 +374,8 @@ try {
+         on_hold_test varchar(60) NOT NULL,
+         version_panel varchar(60) NOT NULL,
+         customvolume TEXT NULL,
+-        hide_user TEXT NULL)
++        hide_user TEXT NULL,
++        panel_category_id varchar(50) NULL)
+         ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci");
+         if (!$result) {
+             echo "table marzban_panel" . mysqli_error($connect);
+@@ -445,6 +446,7 @@ try {
+         addFieldToTable("marzban_panel", "config", "offconfig", "VARCHAR(50)");
+         addFieldToTable("marzban_panel", "qr_wgd", "offqrwgd", "VARCHAR(50)");
+         addFieldToTable("marzban_panel", "version_panel", "0", "VARCHAR(60)");
++        addFieldToTable("marzban_panel", "panel_category_id", null, "VARCHAR(50)");
+         $max_stmt = $connect->query("SELECT MAX(CAST(SUBSTRING(code_panel, 3) AS UNSIGNED)) as max_num FROM marzban_panel WHERE code_panel LIKE '7e%'");
+         $max_row = $max_stmt->fetch_assoc();
+         $next_num = $max_row['max_num'] ? (int) $max_row['max_num'] + 1 : 15;
+@@ -1296,6 +1298,24 @@ try {
+ } catch (Exception $e) {
+     file_put_contents('error_log', $e->getMessage());
+ }
++//----------------------- [ Panel Category ] --------------------- //
++try {
++    $result = $connect->query("SHOW TABLES LIKE 'panel_category'");
++    $table_exists = ($result->num_rows > 0);
++
++    if (!$table_exists) {
++        $result = $connect->query("CREATE TABLE panel_category (
++        id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
++        name VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
++        status VARCHAR(50) DEFAULT 'active')
++        ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci");
++        if (!$result) {
++            echo "table panel_category" . mysqli_error($connect);
++        }
++    }
++} catch (Exception $e) {
++    file_put_contents('error_log', $e->getMessage());
++}
+ try {
+     $result = $connect->query("SHOW TABLES LIKE 'reagent_report'");
+     $table_exists = ($result->num_rows > 0);

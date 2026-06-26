@@ -1645,3 +1645,6 @@ button:disabled,
         border-radius: 4px;
     }
 }
+.d-none {
+    display: none !important;
+}

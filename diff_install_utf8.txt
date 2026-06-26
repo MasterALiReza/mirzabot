@@ -1,0 +1,85 @@
+﻿diff --git a/install.sh b/install.sh
+index 34061ef..b9161d7 100644
+--- a/install.sh
++++ b/install.sh
+@@ -142,14 +142,72 @@ function show_menu() {
+     echo ""
+     read -p "Select an option [1-9]: " option
+     case $option in
+-        1) install_bot ;;
+-        2) [ -f "/var/www/html/mirzaprobotconfig/config.php" ] && update_bot || { echo -e "\033[31mBot is not installed.\033[0m"; sleep 2; show_menu; } ;;
+-        3) [ -f "/var/www/html/mirzaprobotconfig/config.php" ] && remove_bot || { echo -e "\033[31mBot is not installed.\033[0m"; sleep 2; show_menu; } ;;
+-        4) [ -f "/var/www/html/mirzaprobotconfig/config.php" ] && export_database || { echo -e "\033[31mBot is not installed.\033[0m"; sleep 2; show_menu; } ;;
+-        5) [ -f "/var/www/html/mirzaprobotconfig/config.php" ] && import_database || { echo -e "\033[31mBot is not installed.\033[0m"; sleep 2; show_menu; } ;;
+-        6) [ -f "/var/www/html/mirzaprobotconfig/config.php" ] && auto_backup || { echo -e "\033[31mBot is not installed.\033[0m"; sleep 2; show_menu; } ;;
+-        7) [ -f "/var/www/html/mirzaprobotconfig/config.php" ] && renew_ssl || { echo -e "\033[31mBot is not installed.\033[0m"; sleep 2; show_menu; } ;;
+-        8) [ -f "/var/www/html/mirzaprobotconfig/config.php" ] && change_domain || { echo -e "\033[31mBot is not installed.\033[0m"; sleep 2; show_menu; } ;;
++        1) 
++            install_bot 
++            ;;
++        2) 
++            if [ -f "/var/www/html/mirzaprobotconfig/config.php" ]; then
++                update_bot
++            else
++                echo -e "\033[31mBot is not installed.\033[0m"
++                sleep 2
++            fi
++            show_menu
++            ;;
++        3) 
++            if [ -f "/var/www/html/mirzaprobotconfig/config.php" ]; then
++                remove_bot
++            else
++                echo -e "\033[31mBot is not installed.\033[0m"
++                sleep 2
++            fi
++            show_menu
++            ;;
++        4) 
++            if [ -f "/var/www/html/mirzaprobotconfig/config.php" ]; then
++                export_database
++            else
++                echo -e "\033[31mBot is not installed.\033[0m"
++                sleep 2
++            fi
++            show_menu
++            ;;
++        5) 
++            if [ -f "/var/www/html/mirzaprobotconfig/config.php" ]; then
++                import_database
++            else
++                echo -e "\033[31mBot is not installed.\033[0m"
++                sleep 2
++            fi
++            show_menu
++            ;;
++        6) 
++            if [ -f "/var/www/html/mirzaprobotconfig/config.php" ]; then
++                auto_backup
++            else
++                echo -e "\033[31mBot is not installed.\033[0m"
++                sleep 2
++            fi
++            show_menu
++            ;;
++        7) 
++            if [ -f "/var/www/html/mirzaprobotconfig/config.php" ]; then
++                renew_ssl
++            else
++                echo -e "\033[31mBot is not installed.\033[0m"
++                sleep 2
++            fi
++            show_menu
++            ;;
++        8) 
++            if [ -f "/var/www/html/mirzaprobotconfig/config.php" ]; then
++                change_domain
++            else
++                echo -e "\033[31mBot is not installed.\033[0m"
++                sleep 2
++            fi
++            show_menu
++            ;;
+         9)
+             echo -e "\033[32mExiting...\033[0m"
+             exit 0

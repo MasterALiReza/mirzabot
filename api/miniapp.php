@@ -115,11 +115,18 @@ switch ($data['actions']) {
         if (is_array($invoices)) {
             foreach ($invoices as $invoice) {
                 $DataUserOut = $ManagePanel->DataUser($invoice['Service_location'], $invoice['username']);
+                
                 if ($DataUserOut['status'] == "Unsuccessful") {
-                    $expire = $textbotlang['hardcoded']['unknownLabel'];
-                } else {
-                    $expire = $DataUserOut['expire'] ? jdate('Y/m/d', $DataUserOut['expire']) : $textbotlang['hardcoded']['unlimitedLabel'];
+                    $DataUserOut['status'] = $invoice['Status'] == 'active' ? 'active' : ($invoice['Status'] ?? 'Unknown');
+                    if (intval($invoice['time_sell']) > 0 && intval($invoice['Service_time']) > 0) {
+                        $DataUserOut['expire'] = intval($invoice['time_sell']) + (intval($invoice['Service_time']) * 86400);
+                    } else {
+                        $DataUserOut['expire'] = 0;
+                    }
                 }
+                
+                $expire = $DataUserOut['expire'] ? jdate('Y/m/d', $DataUserOut['expire']) : $textbotlang['hardcoded']['unlimitedLabel'];
+                
                 $datauser[] = [
                     'username' => $invoice['username'],
                     'status' => $DataUserOut['status'],
@@ -171,6 +178,29 @@ switch ($data['actions']) {
             
             if (!is_array($DataUserOut)) {
                 $DataUserOut = ['status' => 'Unsuccessful', 'msg' => 'Invalid DataUser response'];
+            }
+            
+            if ($DataUserOut['status'] == "Unsuccessful") {
+                $DataUserOut['status'] = $invoice['Status'] == 'active' ? 'active' : ($invoice['Status'] ?? 'Unknown');
+                $DataUserOut['data_limit'] = floatval($invoice['Volume']) * pow(1024, 3);
+                $DataUserOut['used_traffic'] = 0;
+                $DataUserOut['online_at'] = null;
+                $DataUserOut['sub_updated_at'] = null;
+                
+                if (intval($invoice['time_sell']) > 0 && intval($invoice['Service_time']) > 0) {
+                    $DataUserOut['expire'] = intval($invoice['time_sell']) + (intval($invoice['Service_time']) * 86400);
+                } else {
+                    $DataUserOut['expire'] = 0;
+                }
+                
+                $infoconfig = isset($invoice['user_info']) ? json_decode($invoice['user_info'], true) : [];
+                if (isset($infoconfig['subscription_url'])) {
+                    $DataUserOut['subscription_url'] = $infoconfig['subscription_url'];
+                    $DataUserOut['links'] = [$infoconfig['subscription_url']];
+                } else {
+                    $DataUserOut['subscription_url'] = "";
+                    $DataUserOut['links'] = [];
+                }
             }
             
             $data_limit_bytes = isset($DataUserOut['data_limit']) && is_numeric($DataUserOut['data_limit']) ? (float) $DataUserOut['data_limit'] : 0;

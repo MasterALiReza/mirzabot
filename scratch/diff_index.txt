@@ -1,0 +1,185 @@
+diff --git a/index.php b/index.php
+index 2269787..1f81685 100644
+--- a/index.php
++++ b/index.php
+@@ -1482,6 +1482,11 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
+ } elseif ($user['step'] == "gettimecustomvolomforextend") {
+     $userdate = json_decode($user['Processing_value'], true);
+     $nameloc = select("invoice", "*", "id_invoice", $userdate['id_invoice'], "select");
++    if (!$nameloc) {
++        sendmessage($from_id, "فاکتور یافت نشد.", null, 'HTML');
++        step("home", $from_id);
++        return;
++    }
+     $marzban_list_get = select("marzban_panel", "*", "name_panel", $nameloc['Service_location'], "select");
+     $mainvolume = json_decode($marzban_list_get['mainvolume'] ?? '{}', true) ?: [];
+         $mainvolume = $mainvolume[$user['agent']] ?? 0;
+@@ -1510,6 +1515,11 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
+     $monthenumber = $dataget[1];
+     $userdate = json_decode($user['Processing_value'], true);
+     $nameloc = select("invoice", "*", "id_invoice", $userdate['id_invoice'], "select");
++    if (!$nameloc) {
++        sendmessage($from_id, "فاکتور یافت نشد.", null, 'HTML');
++        step("home", $from_id);
++        return;
++    }
+     $stmt = $pdo->prepare("SELECT * FROM product WHERE (Location = :service_location OR Location = '/all') AND agent = :agent AND Service_time = :monthe AND one_buy_status = '0'");
+     $stmt->execute([
+         ':service_location' => $nameloc['Service_location'],
+@@ -1548,6 +1558,11 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
+ } elseif (preg_match('/^serviceextendselect_(.*)/', $datain, $dataget) || $user['step'] == "getvolumecustomuserforextend" || $datain == "exntedagei") {
+     $userdate = json_decode($user['Processing_value'], true);
+     $nameloc = select("invoice", "*", "id_invoice", $userdate['id_invoice'], "select");
++    if (!$nameloc) {
++        sendmessage($from_id, "فاکتور یافت نشد.", null, 'HTML');
++        step("home", $from_id);
++        return;
++    }
+     $marzban_list_get = select("marzban_panel", "*", "name_panel", $nameloc['Service_location'], "select");
+     if ($user['step'] == "getvolumecustomuserforextend") {
+         if (!ctype_digit($text)) {
+@@ -1647,6 +1662,11 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
+ } elseif ($user['step'] == "getcodesellDiscountextend") {
+     $userdate = json_decode($user['Processing_value'], true);
+     $nameloc = select("invoice", "*", "id_invoice", $userdate['id_invoice'], "select");
++    if (!$nameloc) {
++        sendmessage($from_id, "فاکتور یافت نشد.", null, 'HTML');
++        step("home", $from_id);
++        return;
++    }
+     $marzban_list_get = select("marzban_panel", "*", "name_panel", $nameloc['Service_location'], "select");
+     if (!in_array($text, $SellDiscount)) {
+         sendmessage($from_id, $textbotlang['users']['Discount']['notcode'], $backuser, 'HTML');
+@@ -2056,8 +2076,8 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
+     if ($user['Balance'] < $volume && $user['agent'] != "n2") {
+         $marzbandirectpay = select('shopSetting', "*", "Namevalue", "statusdirectpabuy", "select")['value'];
+         if ($marzbandirectpay == "offdirectbuy") {
+-            $minbalance = number_format((json_decode(select("PaySetting", "*", "NamePay", "minbalance", "select")['ValuePay'], true) ?: [])[$user['agent']] ?? null);
+-            $maxbalance = number_format((json_decode(select("PaySetting", "*", "NamePay", "maxbalance", "select")['ValuePay'], true) ?: [])[$user['agent']] ?? null);
++            $minbalance = number_format((json_decode(select("PaySetting", "*", "NamePay", "minbalance", "select")['ValuePay'], true) ?: [])[$user['agent']] ?? 0);
++            $maxbalance = number_format((json_decode(select("PaySetting", "*", "NamePay", "maxbalance", "select")['ValuePay'], true) ?: [])[$user['agent']] ?? 0);
+             $bakinfos = json_encode([
+                 'inline_keyboard' => [
+                     [
+@@ -2254,8 +2274,8 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
+     if ($user['Balance'] < $Pricechange && $user['agent'] != "n2" && $limitfree) {
+         $marzbandirectpay = select('shopSetting', "*", "Namevalue", "statusdirectpabuy", "select")['value'];
+         if ($marzbandirectpay == "offdirectbuy") {
+-            $minbalance = number_format((json_decode(select("PaySetting", "*", "NamePay", "minbalance", "select")['ValuePay'], true) ?: [])[$user['agent']] ?? null);
+-            $maxbalance = number_format((json_decode(select("PaySetting", "*", "NamePay", "maxbalance", "select")['ValuePay'], true) ?: [])[$user['agent']] ?? null);
++            $minbalance = number_format((json_decode(select("PaySetting", "*", "NamePay", "minbalance", "select")['ValuePay'], true) ?: [])[$user['agent']] ?? 0);
++            $maxbalance = number_format((json_decode(select("PaySetting", "*", "NamePay", "maxbalance", "select")['ValuePay'], true) ?: [])[$user['agent']] ?? 0);
+             $bakinfos = json_encode([
+                 'inline_keyboard' => [
+                     [
+@@ -2558,8 +2578,8 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
+     if ($user['Balance'] < $tmieextra && $user['agent'] != "n2") {
+         $marzbandirectpay = select('shopSetting', "*", "Namevalue", "statusdirectpabuy", "select")['value'];
+         if ($marzbandirectpay == "offdirectbuy") {
+-            $minbalance = number_format((json_decode(select("PaySetting", "*", "NamePay", "minbalance", "select")['ValuePay'], true) ?: [])[$user['agent']] ?? null);
+-            $maxbalance = number_format((json_decode(select("PaySetting", "*", "NamePay", "maxbalance", "select")['ValuePay'], true) ?: [])[$user['agent']] ?? null);
++            $minbalance = number_format((json_decode(select("PaySetting", "*", "NamePay", "minbalance", "select")['ValuePay'], true) ?: [])[$user['agent']] ?? 0);
++            $maxbalance = number_format((json_decode(select("PaySetting", "*", "NamePay", "maxbalance", "select")['ValuePay'], true) ?: [])[$user['agent']] ?? 0);
+             $bakinfos = json_encode([
+                 'inline_keyboard' => [
+                     [
+@@ -3929,8 +3949,8 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
+         if ($Balance_prim <= 1)
+             $Balance_prim = 0;
+         if ($marzbandirectpay == "offdirectbuy") {
+-            $minbalance = number_format((json_decode(select("PaySetting", "*", "NamePay", "minbalance", "select")['ValuePay'], true) ?: [])[$user['agent']] ?? null);
+-            $maxbalance = number_format((json_decode(select("PaySetting", "*", "NamePay", "maxbalance", "select")['ValuePay'], true) ?: [])[$user['agent']] ?? null);
++            $minbalance = number_format((json_decode(select("PaySetting", "*", "NamePay", "minbalance", "select")['ValuePay'], true) ?: [])[$user['agent']] ?? 0);
++            $maxbalance = number_format((json_decode(select("PaySetting", "*", "NamePay", "maxbalance", "select")['ValuePay'], true) ?: [])[$user['agent']] ?? 0);
+             $bakinfos = json_encode([
+                 'inline_keyboard' => [
+                     [
+@@ -4347,7 +4367,7 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
+         sendmessage($from_id, $textbotlang['extracted']['index_php']['bulkPurchaseDisabled'], null, 'HTML');
+         return;
+     }
+-    $PaySetting = select("PaySetting", "*", "NamePay", "minbalancebuybulk", "select")['ValuePay'];
++    $PaySetting = select("shopSetting", "*", "Namevalue", "minbalancebuybulk", "select")['value'] ?? 0;
+     if ($user['Balance'] < $PaySetting) {
+         sendmessage($from_id, strtr($textbotlang['extracted']['index_php']['bulkPurchaseMinBalance'], ['{PaySetting}' => $PaySetting]), null, 'HTML');
+         return;
+@@ -4526,6 +4546,12 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
+     step('payments', $from_id);
+ } elseif ($user['step'] == "payments" && $datain == "confirmandgetservice") {
+     $marzban_list_get = select("marzban_panel", "*", "name_panel", $user['Processing_value'], "select");
++    if (!$marzban_list_get) {
++        error_log("Reseller Payment Error: Panel not found for " . ($user['Processing_value'] ?? 'null'));
++        sendmessage($from_id, $textbotlang['extracted']['index_php']['panelUnavailableUseAnother'] ?? "پنل در دسترس نیست.", $backuser, 'HTML');
++        step("home", $from_id);
++        return;
++    }
+     $eextraprice = json_decode($marzban_list_get['pricecustomvolume'] ?? '{}', true) ?: [];
+         $custompricevalue = $eextraprice[$user['agent']] ?? 0;
+     $eextraprice = json_decode($marzban_list_get['pricecustomtime'] ?? '{}', true) ?: [];
+@@ -4555,8 +4581,8 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
+     if ($priceproduct > $user['Balance'] && $user['agent'] != "n2") {
+         $marzbandirectpay = select('shopSetting', "*", "Namevalue", "statusdirectpabuy", "select")['value'];
+         if ($marzbandirectpay == "offdirectbuy") {
+-            $minbalance = number_format((json_decode(select("PaySetting", "*", "NamePay", "minbalance", "select")['ValuePay'], true) ?: [])[$user['agent']] ?? null);
+-            $maxbalance = number_format((json_decode(select("PaySetting", "*", "NamePay", "maxbalance", "select")['ValuePay'], true) ?: [])[$user['agent']] ?? null);
++            $minbalance = number_format((json_decode(select("PaySetting", "*", "NamePay", "minbalance", "select")['ValuePay'], true) ?: [])[$user['agent']] ?? 0);
++            $maxbalance = number_format((json_decode(select("PaySetting", "*", "NamePay", "maxbalance", "select")['ValuePay'], true) ?: [])[$user['agent']] ?? 0);
+             $bakinfos = json_encode([
+                 'inline_keyboard' => [
+                     [
+@@ -4698,8 +4724,8 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
+     }
+     if ($user['number'] == "none" && $setting['get_number'] == "onAuthenticationphone")
+         return;
+-    $minbalance = number_format((json_decode(select("PaySetting", "*", "NamePay", "minbalance", "select")['ValuePay'], true) ?: [])[$user['agent']] ?? null);
+-    $maxbalance = number_format((json_decode(select("PaySetting", "*", "NamePay", "maxbalance", "select")['ValuePay'], true) ?: [])[$user['agent']] ?? null);
++    $minbalance = number_format((json_decode(select("PaySetting", "*", "NamePay", "minbalance", "select")['ValuePay'], true) ?: [])[$user['agent']] ?? 0);
++    $maxbalance = number_format((json_decode(select("PaySetting", "*", "NamePay", "maxbalance", "select")['ValuePay'], true) ?: [])[$user['agent']] ?? 0);
+     $bakinfos = json_encode([
+         'inline_keyboard' => [
+             [
+@@ -5748,6 +5774,10 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
+         }
+         $service_other = json_decode($service_other['value'], true);
+         $nameloc = select("invoice", "*", "username", $usernamepanel, "select");
++        if (!$nameloc) {
++            sendmessage($from_id, $textbotlang['extracted']['index_php']['infoFetchErrorRestart'], $keyboard, 'HTML');
++            return;
++        }
+         $marzban_list_get = select("marzban_panel", "*", "name_panel", $nameloc['Service_location'], "select");
+         $eextraprice = json_decode($marzban_list_get['pricecustomvolume'] ?? '{}', true) ?: [];
+         $custompricevalue = $eextraprice[$user['agent']] ?? 0;
+@@ -6094,8 +6124,8 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
+     if ($user['Balance'] < $volume && $user['agent'] != "n2") {
+         $marzbandirectpay = select('shopSetting', "*", "Namevalue", "statusdirectpabuy", "select")['value'];
+         if ($marzbandirectpay == "offdirectbuy") {
+-            $minbalance = number_format((json_decode(select("PaySetting", "*", "NamePay", "minbalance", "select")['ValuePay'], true) ?: [])[$user['agent']] ?? null);
+-            $maxbalance = number_format((json_decode(select("PaySetting", "*", "NamePay", "maxbalance", "select")['ValuePay'], true) ?: [])[$user['agent']] ?? null);
++            $minbalance = number_format((json_decode(select("PaySetting", "*", "NamePay", "minbalance", "select")['ValuePay'], true) ?: [])[$user['agent']] ?? 0);
++            $maxbalance = number_format((json_decode(select("PaySetting", "*", "NamePay", "maxbalance", "select")['ValuePay'], true) ?: [])[$user['agent']] ?? 0);
+             $bakinfos = json_encode([
+                 'inline_keyboard' => [
+                     [
+@@ -6648,6 +6678,11 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
+     step("getnotedit", $from_id);
+ } elseif ($user['step'] == "getnotedit") {
+     $invoice = select("invoice", "*", "id_invoice", $user['Processing_value'], "select");
++    if (!$invoice) {
++        sendmessage($from_id, "فاکتور یافت نشد.", null, 'HTML');
++        step("home", $from_id);
++        return;
++    }
+     if (strlen($text) > 150) {
+         sendmessage($from_id, $textbotlang['users']['note']['errorLongNote'], $keyboard, "html");
+         return;
+@@ -6792,8 +6827,8 @@ if (isset($update['message']['successful_payment'])) {
+     if ($user['Balance'] < $prodcut['price_product'] && $user['agent'] != "n2") {
+         $marzbandirectpay = select('shopSetting', "*", "Namevalue", "statusdirectpabuy", "select")['value'];
+         if ($marzbandirectpay == "offdirectbuy") {
+-            $minbalance = number_format((json_decode(select("PaySetting", "*", "NamePay", "minbalance", "select")['ValuePay'], true) ?: [])[$user['agent']] ?? null);
+-            $maxbalance = number_format((json_decode(select("PaySetting", "*", "NamePay", "maxbalance", "select")['ValuePay'], true) ?: [])[$user['agent']] ?? null);
++            $minbalance = number_format((json_decode(select("PaySetting", "*", "NamePay", "minbalance", "select")['ValuePay'], true) ?: [])[$user['agent']] ?? 0);
++            $maxbalance = number_format((json_decode(select("PaySetting", "*", "NamePay", "maxbalance", "select")['ValuePay'], true) ?: [])[$user['agent']] ?? 0);
+             $bakinfos = json_encode([
+                 'inline_keyboard' => [
+                     [

@@ -1,0 +1,12 @@
+FATAL: Array
+(
+    [type] => 1
+    [message] => Uncaught mysqli_sql_exception: php_network_getaddresses: getaddrinfo for {database_url} failed: No such host is known.  in C:\Users\iWexort\Documents\Github\mirzabot-main\config.php:9
+Stack trace:
+#0 C:\Users\iWexort\Documents\Github\mirzabot-main\config.php(9): mysqli_connect('{database_url}', '{username_db}', Object(SensitiveParameterValue), '{database_name}')
+#1 C:\Users\iWexort\Documents\Github\mirzabot-main\test_payment_fatal.php(13): include('C:\\Users\\iWexor...')
+#2 {main}
+  thrown
+    [file] => C:\Users\iWexort\Documents\Github\mirzabot-main\config.php
+    [line] => 9
+)

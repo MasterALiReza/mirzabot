@@ -352,6 +352,7 @@ function toggleReferrals(referrerId) {
         // Create details row
         detailsRow = document.createElement('tr');
         detailsRow.id = 'details-' + referrerId;
+        detailsRow.className = 'details-row';
         detailsRow.style.borderBottom = '1px solid var(--bd)';
         detailsRow.style.background = 'rgba(0,0,0,0.01)';
         

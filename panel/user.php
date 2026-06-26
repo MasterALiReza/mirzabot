@@ -616,7 +616,7 @@ include __DIR__ . '/inc/layout_head.php';
                     <?php if (count($referrals) > 0): ?>
                         <button class="btn btn-sm" id="tabRefs" onclick="switchTab('refs')"
                             style="background:transparent;color:var(--mute);border-radius:5px;font-size:.75rem;border:none">
-                            <?= $textbotlang['panel']['userNoOrderForUser'] ?>
+                            زیرمجموعه‌ها
                             <span
                                 style="background:var(--acs);color:var(--ac);padding:1px 6px;border-radius:99px;font-size:.65rem">
                                 <?= count($referrals) ?>
@@ -624,7 +624,11 @@ include __DIR__ . '/inc/layout_head.php';
                         </button>
                     <?php endif; ?>
                 </div>
-                <a href="invoice.php?q=<?= urlencode($id) ?>" class="btn-link" style="font-size:.75rem"><?= $textbotlang['panel']['userColTrackingCode'] ?></a>
+                <div>
+                    <a href="invoice.php?q=<?= urlencode($id) ?>" id="linkAllInvs" class="btn-link" style="font-size:.75rem"><?= $textbotlang['panel']['userColTrackingCode'] ?? 'همه ←' ?></a>
+                    <a href="payments.php?q=<?= urlencode($id) ?>" id="linkAllPays" class="btn-link" style="font-size:.75rem; display:none;">همه ←</a>
+                    <a href="affiliates.php?q=<?= urlencode($id) ?>" id="linkAllRefs" class="btn-link" style="font-size:.75rem; display:none;">همه ←</a>
+                </div>
             </div>
 
             <div id="paneOrders">

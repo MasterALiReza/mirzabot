@@ -1,0 +1,31 @@
+diff --git a/panels.php b/panels.php
+index 71a3940..e73f3d1 100644
+--- a/panels.php
++++ b/panels.php
+@@ -1799,7 +1799,7 @@ class ManagePanel
+         $invoice = select("invoice", "*", "username", $username, "select");
+         if ($code_product == "custom_volume")
+             $product = true;
+-        if ($panel == false || $product == false) {
++        if ($panel == false || $product == false || $invoice == false) {
+             return array(
+                 'status' => false,
+                 'msg' => 'data not found'
+@@ -1995,7 +1995,7 @@ class ManagePanel
+     {
+         $panel = select("marzban_panel", "*", "code_panel", $code_panel, "select");
+         $invoice = select("invoice", "*", "username", $username_account, "select");
+-        if ($panel == false) {
++        if ($panel == false || $invoice == false) {
+             return array(
+                 'status' => false,
+                 'msg' => 'data not found'
+@@ -2110,7 +2110,7 @@ class ManagePanel
+     {
+         $panel = select("marzban_panel", "*", "code_panel", $code_panel, "select");
+         $invoice = select("invoice", "*", "username", $username_account, "select");
+-        if ($panel == false) {
++        if ($panel == false || $invoice == false) {
+             return array(
+                 'status' => false,
+                 'msg' => 'data not found'

@@ -1,0 +1,1193 @@
+--- c:\Users\iWexort\Documents\Github\mirzabot-main\temp_mirzabot\panels.php
++++ c:\Users\iWexort\Documents\Github\mirzabot-main\panels.php
+@@ -3,6 +3,7 @@
+ require_once __DIR__ . '/config.php';
+ require_once __DIR__ . '/Marzban.php';
+ require_once __DIR__ . '/x-ui_single.php';
++require_once __DIR__ . '/MHSanaei-3.2.php';
+ require_once __DIR__ . '/hiddify.php';
+ require_once __DIR__ . '/marzneshin.php';
+ require_once __DIR__ . '/alireza_single.php';
+@@ -10,7 +11,6 @@
+ require_once __DIR__ . '/s_ui.php';
+ require_once __DIR__ . '/ibsng.php';
+ require_once __DIR__ . '/mikrotik.php';
+-require_once __DIR__ . '/mirza_agent.php';
+ 
+ class ManagePanel
+ {
+@@ -37,9 +37,9 @@
+             return $Output;
+         }
+         if ($Get_Data_Panel['subvip'] == "onsubvip") {
+-            $invoice = select("invoice", "*", "username", $usernameC, "select");
++            $inoice = select("invoice", "*", "username", $usernameC, "select");
+         } else {
+-            $invoice = false;
++            $inoice = false;
+         }
+         if (!in_array($code_product, ["usertest", $textbotlang['extracted']['index_php']['customVolumeButton'], "customvolume"])) {
+ 
+@@ -93,8 +93,8 @@
+                     }
+                     $data_Output['links'] = explode("\n", $data_Output['links']);
+                 }
+-                if ($invoice != false) {
+-                    $data_Output['subscription_url'] = "https://$domainhosts/sub/" . $invoice['id_invoice'];
++                if ($inoice != false) {
++                    $data_Output['subscription_url'] = "https://$domainhosts/sub/" . $inoice['id_invoice'];
+                 }
+                 $Output['status'] = 'successful';
+                 $Output['username'] = $data_Output['username'];
+@@ -134,8 +134,8 @@
+                 }
+                 $links_user = explode("\n", trim($data_Output['links']));
+                 $date = new DateTime($data_Output['expire']);
+-                if ($invoice != false) {
+-                    $data_Output['subscription_url'] = "https://$domainhosts/sub/" . $invoice['id_invoice'];
++                if ($inoice != false) {
++                    $data_Output['subscription_url'] = "https://$domainhosts/sub/" . $inoice['id_invoice'];
+                 }
+                 $data_Output['expire'] = $date->getTimestamp();
+                 $Output['status'] = 'successful';
+@@ -143,14 +143,16 @@
+                 $Output['subscription_url'] = $data_Output['subscription_url'];
+                 $Output['configs'] = $links_user;
+             }
++        } elseif ($Get_Data_Panel['type'] == "MHSanaei-3.2") {
++            return MHSanaei_router(__FUNCTION__, func_get_args());
+         } elseif ($Get_Data_Panel['type'] == "x-ui_single") {
+             $subId = bin2hex(random_bytes(8));
+             if (isset($Get_Data_Product['inbounds']) and $Get_Data_Product['inbounds'] != null) {
+                 $inbounds = $Get_Data_Product['inbounds'];
+             } else {
+-                $inbounds = $Get_Data_Panel['inbounds'];
+-            }
+-            $data_Output = addClient($Get_Data_Panel, $usernameC, $expire, $subId, $data_limit, $inbounds, $Get_Data_Product['name_product'], $note);
++                $inbounds = $Get_Data_Panel['inboundid'];
++            }
++            $data_Output = addClient($Get_Data_Panel['name_panel'], $usernameC, $expire, $data_limit, generateUUID(), "", $subId, $inbounds, $Get_Data_Product['name_product'], $note);
+             if (!empty($data_Output['error'])) {
+                 return array(
+                     'status' => 'Unsuccessful',
+@@ -176,8 +178,8 @@
+                     $Output['username'] = $usernameC;
+                     $Output['subscription_url'] = $Get_Data_Panel['linksubx'] . "/{$subId}";
+                     $Output['configs'] = $links_user;
+-                    if ($invoice != false) {
+-                        $Output['subscription_url'] = "https://$domainhosts/sub/" . $invoice['id_invoice'];
++                    if ($inoice != false) {
++                        $Output['subscription_url'] = "https://$domainhosts/sub/" . $inoice['id_invoice'];
+                     }
+                 }
+             }
+@@ -210,8 +212,8 @@
+                     $Output['username'] = $usernameC;
+                     $Output['subscription_url'] = $Get_Data_Panel['linksubx'] . "/{$subId}";
+                     $Output['configs'] = [outputlink($Output['subscription_url'])];
+-                    if ($invoice != false) {
+-                        $Output['subscription_url'] = "https://$domainhosts/sub/" . $invoice['id_invoice'];
++                    if ($inoice != false) {
++                        $Output['subscription_url'] = "https://$domainhosts/sub/" . $inoice['id_invoice'];
+                     }
+                 }
+             }
+@@ -254,12 +256,12 @@
+                 $Output['username'] = $usernameC;
+                 $Output['subscription_url'] = "{$Get_Data_Panel['linksubx']}/{$data_Output['uuid']}/";
+                 $Output['configs'] = [];
+-                if ($invoice != false) {
+-                    $Output['subscription_url'] = "https://$domainhosts/sub/" . $invoice['id_invoice'];
++                if ($inoice != false) {
++                    $Output['subscription_url'] = "https://$domainhosts/sub/" . $inoice['id_invoice'];
+                 }
+             }
+         } elseif ($Get_Data_Panel['type'] == "Manualsale") {
+-            $statement = $pdo->prepare("SELECT * FROM manualsell WHERE codepanel = :code_panel AND status = 'active' AND codeproduct = :mp1 ORDER BY RAND() LIMIT 1");
++            $statement = $pdo->prepare("SELECT * FROM manualsell WHERE codepanel = :code_panel AND status = 'active' AND codeproduct = '$code_product' ORDER BY RAND() LIMIT 1");
+             $statement->execute(array(':code_panel' => $Get_Data_Panel['code_panel']));
+             $configman = $statement->fetch(PDO::FETCH_ASSOC);
+             $Output['status'] = 'successful';
+@@ -271,10 +273,10 @@
+         } elseif ($Get_Data_Panel['type'] == "WGDashboard") {
+             $data_limit = round($data_limit / (1024 * 1024 * 1024), 2);
+             $data_Output = addpear($Get_Data_Panel['name_panel'], $usernameC);
+-            if (!empty($data_Output['status']) && $data_Output['status'] != 200) {
+-                return array(
+-                    'status' => 'Unsuccessful',
+-                    'msg' => $data_Output['status']
++            if (isset($data_Output['status']) && ($data_Output['status'] === false || $data_Output['status'] != 200)) {
++                return array(
++                    'status' => 'Unsuccessful',
++                    'msg' => $data_Output['msg'] ?? ($data_Output['status'] ? 'error code : ' . $data_Output['status'] : 'Unknown error')
+                 );
+             }
+             if (!empty($data_Output['error'])) {
+@@ -292,15 +294,15 @@
+                 setjob($Get_Data_Panel['name_panel'], "date", date('Y-m-d H:i:s', $expire), $data_Output['public_key']);
+             }
+             update("invoice", "user_info", json_encode($data_Output), "username", $usernameC);
+-            if (!$response['status']) {
++            if (empty($response) || !$response['status']) {
+                 $Output['status'] = 'Unsuccessful';
+-                $Output['msg'] = $data_Output['msg'];
++                $Output['msg'] = $response['message'] ?? $data_Output['msg'] ?? 'Response status false';
+             } else {
+                 $download_config = downloadconfig($Get_Data_Panel['name_panel'], $data_Output['public_key']);
+-                if (!empty($download_config['status']) && $download_config['status'] != 200) {
++                if (isset($download_config['status']) && ($download_config['status'] === false || $download_config['status'] != 200)) {
+                     return array(
+                         'status' => 'Unsuccessful',
+-                        'msg' => $download_config['status']
++                        'msg' => $download_config['msg'] ?? ($download_config['status'] ? 'error code : ' . $download_config['status'] : 'Unknown error')
+                     );
+                 }
+                 if (!empty($download_config['error'])) {
+@@ -309,10 +311,11 @@
+                         'msg' => $download_config['error']
+                     );
+                 }
+-                $download_config = (json_decode($download_config['body'], true) ?: [])['data'] ?? null;
++                $download_config_body = json_decode($download_config['body'], true);
++                $download_config_data = $download_config_body['data'] ?? $download_config_body;
+                 $Output['status'] = 'successful';
+                 $Output['username'] = $usernameC;
+-                $Output['subscription_url'] = strval($download_config['file']);
++                $Output['subscription_url'] = strval($download_config_data['file'] ?? '');
+                 $Output['configs'] = [];
+             }
+         } elseif ($Get_Data_Panel['type'] == "s_ui") {
+@@ -367,39 +370,6 @@
+                 $Output['username'] = $usernameC;
+                 $Output['subscription_url'] = $password;
+                 $Output['configs'] = [];
+-            }
+-        } elseif ($Get_Data_Panel['type'] == "mirza_agent") {
+-            //create user
+-            $ConnectToPanel = create_user_mirza($Get_Data_Panel, $data_limit / pow(1024, 3), ($expire - time()) / 86400, $usernameC);
+-            if (!empty($ConnectToPanel['status']) && $ConnectToPanel['status'] != 200) {
+-                return array(
+-                    'status' => 'Unsuccessful',
+-                    'msg' => $ConnectToPanel['status']
+-                );
+-            }
+-            if (!empty($ConnectToPanel['error'])) {
+-                return array(
+-                    'status' => 'Unsuccessful',
+-                    'msg' => $ConnectToPanel['error']
+-                );
+-            }
+-            $data_Output = json_decode($ConnectToPanel['body'], true);
+-            if (!$data_Output['status']) {
+-                $Output['status'] = 'Unsuccessful';
+-                if ($data_Output['msg']) {
+-                    $Output['msg'] = $data_Output['msg'];
+-                } else {
+-                    $Output['msg'] = '';
+-                }
+-            } else {
+-                if ($invoice != false) {
+-                    $data_Output['subscription_url'] = "https://$domainhosts/sub/" . $invoice['id_invoice'];
+-                }
+-                $data_Output = $data_Output['obj'];
+-                $Output['status'] = 'successful';
+-                $Output['username'] = $data_Output['username'];
+-                $Output['subscription_url'] = $data_Output['subscription_url'];
+-                $Output['configs'] = $data_Output['links'];
+             }
+         } else {
+             $Output['status'] = 'Unsuccessful';
+@@ -419,9 +389,9 @@
+             );
+         }
+         if (isset($Get_Data_Panel['subvip']) && $Get_Data_Panel['subvip'] == "onsubvip") {
+-            $invoice = select("invoice", "*", "username", $username, "select");
++            $inoice = select("invoice", "*", "username", $username, "select");
+         } else {
+-            $invoice = false;
++            $inoice = false;
+         }
+         if ($Get_Data_Panel['type'] == "marzban") {
+             $UsernameData = getuser($username, $Get_Data_Panel['name_panel']);
+@@ -438,9 +408,13 @@
+             } else {
+                 $UsernameData = json_decode($UsernameData['body'], true);
+                 if (!empty($UsernameData['detail'])) {
++                    $msg = $UsernameData['detail'];
++                    if (is_string($msg) && stripos($msg, 'not found') !== false) {
++                        $msg = 'User not found';
++                    }
+                     return array(
+                         'status' => 'Unsuccessful',
+-                        'msg' => $UsernameData['detail']
++                        'msg' => $msg
+                     );
+                 }
+                 if (!preg_match('/^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:\d+)?((\/[^\s\/]+)+)?$/', $UsernameData['subscription_url'])) {
+@@ -474,8 +448,8 @@
+                 } else {
+                     $UsernameData['expire'] = $UsernameData['expire'];
+                 }
+-                if ($invoice != false) {
+-                    $UsernameData['subscription_url'] = "https://$domainhosts/sub/" . $invoice['id_invoice'];
++                if ($inoice != false) {
++                    $UsernameData['subscription_url'] = "https://$domainhosts/sub/" . $inoice['id_invoice'];
+                 }
+                 if ($Get_Data_Panel['version_panel'] == "1") {
+                     $UsernameData['proxies'] = isset($UsernameData['proxy_settings']) ? $UsernameData['proxy_settings'] : null;
+@@ -517,7 +491,7 @@
+                 } elseif (!isset($UsernameData['username'])) {
+                     $Output = array(
+                         'status' => 'Unsuccessful',
+-                        'msg' => "Unsuccessful"
++                        'msg' => 'User not found'
+                     );
+                 } else {
+                     if (!preg_match('/^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:\d+)?((\/[^\s\/]+)+)?$/', $UsernameData['subscription_url'])) {
+@@ -549,8 +523,8 @@
+                     } else {
+                         $expiretime = 0;
+                     }
+-                    if ($invoice != false) {
+-                        $UsernameData['subscription_url'] = "https://$domainhosts/sub/" . $invoice['id_invoice'];
++                    if ($inoice != false) {
++                        $UsernameData['subscription_url'] = "https://$domainhosts/sub/" . $inoice['id_invoice'];
+                     }
+                     $Output = array(
+                         'status' => $UsernameData['status'],
+@@ -567,8 +541,10 @@
+                     );
+                 }
+             }
++        } elseif ($Get_Data_Panel['type'] == "MHSanaei-3.2") {
++            return MHSanaei_router(__FUNCTION__, func_get_args());
+         } elseif ($Get_Data_Panel['type'] == "x-ui_single") {
+-            $user_data = get_clinets($username, $Get_Data_Panel);
++            $user_data = get_clinets($username, $Get_Data_Panel['name_panel']);
+             if (!empty($user_data['error'])) {
+                 return array(
+                     'status' => 'Unsuccessful',
+@@ -595,59 +571,39 @@
+                 );
+             }
+             $user_data = $user_data['obj'];
+-            $expire = $user_data['client']['expiryTime'] / 1000;
+-
+-            $used_data_3xui = used_data_3xui($Get_Data_Panel, $username);
+-            if (!empty($used_data_3xui['error'])) {
+-                return array(
+-                    'status' => 'Unsuccessful',
+-                    'msg' => $used_data_3xui['error']
+-                );
+-            } elseif (!empty($used_data_3xui['status']) && $used_data_3xui['status'] != 200) {
+-                return array(
+-                    'status' => 'Unsuccessful',
+-                    'msg' => $used_data_3xui['status']
+-                );
+-            }
+-            $used_data_3xui = json_decode($used_data_3xui['body'], true);
+-            if (!$used_data_3xui['success']) {
+-                return array(
+-                    'status' => 'Unsuccessful',
+-                    'msg' => $used_data_3xui['msg']
+-                );
+-            }
+-            if ($user_data['client']['enable']) {
+-                $user_data['client']['enable'] = "active";
+-            } else {
+-                $user_data['client']['enable'] = "disabled";
+-            }
+-            if ((intval($user_data['client']['totalGB'])) != 0) {
+-                if ((intval($user_data['client']['totalGB']) - ($used_data_3xui['obj']['up'] + $used_data_3xui['obj']['down'])) <= 0)
++            $expire = $user_data['expiryTime'] / 1000;
++            if ($user_data['enable']) {
++                $user_data['enable'] = "active";
++            } else {
++                $user_data['enable'] = "disabled";
++            }
++            if ((intval($user_data['total'])) != 0) {
++                if ((intval($user_data['total']) - ($user_data['up'] + $user_data['down'])) <= 0)
+                     $user_data['enable'] = "limited";
+             }
+-            if (intval($user_data['client']['expiryTime']) != 0) {
++            if (intval($user_data['expiryTime']) != 0) {
+                 if ($expire - time() <= 0)
+                     $user_data['enable'] = "expired";
+             }
+-            if ($user_data['client']['expiryTime'] < -10000) {
+-                $user_data['client']['enable'] = "on_hold";
++            if ($user_data['expiryTime'] < -10000) {
++                $user_data['enable'] = "on_hold";
+                 $expire = 0;
+             }
+-            $linksub = $Get_Data_Panel['linksubx'] . "/{$user_data['client']['subId']}";
+-            $used_data_3xui['obj']['lastOnline'] = $used_data_3xui['obj']['lastOnline'] == 0 ? "offline" : date('Y-m-d H:i:s', $used_data_3xui['obj']['lastOnline'] / 1000);
+-            $links_user = outputlink($linksub);
++            $linksub = $Get_Data_Panel['linksubx'] . "/{$user_data['subId']}";
++            $links_user = outputlink($Get_Data_Panel['linksubx'] . "/{$user_data['subId']}");
+             if (isBase64($links_user))
+                 $links_user = base64_decode($links_user);
+             $links_user = explode("\n", trim($links_user));
+-            if ($invoice != false)
+-                $linksub = "https://$domainhosts/sub/" . $invoice['id_invoice'];
++            if ($inoice != false)
++                $linksub = "https://$domainhosts/sub/" . $inoice['id_invoice'];
++            $user_data['lastOnline'] = $user_data['lastOnline'] == 0 ? "offline" : (new DateTime('@' . ($user_data['lastOnline'] / 1000)))->format('Y-m-d H:i:s');
+             $Output = array(
+-                'status' => $user_data['client']['enable'],
+-                'username' => $user_data['client']['email'],
+-                'data_limit' => $user_data['client']['totalGB'],
++                'status' => $user_data['enable'],
++                'username' => $user_data['email'],
++                'data_limit' => $user_data['total'],
+                 'expire' => $expire,
+-                'online_at' => $used_data_3xui['obj']['lastOnline'],
+-                'used_traffic' => $used_data_3xui['obj']['up'] + $used_data_3xui['obj']['down'],
++                'online_at' => $user_data['lastOnline'],
++                'used_traffic' => $user_data['up'] + $user_data['down'],
+                 'links' => $links_user,
+                 'subscription_url' => $linksub,
+                 'sub_updated_at' => null,
+@@ -656,15 +612,19 @@
+ 
+         } elseif ($Get_Data_Panel['type'] == "hiddify") {
+             $UsernameData = getdatauser($username, $Get_Data_Panel['name_panel']);
+-            if (!isset($UsernameData)) {
+-                $Output = array(
+-                    'status' => 'Unsuccessful',
+-                    'msg' => "Not Connected TO paonel"
++            if (!isset($UsernameData) || empty($UsernameData)) {
++                $Output = array(
++                    'status' => 'Unsuccessful',
++                    'msg' => 'User not found'
+                 );
+             } elseif (isset($UsernameData['message'])) {
+-                $Output = array(
+-                    'status' => 'Unsuccessful',
+-                    'msg' => $UsernameData['message']
++                $msg = $UsernameData['message'];
++                if (stripos($msg, 'not found') !== false || empty($msg)) {
++                    $msg = 'User not found';
++                }
++                $Output = array(
++                    'status' => 'Unsuccessful',
++                    'msg' => $msg
+                 );
+             } else {
+                 $startDate = $UsernameData['start_date'] ?? null;
+@@ -694,8 +654,8 @@
+                 } else {
+                     $status = "active";
+                 }
+-                if ($invoice != false) {
+-                    $linksuburl = "https://$domainhosts/sub/" . $invoice['id_invoice'];
++                if ($inoice != false) {
++                    $linksuburl = "https://$domainhosts/sub/" . $inoice['id_invoice'];
+                 }
+                 $Output = array(
+                     'status' => $status,
+@@ -715,6 +675,12 @@
+             $stmt->bindParam(':username', $username);
+             $stmt->execute();
+             $configman = $stmt->fetch(PDO::FETCH_ASSOC);
++            if (!$configman) {
++                $Output = array(
++                    'status' => 'Unsuccessful',
++                    'msg' => 'User not found'
++                );
++            } else {
+             $service = select("invoice", "*", "username", $username, "select");
+             $Output = array(
+                 'status' => $service['Status'],
+@@ -729,24 +695,25 @@
+                 'sub_last_user_agent' => null,
+                 'uuid' => null
+             );
++            }
+         } elseif ($Get_Data_Panel['type'] == "alireza_single") {
+             $UsernameData2 = get_clinetsalireza($username, $Get_Data_Panel['name_panel']);
+-            if (!is_array($UsernameData2)) {
+-                $Output = array(
+-                    'status' => 'Unsuccessful',
+-                    'msg' => "user not found"
+-                );
+-            }
+-            $UsernameData = $UsernameData2[1];
+-            $UsernameData2 = $UsernameData2[0];
+-            $expire = $UsernameData['expiryTime'] / 1000;
+-            if (!$UsernameData['id']) {
+-                if (!isset($UsernameData['msg']))
+-                    $UsernameData['msg'] = null;
+-                $Output = array(
+-                    'status' => 'Unsuccessful',
+-                    'msg' => $UsernameData['msg']
+-                );
++            if (!is_array($UsernameData2) || empty($UsernameData2)) {
++                $Output = array(
++                    'status' => 'Unsuccessful',
++                    'msg' => 'User not found'
++                );
++            } else {
++                $UsernameData = $UsernameData2[1];
++                $UsernameData2 = $UsernameData2[0];
++                $expire = $UsernameData['expiryTime'] / 1000;
++                if (!$UsernameData['id']) {
++                    if (!isset($UsernameData['msg']))
++                        $UsernameData['msg'] = 'User not found';
++                    $Output = array(
++                        'status' => 'Unsuccessful',
++                        'msg' => $UsernameData['msg']
++                    );
+             } else {
+                 if ($UsernameData['enable']) {
+                     $UsernameData['enable'] = "active";
+@@ -776,14 +743,16 @@
+                     'sub_last_user_agent' => null,
+                 );
+             }
++        }
+         } elseif ($Get_Data_Panel['type'] == "WGDashboard") {
+             $UsernameData = get_userwg($username, $Get_Data_Panel['name_panel']);
+             $invoiceinfo = select("invoice", "*", "username", $username, "select");
+             $infoconfig = isset($invoiceinfo['user_info']) ? json_decode($invoiceinfo['user_info'], true) : json_encode(array());
+             if (!isset($UsernameData['id'])) {
+-                $Output = array(
+-                    'status' => 'Unsuccessful',
+-                    'msg' => isset($UsernameData['msg']) ? $UsernameData['msg'] : ''
++                $msg = isset($UsernameData['msg']) ? $UsernameData['msg'] : (empty($UsernameData) ? 'User not found' : '');
++                $Output = array(
++                    'status' => 'Unsuccessful',
++                    'msg' => $msg
+                 );
+             } else {
+                 $jobtime = [];
+@@ -815,10 +784,10 @@
+                     $status = "limited";
+                 }
+                 $download_config = downloadconfig($Get_Data_Panel['name_panel'], $UsernameData['id']);
+-                if (!empty($download_config['status']) && $download_config['status'] != 200) {
++                if (isset($download_config['status']) && ($download_config['status'] === false || $download_config['status'] != 200)) {
+                     return array(
+                         'status' => 'Unsuccessful',
+-                        'msg' => $download_config['status']
++                        'msg' => $download_config['msg'] ?? ($download_config['status'] ? 'error code : ' . $download_config['status'] : 'Unknown error')
+                     );
+                 }
+                 if (!empty($download_config['error'])) {
+@@ -827,7 +796,8 @@
+                         'msg' => $download_config['error']
+                     );
+                 }
+-                $download_config = (json_decode($download_config['body'], true) ?: [])['data'] ?? null;
++                $download_config_body = json_decode($download_config['body'], true);
++                $download_config_data = $download_config_body['data'] ?? $download_config_body;
+                 $Output = array(
+                     'status' => $status,
+                     'username' => $UsernameData['name'],
+@@ -836,7 +806,7 @@
+                     'online_at' => null,
+                     'used_traffic' => $data_useage,
+                     'links' => [],
+-                    'subscription_url' => strval($download_config['file']),
++                    'subscription_url' => strval($download_config_data['file'] ?? ''),
+                     'sub_updated_at' => null,
+                     'sub_last_user_agent' => null,
+                 );
+@@ -845,9 +815,13 @@
+             $UsernameData = GetClientsS_UI($username, $Get_Data_Panel['name_panel']);
+             $onlinestatus = get_onlineclients_ui($Get_Data_Panel['name_panel'], $username);
+             if (!isset($UsernameData['id'])) {
+-                $Output = array(
+-                    'status' => 'Unsuccessful',
+-                    'msg' => $UsernameData['msg']
++                $msg = isset($UsernameData['msg']) ? $UsernameData['msg'] : '';
++                if (empty($msg) || stripos($msg, 'not found') !== false) {
++                    $msg = 'User not found';
++                }
++                $Output = array(
++                    'status' => 'Unsuccessful',
++                    'msg' => $msg
+                 );
+             } else {
+                 $links = [];
+@@ -888,9 +862,13 @@
+         } elseif ($Get_Data_Panel['type'] == "ibsng") {
+             $UsernameData = GetUserIBsng($Get_Data_Panel['name_panel'], $username);
+             if (!$UsernameData['status']) {
+-                $Output = array(
+-                    'status' => 'Unsuccessful',
+-                    'msg' => $UsernameData['msg']
++                $msg = isset($UsernameData['msg']) ? $UsernameData['msg'] : '';
++                if (empty($msg) || stripos($msg, 'not found') !== false) {
++                    $msg = 'User not found';
++                }
++                $Output = array(
++                    'status' => 'Unsuccessful',
++                    'msg' => $msg
+                 );
+             } else {
+                 $UsernameData = $UsernameData['data'];
+@@ -911,13 +889,19 @@
+                 );
+             }
+         } elseif ($Get_Data_Panel['type'] == "mikrotik") {
+-            $UsernameData = GetUsermikrotik($Get_Data_Panel['name_panel'], $username)[0];
+-            if (isset($UsernameData['error'])) {
+-                $Output = array(
+-                    'status' => 'Unsuccessful',
+-                    'msg' => $UsernameData['msg']
+-                );
+-            } else {
++            $UsernameDataResp = GetUsermikrotik($Get_Data_Panel['name_panel'], $username);
++            if (isset($UsernameDataResp['error'])) {
++                $Output = array(
++                    'status' => 'Unsuccessful',
++                    'msg' => isset($UsernameDataResp['msg']) ? $UsernameDataResp['msg'] : $UsernameDataResp['error']
++                );
++            } elseif (empty($UsernameDataResp)) {
++                $Output = array(
++                    'status' => 'Unsuccessful',
++                    'msg' => 'User not found'
++                );
++            } else {
++                $UsernameData = $UsernameDataResp[0];
+                 $invocie = select("invoice", "*", "username", $username, "select");
+                 $traffic_get = GetUsermikrotik_volume($Get_Data_Panel['name_panel'], $UsernameData['.id']);
+                 $used_traffic = $traffic_get['total-upload'] + $traffic_get['total-download'];
+@@ -937,45 +921,6 @@
+                     'sub_last_user_agent' => null,
+                 );
+             }
+-        } elseif ($Get_Data_Panel['type'] == "mirza_agent") {
+-            $UsernameData = get_user_data_mirza($Get_Data_Panel, $username);
+-            if (!empty($UsernameData['error'])) {
+-                $Output = array(
+-                    'status' => 'Unsuccessful',
+-                    'msg' => $UsernameData['error']
+-                );
+-            } elseif (!empty($UsernameData['status']) && $UsernameData['status'] != 200) {
+-                $Output = array(
+-                    'status' => 'Unsuccessful',
+-                    'msg' => $UsernameData['status']
+-                );
+-            } else {
+-                $UsernameData = json_decode($UsernameData['body'], true);
+-                if (!$UsernameData['status']) {
+-                    return array(
+-                        'status' => 'Unsuccessful',
+-                        'msg' => $UsernameData['msg']
+-                    );
+-                }
+-                $UsernameData = $UsernameData['obj']['user'];
+-                if ($invoice != false) {
+-                    $UsernameData['subscription_url'] = "https://$domainhosts/sub/" . $invoice['id_invoice'];
+-                }
+-                $Output = array(
+-                    'status' => $UsernameData['status'],
+-                    'username' => $UsernameData['username'],
+-                    'data_limit' => $UsernameData['data_limit'],
+-                    'expire' => $UsernameData['expire'] ? $UsernameData['expire'] : 0,
+-                    'online_at' => $UsernameData['online_at'],
+-                    'used_traffic' => $UsernameData['used_traffic'],
+-                    'links' => $UsernameData['links'],
+-                    'subscription_url' => $UsernameData['subscription_url'],
+-                    'sub_updated_at' => $UsernameData['sub_updated_at'],
+-                    'sub_last_user_agent' => $UsernameData['sub_last_user_agent'],
+-                    'uuid' => $UsernameData['uuid'],
+-                    'data_limit_reset' => $UsernameData['data_limit_reset']
+-                );
+-            }
+         } else {
+             $Output = array(
+                 'status' => 'Unsuccessful',
+@@ -987,6 +932,7 @@
+     function Revoke_sub($name_panel, $username)
+     {
+         $Output = array();
++        $ManagePanel = new ManagePanel();
+         $Get_Data_Panel = select("marzban_panel", "*", "name_panel", $name_panel, "select");
+         if ($Get_Data_Panel['type'] == "marzban") {
+             $revoke_sub = revoke_sub($username, $name_panel);
+@@ -996,7 +942,8 @@
+                     'msg' => $revoke_sub['detail']
+                 );
+             } else {
+-                $Data_User = $this->DataUser($name_panel, $username);
++                $config = new ManagePanel();
++                $Data_User = $config->DataUser($name_panel, $username);
+                 if (!preg_match('/^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:\d+)?((\/[^\s\/]+)+)?$/', $Data_User['subscription_url'])) {
+                     $Data_User['subscription_url'] = $Get_Data_Panel['url_panel'] . "/" . ltrim($Data_User['subscription_url'], "/");
+                 }
+@@ -1014,7 +961,8 @@
+                     'msg' => $revoke_sub['detail']
+                 );
+             } else {
+-                $Data_User = $this->DataUser($name_panel, $username);
++                $config = new ManagePanel();
++                $Data_User = $config->DataUser($name_panel, $username);
+                 $Data_User['links'] = [base64_decode(outputlink($Data_User['subscription_url']))];
+                 $Output = array(
+                     'status' => 'successful',
+@@ -1022,15 +970,24 @@
+                     'subscription_url' => $Data_User['subscription_url']
+                 );
+             }
++        } elseif ($Get_Data_Panel['type'] == "MHSanaei-3.2") {
++            return MHSanaei_router(__FUNCTION__, func_get_args());
+         } elseif ($Get_Data_Panel['type'] == "x-ui_single") {
+             $subId = bin2hex(random_bytes(8));
+             $config = array(
+-                "email" => $username,
+-                "id" => generateUUID(),
+-                "enable" => true,
+-                "subId" => $subId,
+-            );
+-            $updateinbound = $this->Modifyuser($username, $Get_Data_Panel['name_panel'], $config);
++                'settings' => json_encode(
++                    array(
++                        'clients' => array(
++                            array(
++                                "id" => generateUUID(),
++                                "enable" => true,
++                                "subId" => $subId,
++                            )
++                        ),
++                    )
++                )
++            );
++            $updateinbound = $ManagePanel->Modifyuser($username, $Get_Data_Panel['name_panel'], $config);
+             if (!$updateinbound['status']) {
+                 $Output = array(
+                     'status' => 'Unsuccessful',
+@@ -1058,7 +1015,7 @@
+                     )
+                 )
+             );
+-            $updateinbound = $this->Modifyuser($username, $Get_Data_Panel['name_panel'], $config);
++            $updateinbound = $ManagePanel->Modifyuser($username, $Get_Data_Panel['name_panel'], $config);
+             if (!$updateinbound['status']) {
+                 $Output = array(
+                     'status' => 'Unsuccessful',
+@@ -1167,26 +1124,6 @@
+                     'subscription_url' => $url_sub,
+                 );
+             }
+-        } elseif ($Get_Data_Panel['type'] == "mirza_agent") {
+-            $revoke_sub = revoke_service_mirza($Get_Data_Panel, $username);
+-            if (!empty($revoke_sub['error'])) {
+-                $Output = array(
+-                    'status' => 'Unsuccessful',
+-                    'msg' => $revoke_sub['error']
+-                );
+-            } elseif (!empty($revoke_sub['status']) && $revoke_sub['status'] != 200) {
+-                $Output = array(
+-                    'status' => 'Unsuccessful',
+-                    'msg' => $revoke_sub['status']
+-                );
+-            } else {
+-                $Data_User = $this->DataUser($name_panel, $username);
+-                $Output = array(
+-                    'status' => 'successful',
+-                    'configs' => $Data_User['links'],
+-                    'subscription_url' => $Data_User['subscription_url']
+-                );
+-            }
+         } else {
+             $Output = array(
+                 'status' => 'Unsuccessful',
+@@ -1237,8 +1174,10 @@
+                     'username' => $username,
+                 );
+             }
++        } elseif ($Get_Data_Panel['type'] == "MHSanaei-3.2") {
++            return MHSanaei_router(__FUNCTION__, func_get_args());
+         } elseif ($Get_Data_Panel['type'] == "x-ui_single") {
+-            $UsernameData = removeClient($Get_Data_Panel, $username);
++            $UsernameData = removeClient($Get_Data_Panel['name_panel'], $username);
+             if (!empty($UsernameData['status']) && $UsernameData['status'] != 200) {
+                 return array(
+                     'status' => 'Unsuccessful',
+@@ -1290,10 +1229,15 @@
+             );
+         } elseif ($Get_Data_Panel['type'] == "WGDashboard") {
+             $UsernameData = remove_userwg($Get_Data_Panel['name_panel'], $username);
+-            if (!$UsernameData['status']) {
+-                $Output = array(
+-                    'status' => 'Unsuccessful',
+-                    'msg' => $UsernameData['msg']
++            if (isset($UsernameData['status']) && ($UsernameData['status'] === false || $UsernameData['status'] != 200)) {
++                $Output = array(
++                    'status' => 'Unsuccessful',
++                    'msg' => $UsernameData['msg'] ?? ($UsernameData['status'] ? 'error code : ' . $UsernameData['status'] : 'Unknown error')
++                );
++            } elseif (!empty($UsernameData['error'])) {
++                $Output = array(
++                    'status' => 'Unsuccessful',
++                    'msg' => $UsernameData['error']
+                 );
+             } else {
+                 $Output = array(
+@@ -1336,31 +1280,6 @@
+                 );
+             } else {
+                 deleteUser_mikrotik($Get_Data_Panel['name_panel'], $UsernameData['.id']);
+-                $Output = array(
+-                    'status' => 'successful',
+-                    'username' => $username,
+-                );
+-            }
+-        } elseif ($Get_Data_Panel['type'] == "mirza_agent") {
+-            $UsernameData = remove_service_mirza($Get_Data_Panel, $username);
+-            if (isset($UsernameData['error'])) {
+-                $Output = array(
+-                    'status' => 'Unsuccessful',
+-                    'msg' => $UsernameData['msg']
+-                );
+-            } elseif ($UsernameData['status'] != 200) {
+-                $Output = array(
+-                    'status' => 'Unsuccessful',
+-                    'msg' => $UsernameData['status']
+-                );
+-            } else {
+-                $UsernameData = json_decode($UsernameData['body'], true);
+-                if (!$UsernameData['status']) {
+-                    return array(
+-                        'status' => 'Unsuccessful',
+-                        'msg' => $UsernameData['msg']
+-                    );
+-                }
+                 $Output = array(
+                     'status' => 'successful',
+                     'username' => $username,
+@@ -1432,17 +1351,57 @@
+                 'status' => true,
+                 'data' => $modify
+             );
++        } elseif ($Get_Data_Panel['type'] == "MHSanaei-3.2") {
++            return MHSanaei_router(__FUNCTION__, func_get_args());
+         } elseif ($Get_Data_Panel['type'] == "x-ui_single") {
+-            $data_user = $this->DataUser($name_panel, $username);
+-            $data = array(
+-                "email" => $username,
+-                "totalGB" => isset($config['totalGB']) ? $config['totalGB'] : $data_user['data_limit'],
+-                "expiryTime" => isset($config['expiryTime']) ? $config['expiryTime'] : ($data_user['expire'] == 0 ? 0 : $data_user['expire'] * 1000),
+-                "tgId" => 0,
+-                "enable" => isset($config['enable']) ? $config['enable'] : true,
+-            );
+-            $modify = updateClient($Get_Data_Panel, $username, $data);
+-            attach_service($Get_Data_Panel, $username, json_decode($Get_Data_Panel['inbounds']));
++            $clients = get_clinets($username, $name_panel);
++            if (!empty($clients['error'])) {
++                return array(
++                    'status' => false,
++                    'msg' => $clients['error']
++                );
++            } elseif (!empty($clients['status']) && $clients['status'] != 200) {
++                return array(
++                    'status' => false,
++                    'msg' => json_encode($clients)
++                );
++            }
++            $clients = json_decode($clients['body'], true);
++            if (!is_array($clients)) {
++                return array(
++                    'status' => false,
++                    'msg' => 'object invalid'
++                );
++            }
++            if (empty($clients['obj'])) {
++                return array(
++                    'status' => false,
++                    'msg' => "User not found"
++                );
++            }
++            $clients = $clients['obj'];
++            $configs = array(
++                'id' => intval($clients['inboundId']),
++                'settings' => json_encode(
++                    array(
++                        'clients' => array(
++                            array(
++                                "id" => $clients['uuid'],
++                                "flow" => "",
++                                "email" => $clients['email'],
++                                "totalGB" => $clients['total'],
++                                "expiryTime" => $clients['expiryTime'],
++                                "enable" => true,
++                                "subId" => $clients['subId'],
++                            )
++                        ),
++                        'decryption' => 'none',
++                        'fallbacks' => array(),
++                    )
++                ),
++            );
++            $configs['settings'] = json_encode(array_replace_recursive(json_decode($configs['settings'], true), json_decode($config['settings'], true)));
++            $modify = updateClient($Get_Data_Panel['name_panel'], $clients['uuid'], $configs);
+             if (!empty($modify['error'])) {
+                 return array(
+                     'status' => false,
+@@ -1511,52 +1470,6 @@
+                 'status' => true,
+                 'data' => $modify
+             );
+-        } elseif ($Get_Data_Panel['type'] == "alireza_single") {
+-            $clients = get_clinetsalireza($username, $name_panel)[0];
+-            $configs = array(
+-                'id' => intval($Get_Data_Panel['inboundid']),
+-                'settings' => json_encode(
+-                    array(
+-                        'clients' => array(
+-                            array(
+-                                "id" => $clients['id'],
+-                                "flow" => $clients['flow'],
+-                                "email" => $clients['email'],
+-                                "totalGB" => $clients['totalGB'],
+-                                "expiryTime" => $clients['expiryTime'],
+-                                "enable" => true,
+-                                "subId" => $clients['subId'],
+-                            )
+-                        ),
+-                        'decryption' => 'none',
+-                        'fallbacks' => array(),
+-                    )
+-                ),
+-            );
+-            $configs['settings'] = json_encode(array_replace_recursive(json_decode($configs['settings'], true), json_decode($config['settings'], true)));
+-            $modify = updateClientalireza($Get_Data_Panel['name_panel'], $username, $configs);
+-            if (!empty($modify['error'])) {
+-                return array(
+-                    'status' => false,
+-                    'msg' => $modify['error']
+-                );
+-            } elseif (!empty($modify['status']) && $modify['status'] != 200) {
+-                return array(
+-                    'status' => false,
+-                    'msg' => 'error code : ' . $modify['status']
+-                );
+-            }
+-            $modify = json_decode($modify['body'], true);
+-            if (!$modify['success']) {
+-                return array(
+-                    'status' => false,
+-                    'msg' => 'error :' . $modify['msg']
+-                );
+-            }
+-            return array(
+-                'status' => true,
+-                'data' => $modify
+-            );
+         } elseif ($Get_Data_Panel['type'] == "hiddify") {
+             $modify = updateuserhi($username, $name_panel, $config);
+             if (!empty($modify['error'])) {
+@@ -1591,18 +1504,18 @@
+             );
+             $configs = array_merge($configs, $config);
+             $modify = updatepear($Get_Data_Panel['name_panel'], $configs);
+-            if (!empty($modify['error'])) {
++            if (isset($modify['status']) && ($modify['status'] === false || $modify['status'] != 200)) {
++                return array(
++                    'status' => false,
++                    'msg' => $modify['msg'] ?? ($modify['status'] ? 'error code : ' . $modify['status'] : 'Unknown error')
++                );
++            } elseif (!empty($modify['error'])) {
+                 return array(
+                     'status' => false,
+                     'msg' => $modify['error']
+                 );
+-            } elseif (!empty($modify['status']) && $modify['status'] != 200) {
+-                return array(
+-                    'status' => false,
+-                    'msg' => 'error code : ' . $modify['status']
+-                );
+-            }
+-            $modify = json_decode($modify['body'], true);
++            }
++            $modify = json_decode($modify['body'] ?? '', true);
+             return array(
+                 'status' => true,
+                 'data' => $modify
+@@ -1638,7 +1551,8 @@
+     }
+     function Change_status($username, $name_panel)
+     {
+-        $DataUserOut = $this->DataUser($name_panel, $username);
++        $ManagePanel = new ManagePanel();
++        $DataUserOut = $ManagePanel->DataUser($name_panel, $username);
+         $Get_Data_Panel = select("marzban_panel", "*", "name_panel", $name_panel, "select");
+         if ($DataUserOut['status'] == "Unsuccessful") {
+             $Output = array(
+@@ -1661,7 +1575,7 @@
+                 $status = "active";
+             }
+             $configs = array("status" => $status);
+-            $this->Modifyuser($username, $name_panel, $configs);
++            $ManagePanel->Modifyuser($username, $name_panel, $configs);
+             $Output = array(
+                 'status' => 'successful',
+                 'msg' => null
+@@ -1676,21 +1590,9 @@
+                 'status' => 'successful',
+                 'msg' => null
+             );
++        } elseif ($Get_Data_Panel['type'] == "MHSanaei-3.2") {
++            return MHSanaei_router(__FUNCTION__, func_get_args());
+         } elseif ($Get_Data_Panel['type'] == "x-ui_single") {
+-            if ($DataUserOut['status'] == "active") {
+-                $status = false;
+-            } else {
+-                $status = true;
+-            }
+-            $configs = array(
+-                "enable" => $status,
+-            );
+-            $this->Modifyuser($username, $name_panel, $configs);
+-            $Output = array(
+-                'status' => 'successful',
+-                'msg' => null
+-            );
+-        } elseif ($Get_Data_Panel['type'] == "alireza_single") {
+             if ($DataUserOut['status'] == "active") {
+                 $status = false;
+             } else {
+@@ -1705,7 +1607,27 @@
+                     ),
+                 )),
+             );
+-            $this->Modifyuser($username, $name_panel, $configs);
++            $ManagePanel->Modifyuser($username, $name_panel, $configs);
++            $Output = array(
++                'status' => 'successful',
++                'msg' => null
++            );
++        } elseif ($Get_Data_Panel['type'] == "alireza_single") {
++            if ($DataUserOut['status'] == "active") {
++                $status = false;
++            } else {
++                $status = true;
++            }
++            $configs = array(
++                'settings' => json_encode(array(
++                    'clients' => array(
++                        array(
++                            "enable" => $status,
++                        )
++                    ),
++                )),
++            );
++            $ManagePanel->Modifyuser($username, $name_panel, $configs);
+             $Output = array(
+                 'status' => 'successful',
+                 'msg' => null
+@@ -1722,7 +1644,7 @@
+                 $status = true;
+             }
+             $configs = array("enable" => $status);
+-            $this->Modifyuser($username, $name_panel, $configs);
++            $ManagePanel->Modifyuser($username, $name_panel, $configs);
+             $Output = array(
+                 'status' => 'successful',
+                 'msg' => null
+@@ -1788,8 +1710,10 @@
+                 'status' => true,
+                 'msg' => 'successful'
+             );
++        } elseif ($panel['type'] == "MHSanaei-3.2") {
++            return MHSanaei_router(__FUNCTION__, func_get_args());
+         } elseif ($panel['type'] == 'x-ui_single') {
+-            $reset = ResetUserDataUsagex_uisin($username, $panel);
++            $reset = ResetUserDataUsagex_uisin($username, $panel['name_panel']);
+             if (!empty($reset['status']) && $reset['status'] != 200) {
+                 return array(
+                     'status' => false,
+@@ -1840,10 +1764,10 @@
+             allowAccessPeers($panel['name_panel'], $username);
+             $datauser = get_userwg($username, $panel['name_panel']);
+             $reset = ResetUserDataUsagewg($datauser['id'], $panel['name_panel']);
+-            if (!empty($reset['status']) && $reset['status'] != 200) {
+-                return array(
+-                    'status' => false,
+-                    'msg' => 'error code : ' . $reset['status']
++            if (isset($reset['status']) && ($reset['status'] === false || $reset['status'] != 200)) {
++                return array(
++                    'status' => false,
++                    'msg' => $reset['msg'] ?? ($reset['status'] ? 'error code : ' . $reset['status'] : 'Unknown error')
+                 );
+             } elseif (!empty($reset['error'])) {
+                 return array(
+@@ -1864,11 +1788,6 @@
+             ResetUserDataUsages_ui($username, $name_panel);
+             return array(
+                 'status' => true
+-            );
+-        } elseif ($panel['type'] == "mirza_agent") {
+-            return array(
+-                'status' => true,
+-                'msg' => 'successful'
+             );
+         }
+     }
+@@ -1968,11 +1887,23 @@
+                 'expire_strategy' => $expire_strotegy,
+                 'data_limit' => $data_limit_new
+             );
++        } elseif ($panel['type'] == "MHSanaei-3.2") {
++            return MHSanaei_router(__FUNCTION__, func_get_args());
+         } elseif ($panel['type'] == "x-ui_single") {
+             $data = array(
+-                "totalGB" => $data_limit_new,
+-                "expiryTime" => $time_new * 1000,
+-                "enable" => true,
++                'settings' => json_encode(
++                    array(
++                        'clients' => array(
++                            array(
++                                "totalGB" => $data_limit_new,
++                                "expiryTime" => $time_new * 1000,
++                                "enable" => true,
++                            )
++                        ),
++                        'decryption' => 'none',
++                        'fallbacks' => array(),
++                    )
++                ),
+             );
+         } elseif ($panel['type'] == "alireza_single") {
+             $data = array(
+@@ -2050,30 +1981,6 @@
+                 "volume" => $data_limit_new,
+                 "expiry" => $time_new
+             );
+-        } elseif ($panel['type'] == "mirza_agent") {
+-            $extend = extend_service_mirza($panel, $new_limit, $time_day, $username);
+-            if (!in_array($extend['status'], [200, 400])) {
+-                return array(
+-                    'status' => false,
+-                    'msg' => $extend['msg']
+-                );
+-            } elseif ($extend['error']) {
+-                return array(
+-                    'status' => false,
+-                    'msg' => $extend['error']
+-                );
+-            }
+-            $extend = json_decode($extend['body'], true);
+-            if (!$extend['status']) {
+-                return array(
+-                    'status' => false,
+-                    'msg' => $extend['msg']
+-                );
+-            }
+-            return array(
+-                'status' => true,
+-                'msg' => 'successful'
+-            );
+         }
+         $extend = $this->Modifyuser($username, $panel['name_panel'], $data);
+         if ($extend['status'] == false) {
+@@ -2128,9 +2035,19 @@
+             $data = array(
+                 'data_limit' => $new_limit,
+             );
++        } elseif ($panel['type'] == "MHSanaei-3.2") {
++            return MHSanaei_router(__FUNCTION__, func_get_args());
+         } elseif ($panel['type'] == "x-ui_single") {
+             $data = array(
+-                "totalGB" => $new_limit,
++                'settings' => json_encode(
++                    array(
++                        'clients' => array(
++                            array(
++                                "totalGB" => $new_limit,
++                            )
++                        ),
++                    )
++                ),
+             );
+         } elseif ($panel['type'] == "alireza_single") {
+             $data = array(
+@@ -2179,30 +2096,6 @@
+             $data = array(
+                 "volume" => $new_limit,
+             );
+-        } elseif ($panel['type'] == "mirza_agent") {
+-            $volume_add = add_volume_service_mirza($panel, $limit_volume_new, $username_account);
+-            if (!in_array($volume_add['status'], [200, 400])) {
+-                return array(
+-                    'status' => false,
+-                    'msg' => $volume_add['msg']
+-                );
+-            } elseif ($volume_add['error']) {
+-                return array(
+-                    'status' => false,
+-                    'msg' => $volume_add['error']
+-                );
+-            }
+-            $volume_add = json_decode($volume_add['body'], true);
+-            if (!$volume_add['status']) {
+-                return array(
+-                    'status' => false,
+-                    'msg' => $volume_add['msg']
+-                );
+-            }
+-            return array(
+-                'status' => true,
+-                'msg' => 'successful'
+-            );
+         }
+         $extra_volume = $this->Modifyuser($username_account, $panel['name_panel'], $data);
+         if ($extra_volume['status'] == false) {
+@@ -2260,10 +2153,20 @@
+                 'expire_strategy' => "fixed_date",
+ 
+             );
++        } elseif ($panel['type'] == "MHSanaei-3.2") {
++            return MHSanaei_router(__FUNCTION__, func_get_args());
+         } elseif ($panel['type'] == "x-ui_single") {
+             $new_limit = $new_limit * 1000;
+             $data = array(
+-                "expiryTime" => $new_limit,
++                'settings' => json_encode(
++                    array(
++                        'clients' => array(
++                            array(
++                                "expiryTime" => $new_limit,
++                            )
++                        ),
++                    )
++                ),
+             );
+         } elseif ($panel['type'] == "alireza_single") {
+             $new_limit = $new_limit * 1000;
+@@ -2313,31 +2216,6 @@
+             $data = array(
+                 "expiry" => $new_limit,
+             );
+-        } elseif ($panel['type'] == "mirza_agent") {
+-            $new_limit = $limit_time_new;
+-            $time_add = add_time_service_mirza($panel, $new_limit, $username_account);
+-            if (!in_array($time_add['status'], [200, 400])) {
+-                return array(
+-                    'status' => false,
+-                    'msg' => $time_add['msg']
+-                );
+-            } elseif ($time_add['error']) {
+-                return array(
+-                    'status' => false,
+-                    'msg' => $time_add['error']
+-                );
+-            }
+-            $time_add = json_decode($time_add['body'], true);
+-            if (!$time_add['status']) {
+-                return array(
+-                    'status' => false,
+-                    'msg' => $time_add['msg']
+-                );
+-            }
+-            return array(
+-                'status' => true,
+-                'msg' => 'successful'
+-            );
+         }
+         $extra_time = $this->Modifyuser($username_account, $panel['name_panel'], $data);
+         if ($extra_time['status'] == false) {

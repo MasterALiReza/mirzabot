@@ -1,0 +1,13 @@
+diff --git a/s_ui.php b/s_ui.php
+index 9a0cdf5..8e393ff 100644
+--- a/s_ui.php
++++ b/s_ui.php
+@@ -264,7 +264,7 @@ function get_onlineclients_ui($name_panel, $username)
+     $response = curl_exec($curl);
+     if ($response == null)
+         return "offline";
+-    $response = (json_decode($response, true) ?: [])['obj'] ?? null['user'];
++    $response = (json_decode($response, true) ?: [])['obj']['user'] ?? null;
+     if (!is_array($response))
+         return "offline";
+     if (in_array($username, $response))

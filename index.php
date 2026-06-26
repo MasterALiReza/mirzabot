@@ -911,10 +911,30 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
         step('home', $from_id);
         return;
     }
+    $textinfo_prefix = "";
     if ($DataUserOut['status'] == "Unsuccessful") {
-        sendmessage($from_id, $textbotlang['users']['status']['panelNotConnected'], $keyboard, 'html');
-        step('home', $from_id);
-        return;
+        $textinfo_prefix = "\n⚠️ <b>اطلاعات موقتاً به‌روز نیست</b> (ارتباط با سرور پنل برقرار نشد)\n";
+        
+        $DataUserOut['status'] = $nameloc['Status'] == 'active' ? 'active' : ($nameloc['Status'] ?? 'Unknown');
+        $DataUserOut['data_limit'] = floatval($nameloc['Volume']) * pow(1024, 3);
+        $DataUserOut['used_traffic'] = 0;
+        $DataUserOut['online_at'] = null;
+        $DataUserOut['sub_updated_at'] = null;
+        
+        if (intval($nameloc['time_sell']) > 0 && intval($nameloc['Service_time']) > 0) {
+            $DataUserOut['expire'] = intval($nameloc['time_sell']) + (intval($nameloc['Service_time']) * 86400);
+        } else {
+            $DataUserOut['expire'] = 0;
+        }
+        
+        $infoconfig = isset($nameloc['user_info']) ? json_decode($nameloc['user_info'], true) : [];
+        if (isset($infoconfig['subscription_url'])) {
+            $DataUserOut['subscription_url'] = $infoconfig['subscription_url'];
+            $DataUserOut['links'] = [$infoconfig['subscription_url']];
+        } else {
+            $DataUserOut['subscription_url'] = "";
+            $DataUserOut['links'] = [];
+        }
     }
     if ($DataUserOut['online_at'] == "online") {
         $lastonline = $textbotlang['extracted']['index_php']['statusOnline'];
@@ -1008,7 +1028,7 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
     }
     if ($marzban['type'] == "Manualsale") {
         $userinfo = select("manualsell", "*", "username", $nameloc['username'], "select");
-        $textinfo = sprintf($textbotlang['hardcoded']['serviceInfoBasic'], $status_var, $DataUserOut['username'], $nameloc['id_invoice'], $userinfo['contentrecord']);
+        $textinfo = $textinfo_prefix . sprintf($textbotlang['hardcoded']['serviceInfoBasic'], $status_var, $DataUserOut['username'], $nameloc['id_invoice'], $userinfo['contentrecord']);
         if ($user['step'] == "getuseragnetservice") {
             sendmessage($from_id, $textinfo, $keyboardsetting, 'html');
         } elseif ($datain == "productcheckdata") {
@@ -1047,7 +1067,7 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
     $statusshowconfig = select("shopSetting", "*", "Namevalue", "configshow", "select")['value'];
     $statusremoveserveice = select("shopSetting", "*", "Namevalue", "backserviecstatus", "select")['value'];
     if (!in_array($status, ["active", "on_hold", "disabled", "Unknown"])) {
-        $textinfo = sprintf($textbotlang['hardcoded']['serviceInfoDetailed'], $status_var, $DataUserOut['username'], $nameloc['Service_location'], $nameloc['name_product'], $lastonline, $LastTraffic, $usedTrafficGb, $RemainingVolume, $Percent, $expirationDate, $day, $nameconfig);
+        $textinfo = $textinfo_prefix . sprintf($textbotlang['hardcoded']['serviceInfoDetailed'], $status_var, $DataUserOut['username'], $nameloc['Service_location'], $nameloc['name_product'], $lastonline, $LastTraffic, $usedTrafficGb, $RemainingVolume, $Percent, $expirationDate, $day, $nameconfig);
 
         $keyboardsetting = [
             'inline_keyboard' => [
@@ -1215,7 +1235,7 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
         } else {
             $textconnect = strtr($textbotlang['extracted']['index_php']['lastOnlineTime'], ['{lastonline}' => $lastonline]);
         }
-        $textinfo = sprintf($textbotlang['hardcoded']['serviceInfoFull'], $status_var, $DataUserOut['username'], $userpassword, $nameconfig, $nameloc['Service_location'], $nameloc['name_product'], $LastTraffic, $usedTrafficGb, $RemainingVolume, $Percent, $expirationDate, $day, $textconnect);
+        $textinfo = $textinfo_prefix . sprintf($textbotlang['hardcoded']['serviceInfoFull'], $status_var, $DataUserOut['username'], $userpassword, $nameconfig, $nameloc['Service_location'], $nameloc['name_product'], $LastTraffic, $usedTrafficGb, $RemainingVolume, $Percent, $expirationDate, $day, $textconnect);
     }
     if ($user['step'] == "getuseragnetservice") {
         sendmessage($from_id, $textinfo, $keyboardsetting, 'html');
@@ -1244,8 +1264,13 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
     $Check_token = token_panel($marzban_list_get['url_panel'], $marzban_list_get['username_panel'], $marzban_list_get['password_panel']);
     $DataUserOut = $ManagePanel->DataUser($nameloc['Service_location'], $nameloc['username']);
     if ($DataUserOut['status'] == "Unsuccessful") {
-        sendmessage($from_id, $textbotlang['users']['status']['error'], null, 'html');
-        return;
+        $infoconfig = isset($nameloc['user_info']) ? json_decode($nameloc['user_info'], true) : [];
+        if (isset($infoconfig['subscription_url'])) {
+            $DataUserOut['subscription_url'] = $infoconfig['subscription_url'];
+        } else {
+            sendmessage($from_id, $textbotlang['users']['status']['error'], null, 'html');
+            return;
+        }
     }
     $subscriptionurl = $DataUserOut['subscription_url'];
     if ($marzban_list_get['type'] == "WGDashboard") {
@@ -1330,8 +1355,13 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
     }
     $DataUserOut = $ManagePanel->DataUser($nameloc['Service_location'], $nameloc['username']);
     if ($DataUserOut['status'] == "Unsuccessful") {
-        sendmessage($from_id, $textbotlang['users']['status']['error'], null, 'html');
-        return;
+        $infoconfig = isset($nameloc['user_info']) ? json_decode($nameloc['user_info'], true) : [];
+        if (isset($infoconfig['subscription_url'])) {
+            $DataUserOut['links'] = [$infoconfig['subscription_url']];
+        } else {
+            sendmessage($from_id, $textbotlang['users']['status']['error'], null, 'html');
+            return;
+        }
     }
     if (!is_array($DataUserOut['links'])) {
         sendmessage($from_id, $textbotlang['extracted']['index_php']['configReadError'], null, 'html');
@@ -1354,8 +1384,13 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
         ]
     ]);
     if ($DataUserOut['status'] == "Unsuccessful") {
-        sendmessage($from_id, $textbotlang['users']['status']['error'], null, 'html');
-        return;
+        $infoconfig = isset($nameloc['user_info']) ? json_decode($nameloc['user_info'], true) : [];
+        if (isset($infoconfig['subscription_url'])) {
+            $DataUserOut['links'] = [$infoconfig['subscription_url']];
+        } else {
+            sendmessage($from_id, $textbotlang['users']['status']['error'], null, 'html');
+            return;
+        }
     }
     $config = "";
     if ($dataget[2] == "1520") {
