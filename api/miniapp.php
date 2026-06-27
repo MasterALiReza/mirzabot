@@ -434,8 +434,8 @@ switch ($data['actions']) {
                 return;
             }
             while ($result = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                $stmts = $pdo->prepare("SELECT * FROM product WHERE (Location = :location OR Location = '/all') AND category = :category AND agent = :agent");
-                $stmts->bindParam(':location', $panel['name_panel'], PDO::PARAM_STR);
+                $loc_cond = getProductLocCondition($panel['name_panel']);
+                $stmts = $pdo->prepare("SELECT * FROM product WHERE $loc_cond AND category = :category AND agent = :agent");
                 $stmts->bindParam(':category', $result['remark'], PDO::PARAM_STR);
                 $stmts->bindParam(':agent', $user_info['agent']);
                 $stmts->execute();
@@ -487,9 +487,9 @@ switch ($data['actions']) {
                 ));
                 return;
             }
-            $stmt = $pdo->prepare("SELECT (Service_time) FROM product WHERE (Location = :name_panel OR Location = '/all') AND  agent = :agent");
+            $loc_cond = getProductLocCondition($panel['name_panel']);
+            $stmt = $pdo->prepare("SELECT (Service_time) FROM product WHERE $loc_cond AND  agent = :agent");
             $stmt->bindValue(':agent', $user_info['agent'], PDO::PARAM_STR);
-            $stmt->bindValue(':name_panel', $panel['name_panel'], PDO::PARAM_STR);
             $stmt->execute();
             $montheproduct = array_flip(array_flip($stmt->fetchAll(PDO::FETCH_COLUMN)));
             if (in_array("1", $montheproduct)) {
@@ -638,7 +638,8 @@ switch ($data['actions']) {
                 $selected_category_id = $category_remark['id'];
             }
             $time_range_day = $data['time_range_day'] == 0 ? "" : "AND Service_time = '{$data['time_range_day']}'";
-            $stmt = $pdo->prepare("SELECT * FROM product WHERE (Location = '{$panel['name_panel']}' OR Location = '/all')AND agent= '{$user_info['agent']}' $category_remarks $time_range_day ORDER BY sort_order ASC, CAST(Volume_constraint AS UNSIGNED) ASC, CAST(price_product AS UNSIGNED) ASC");
+            $loc_cond = getProductLocCondition($panel['name_panel']);
+            $stmt = $pdo->prepare("SELECT * FROM product WHERE $loc_cond AND agent= '{$user_info['agent']}' $category_remarks $time_range_day ORDER BY sort_order ASC, CAST(Volume_constraint AS UNSIGNED) ASC, CAST(price_product AS UNSIGNED) ASC");
             $stmt->execute();
             $product_list = [];
             while ($result = $stmt->fetch(PDO::FETCH_ASSOC)) {

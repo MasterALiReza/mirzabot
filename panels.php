@@ -42,9 +42,8 @@ class ManagePanel
             $inoice = false;
         }
         if (!in_array($code_product, ["usertest", $textbotlang['extracted']['index_php']['customVolumeButton'], "customvolume"])) {
-
-            $stmt = $pdo->prepare("SELECT * FROM product WHERE (Location = :name_panel OR Location = '/all')  AND code_product = :code_product");
-            $stmt->bindParam(':name_panel', $name_panel);
+            $loc_cond = getProductLocCondition($name_panel);
+            $stmt = $pdo->prepare("SELECT * FROM product WHERE $loc_cond AND code_product = :code_product");
             $stmt->bindParam(':code_product', $code_product);
             $stmt->execute();
             $Get_Data_Product = $stmt->fetch(PDO::FETCH_ASSOC);

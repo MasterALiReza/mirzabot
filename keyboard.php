@@ -1653,8 +1653,8 @@ function KeyboardCategory($location, $agent, $backuser = "backuser")
 function keyboardTimeCategory($name_panel, $agent, $callback_data = "producttime_", $callback_data_back = "backuser", $statuscustomvolume = false, $statusbtnextend = false)
 {
     global $pdo, $textbotlang;
-    $stmt = $pdo->prepare("SELECT (Service_time) FROM product WHERE (Location = :name_panel OR Location = '/all') AND  agent = :agent");
-    $stmt->bindValue(':name_panel', $name_panel, PDO::PARAM_STR);
+    $loc_cond = getProductLocCondition($name_panel);
+    $stmt = $pdo->prepare("SELECT (Service_time) FROM product WHERE $loc_cond AND agent = :agent");
     $stmt->bindValue(':agent', $agent, PDO::PARAM_STR);
     $stmt->execute();
     $montheproduct = array_flip(array_flip($stmt->fetchAll(PDO::FETCH_COLUMN)));

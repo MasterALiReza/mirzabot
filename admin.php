@@ -3255,9 +3255,9 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
         sendmessage($from_id, $textbotlang['users']['sell']['errorProduct'], null, 'HTML');
         return;
     }
-    $stmt = $pdo->prepare("DELETE FROM product WHERE name_product =:name_product AND (Location= :Location or Location= '/all')");
+    $loc_cond = getProductLocCondition($user['Processing_value']);
+    $stmt = $pdo->prepare("DELETE FROM product WHERE name_product =:name_product AND $loc_cond");
     $stmt->bindParam(':name_product', $text, PDO::PARAM_STR);
-    $stmt->bindParam(':Location', $user['Processing_value'], PDO::PARAM_STR);
     $stmt->execute();
     sendmessage($from_id, $textbotlang['Admin']['Product']['removedProduct'], $shopkeyboard, 'HTML');
     step('home', $from_id);
@@ -3287,7 +3287,8 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
     update("user", "Processing_value_tow", $typeagent, "id", $from_id);
     $product = [];
     $panel = select("marzban_panel", "*", "code_panel", $user['Processing_value_one'], "select");
-    $getdataproduct = mysqli_query($connect, "SELECT * FROM product WHERE (Location = '{$panel['name_panel']}' or Location = '/all') AND agent = '$typeagent' ORDER BY sort_order ASC, CAST(Volume_constraint AS UNSIGNED) ASC, CAST(price_product AS UNSIGNED) ASC");
+    $loc_cond = getProductLocCondition($panel['name_panel']);
+    $getdataproduct = mysqli_query($connect, "SELECT * FROM product WHERE $loc_cond AND agent = '$typeagent' ORDER BY sort_order ASC, CAST(Volume_constraint AS UNSIGNED) ASC, CAST(price_product AS UNSIGNED) ASC");
     $list_product = [
         'inline_keyboard' => [],
     ];
@@ -3309,7 +3310,8 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
     deletemessage($from_id, $message_id);
     update("user", "Processing_value", $id_product, "id", $from_id);
     $panel = select("marzban_panel", "*", "code_panel", $user['Processing_value_one'], "select");
-    $info_product = mysqli_fetch_assoc(mysqli_query($connect, "SELECT * FROM product WHERE id = '$id_product'  AND agent = '{$user['Processing_value_tow']}' AND (Location = '{$panel['name_panel']}' OR Location = '/all') LIMIT 1"));
+    $loc_cond = getProductLocCondition($panel['name_panel']);
+    $info_product = mysqli_fetch_assoc(mysqli_query($connect, "SELECT * FROM product WHERE id = '$id_product'  AND agent = '{$user['Processing_value_tow']}' AND $loc_cond LIMIT 1"));
     $count_invoice = select("invoice", "*", "name_product", $info_product['name_product'], "count");
     $infoproduct = sprintf($textbotlang['Admin']['adminphp']['msg_user_price_volume'], $info_product['name_product'], $info_product['price_product'], $info_product['Volume_constraint'], $info_product['Location'], $info_product['Service_time'], $info_product['agent'], $info_product['data_limit_reset'], $info_product['note'], $info_product['category'], $count_invoice);
     sendmessage($from_id, $infoproduct, $change_product, 'HTML');
@@ -3323,10 +3325,10 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
         return;
     }
     $panel = select("marzban_panel", "*", "code_panel", $user['Processing_value_one'], "select");
-    $stmt = $pdo->prepare("UPDATE product SET price_product = :price_product WHERE id = :name_product AND (Location = :Location OR Location = '/all') AND agent = :agent");
+    $loc_cond = getProductLocCondition($panel['name_panel']);
+    $stmt = $pdo->prepare("UPDATE product SET price_product = :price_product WHERE id = :name_product AND $loc_cond AND agent = :agent");
     $stmt->bindParam(':price_product', $text);
     $stmt->bindParam(':name_product', $user['Processing_value']);
-    $stmt->bindParam(':Location', $panel['name_panel']);
     $stmt->bindParam(':agent', $user['Processing_value_tow']);
     $stmt->execute();
     sendmessage($from_id, $textbotlang['Admin']['adminphp']['ok_price_day'], $shopkeyboard, 'HTML');
@@ -3336,10 +3338,10 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
     step('change_note', $from_id);
 } elseif ($user['step'] == "change_note") {
     $panel = select("marzban_panel", "*", "code_panel", $user['Processing_value_one'], "select");
-    $stmt = $pdo->prepare("UPDATE product SET note = :notes WHERE id = :name_product AND (Location = :Location OR Location = '/all') AND agent = :agent");
+    $loc_cond = getProductLocCondition($panel['name_panel']);
+    $stmt = $pdo->prepare("UPDATE product SET note = :notes WHERE id = :name_product AND $loc_cond AND agent = :agent");
     $stmt->bindParam(':notes', $text);
     $stmt->bindParam(':name_product', $user['Processing_value']);
-    $stmt->bindParam(':Location', $panel['name_panel']);
     $stmt->bindParam(':agent', $user['Processing_value_tow']);
     $stmt->execute();
     sendmessage($from_id, $textbotlang['Admin']['adminphp']['ok_day_1'], $shopkeyboard, 'HTML');
@@ -3354,10 +3356,10 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
         return;
     }
     $panel = select("marzban_panel", "*", "code_panel", $user['Processing_value_one'], "select");
-    $stmt = $pdo->prepare("UPDATE product SET category = :categroy WHERE id = :name_product AND (Location = :Location OR Location = '/all') AND agent = :agent");
+    $loc_cond = getProductLocCondition($panel['name_panel']);
+    $stmt = $pdo->prepare("UPDATE product SET category = :categroy WHERE id = :name_product AND $loc_cond AND agent = :agent");
     $stmt->bindParam(':categroy', $text);
     $stmt->bindParam(':name_product', $user['Processing_value']);
-    $stmt->bindParam(':Location', $panel['name_panel']);
     $stmt->bindParam(':agent', $user['Processing_value_tow']);
     $stmt->execute();
     sendmessage($from_id, $textbotlang['Admin']['adminphp']['ok_day_2'], $shopkeyboard, 'HTML');
@@ -3375,10 +3377,10 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
         return;
     }
     $panel = select("marzban_panel", "*", "code_panel", $user['Processing_value_one'], "select");
-    $stmt = $pdo->prepare("UPDATE product SET name_product = :name_products WHERE id = :name_product AND (Location = :Location OR Location = '/all') AND agent = :agent");
+    $loc_cond = getProductLocCondition($panel['name_panel']);
+    $stmt = $pdo->prepare("UPDATE product SET name_product = :name_products WHERE id = :name_product AND $loc_cond AND agent = :agent");
     $stmt->bindParam(':name_products', $text);
     $stmt->bindParam(':name_product', $user['Processing_value']);
-    $stmt->bindParam(':Location', $panel['name_panel']);
     $stmt->bindParam(':agent', $user['Processing_value_tow']);
     $stmt->execute();
     sendmessage($from_id, $textbotlang['Admin']['adminphp']['ok_day_name'], $change_product, 'HTML');
@@ -3392,10 +3394,10 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
         return;
     }
     $panel = select("marzban_panel", "*", "code_panel", $user['Processing_value_one'], "select");
-    $stmt = $pdo->prepare("UPDATE product SET agent = :agents WHERE id = :name_product AND (Location = :Location OR Location = '/all') AND agent = :agent");
+    $loc_cond = getProductLocCondition($panel['name_panel']);
+    $stmt = $pdo->prepare("UPDATE product SET agent = :agents WHERE id = :name_product AND $loc_cond AND agent = :agent");
     $stmt->bindParam(':agents', $text);
     $stmt->bindParam(':name_product', $user['Processing_value']);
-    $stmt->bindParam(':Location', $panel['name_panel']);
     $stmt->bindParam(':agent', $user['Processing_value_tow']);
     $stmt->execute();
     sendmessage($from_id, $textbotlang['Admin']['adminphp']['ok_day_name'], $shopkeyboard, 'HTML');
@@ -3405,10 +3407,10 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
     step('change_reset_data', $from_id);
 } elseif ($user['step'] == "change_reset_data") {
     $panel = select("marzban_panel", "*", "code_panel", $user['Processing_value_one'], "select");
-    $stmt = $pdo->prepare("UPDATE product SET data_limit_reset = :data_limit_reset WHERE id = :name_product AND (Location = :Location OR Location = '/all') AND agent = :agent");
+    $loc_cond = getProductLocCondition($panel['name_panel']);
+    $stmt = $pdo->prepare("UPDATE product SET data_limit_reset = :data_limit_reset WHERE id = :name_product AND $loc_cond AND agent = :agent");
     $stmt->bindParam(':data_limit_reset', $text);
     $stmt->bindParam(':name_product', $user['Processing_value']);
-    $stmt->bindParam(':Location', $panel['name_panel']);
     $stmt->bindParam(':agent', $user['Processing_value_tow']);
     $stmt->execute();
     sendmessage($from_id, $textbotlang['Admin']['adminphp']['ok_day_name'], $shopkeyboard, 'HTML');
@@ -3423,10 +3425,10 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
     }
     $product = select("product", "*", "name_product", $user['Processing_value']);
     $panel = select("marzban_panel", "*", "code_panel", $user['Processing_value_one'], "select");
-    $stmt = $pdo->prepare("UPDATE product SET Location = :Location2 WHERE id = :name_product AND (Location = :Location OR Location = '/all') AND agent = :agent");
+    $loc_cond = getProductLocCondition($panel['name_panel']);
+    $stmt = $pdo->prepare("UPDATE product SET Location = :Location2 WHERE id = :name_product AND $loc_cond AND agent = :agent");
     $stmt->bindParam(':Location2', $text);
     $stmt->bindParam(':name_product', $user['Processing_value']);
-    $stmt->bindParam(':Location', $panel['name_panel']);
     $stmt->bindParam(':agent', $user['Processing_value_tow']);
     $stmt->execute();
     $stmt = $pdo->prepare("UPDATE invoice SET Service_location = :Service_location WHERE name_product = :name_product AND Service_location = :Location ");
@@ -3446,10 +3448,10 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
     }
     $product = select("product", "*", "id", $user['Processing_value']);
     $panel = select("marzban_panel", "*", "code_panel", $user['Processing_value_one']);
-    $stmt = $pdo->prepare("UPDATE product SET Volume_constraint = :Volume_constraint WHERE id = :name_product AND (Location = :Location OR Location = '/all') AND agent = :agent");
+    $loc_cond = getProductLocCondition($panel['name_panel']);
+    $stmt = $pdo->prepare("UPDATE product SET Volume_constraint = :Volume_constraint WHERE id = :name_product AND $loc_cond AND agent = :agent");
     $stmt->bindParam(':Volume_constraint', $text);
     $stmt->bindParam(':name_product', $product['id']);
-    $stmt->bindParam(':Location', $panel['name_panel']);
     $stmt->bindParam(':agent', $user['Processing_value_tow']);
     $stmt->execute();
     sendmessage($from_id, $textbotlang['Admin']['Product']['volumeUpdated'], $shopkeyboard, 'HTML');
@@ -3463,10 +3465,10 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
         return;
     }
     $panel = select("marzban_panel", "*", "code_panel", $user['Processing_value_one'], "select");
-    $stmt = $pdo->prepare("UPDATE product SET Service_time = :Service_time WHERE id = :id_product AND (Location = :Location OR Location = '/all') AND agent = :agent");
+    $loc_cond = getProductLocCondition($panel['name_panel']);
+    $stmt = $pdo->prepare("UPDATE product SET Service_time = :Service_time WHERE id = :id_product AND $loc_cond AND agent = :agent");
     $stmt->bindParam(':Service_time', $text);
     $stmt->bindParam(':id_product', $user['Processing_value']);
-    $stmt->bindParam(':Location', $panel['name_panel']);
     $stmt->bindParam(':agent', $user['Processing_value_tow']);
     $stmt->execute();
     sendmessage($from_id, $textbotlang['Admin']['Product']['timeUpdated'], $shopkeyboard, 'HTML');
@@ -6597,10 +6599,10 @@ if ($datain == "settimecornremove" && $adminrulecheck['rule'] == "administrator"
     sendmessage($from_id, $textbotlang['Admin']['addorder']['stepFour'], $json_list_product_list_admin, 'HTML');
     step('stependforaddorder', $from_id);
 } elseif ($user['step'] == "stependforaddorder") {
-    $sql = "SELECT * FROM product  WHERE name_product = :name_product AND (Location = :location OR Location = '/all') LIMIT 1";
+    $loc_cond = getProductLocCondition($user['Processing_value_tow']);
+    $sql = "SELECT * FROM product  WHERE name_product = :name_product AND $loc_cond LIMIT 1";
     $stmt = $pdo->prepare($sql);
     $stmt->bindParam(':name_product', $text, PDO::PARAM_STR);
-    $stmt->bindParam(':location', $user['Processing_value_tow'], PDO::PARAM_STR);
     $stmt->execute();
     $info_product = $stmt->fetch(PDO::FETCH_ASSOC);
     $marzban_list_get = select("marzban_panel", "*", "name_panel", $user['Processing_value_tow'], "select");
@@ -7733,8 +7735,8 @@ if ($datain == "settimecornremove" && $adminrulecheck['rule'] == "administrator"
     update("PaySetting", "ValuePay", $text, "NamePay", "chashbackzarinpal");
 } elseif ($text == $textbotlang['keyboard']['addConfig']) {
     $product = [];
-    $stmt = $pdo->prepare("SELECT * FROM product WHERE Location = :text or Location = '/all' ");
-    $stmt->bindParam(':text', $user['Processing_value'], PDO::PARAM_STR);
+    $loc_cond = getProductLocCondition($user['Processing_value']);
+    $stmt = $pdo->prepare("SELECT * FROM product WHERE $loc_cond");
     $stmt->execute();
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $product[] = [$row['name_product']];
@@ -8059,7 +8061,8 @@ if ($datain == "settimecornremove" && $adminrulecheck['rule'] == "administrator"
         return;
     }
     $userdata = json_decode($user['Processing_value'], true);
-    $stmt = $pdo->prepare("SELECT * FROM product WHERE Location = '{$userdata['namepanel']}' AND agent = '{$userdata['agent']}'");
+    $loc_cond = getProductLocCondition($userdata['namepanel']);
+    $stmt = $pdo->prepare("SELECT * FROM product WHERE $loc_cond AND agent = '{$userdata['agent']}'");
     $stmt->execute();
     $product = $stmt->fetchAll();
     if ($product == false) {
@@ -8068,10 +8071,10 @@ if ($datain == "settimecornremove" && $adminrulecheck['rule'] == "administrator"
         return;
     }
     if ($userdata['type_price'] == "static") {
-        $stmt = $pdo->prepare("UPDATE  product set price_product = price_product + :price WHERE Location = '{$userdata['namepanel']}' AND agent = '{$userdata['agent']}'");
+        $stmt = $pdo->prepare("UPDATE product set price_product = price_product + :price WHERE $loc_cond AND agent = '{$userdata['agent']}'");
         $stmt->bindParam(':price', $text, PDO::PARAM_STR);
     } else {
-        $stmt = $pdo->prepare("UPDATE  product set price_product = price_product + (price_product * :price / 100)  WHERE Location = '{$userdata['namepanel']}' AND agent = '{$userdata['agent']}'");
+        $stmt = $pdo->prepare("UPDATE product set price_product = price_product + (price_product * :price / 100) WHERE $loc_cond AND agent = '{$userdata['agent']}'");
         $stmt->bindParam(':price', $text, PDO::PARAM_STR);
     }
     $stmt->execute();
@@ -8094,7 +8097,8 @@ if ($datain == "settimecornremove" && $adminrulecheck['rule'] == "administrator"
         return;
     }
     $userdata = json_decode($user['Processing_value'], true);
-    $stmt = $pdo->prepare("SELECT * FROM product WHERE Location = '{$userdata['namepanel']}' AND agent = '{$userdata['agent']}'");
+    $loc_cond = getProductLocCondition($userdata['namepanel']);
+    $stmt = $pdo->prepare("SELECT * FROM product WHERE $loc_cond AND agent = '{$userdata['agent']}'");
     $stmt->execute();
     $product = $stmt->fetchAll();
     if ($product == false) {
@@ -9256,11 +9260,11 @@ elseif ($text == $textbotlang['keyboard']['hidePanelForUser'] && $adminrulecheck
                 $DataUserOut['proxies'][$key] = new stdClass();
             }
         }
-        $stmt = $pdo->prepare("UPDATE product SET proxies = :proxies WHERE id = :name_product AND (Location = :Location OR Location = '/all') AND agent = :agent");
+        $loc_cond = getProductLocCondition($marzban_list_get['name_panel']);
+        $stmt = $pdo->prepare("UPDATE product SET proxies = :proxies WHERE id = :name_product AND $loc_cond AND agent = :agent");
         $proxies_json = json_encode($DataUserOut['proxies']);
         $stmt->bindParam(':proxies', $proxies_json);
         $stmt->bindParam(':name_product', $user['Processing_value']);
-        $stmt->bindParam(':Location', $marzban_list_get['name_panel']);
         $stmt->bindParam(':agent', $user['Processing_value_tow']);
         $stmt->execute();
         $datainbound = json_encode($DataUserOut['inbounds']);
@@ -9290,10 +9294,10 @@ elseif ($text == $textbotlang['keyboard']['hidePanelForUser'] && $adminrulecheck
         sendmessage($from_id, $textbotlang['Admin']['adminphp']['err_notfound_panel_2'], $shopkeyboard, 'HTML');
         return;
     }
-    $stmt = $pdo->prepare("UPDATE product SET inbounds = :inbounds WHERE id = :name_product AND (Location = :Location OR Location = '/all') AND agent = :agent");
+    $loc_cond = getProductLocCondition($marzban_list_get['name_panel']);
+    $stmt = $pdo->prepare("UPDATE product SET inbounds = :inbounds WHERE id = :name_product AND $loc_cond AND agent = :agent");
     $stmt->bindParam(':inbounds', $datainbound);
     $stmt->bindParam(':name_product', $user['Processing_value']);
-    $stmt->bindParam(':Location', $marzban_list_get['name_panel']);
     $stmt->bindParam(':agent', $user['Processing_value_tow']);
     $stmt->execute();
     sendmessage($from_id, $textbotlang['Admin']['adminphp']['ok_day_4'], $shopkeyboard, 'HTML');
@@ -11211,9 +11215,9 @@ if ($datain == "settimecornday" && $adminrulecheck['rule'] == "administrator") {
     step("home", $from_id);
 } elseif ($text == $textbotlang['keyboard']['showFirstPurchase']) {
     $panel = select("marzban_panel", "*", "code_panel", $user['Processing_value_one'], "select");
-    $stmt = $pdo->prepare("SELECT * FROM product WHERE id = :name_product  AND agent = :agent AND (Location = :Location OR Location = '/all') LIMIT 1");
+    $loc_cond = getProductLocCondition($panel['name_panel']);
+    $stmt = $pdo->prepare("SELECT * FROM product WHERE id = :name_product  AND agent = :agent AND $loc_cond LIMIT 1");
     $stmt->bindParam(':name_product', $user['Processing_value']);
-    $stmt->bindParam(':Location', $panel['name_panel']);
     $stmt->bindParam(':agent', $user['Processing_value_tow']);
     $stmt->execute();
     $product = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -11238,15 +11242,14 @@ if ($datain == "settimecornday" && $adminrulecheck['rule'] == "administrator") {
         $status_now = '0';
     }
     $panel = select("marzban_panel", "*", "code_panel", $user['Processing_value_one'], "select");
-    $stmt = $pdo->prepare("UPDATE product SET one_buy_status = :one_buy_status WHERE code_product = :code_product AND (Location = :Location OR Location = '/all') AND agent = :agent");
+    $loc_cond = getProductLocCondition($panel['name_panel']);
+    $stmt = $pdo->prepare("UPDATE product SET one_buy_status = :one_buy_status WHERE code_product = :code_product AND $loc_cond AND agent = :agent");
     $stmt->bindParam(':one_buy_status', $status_now);
     $stmt->bindParam(':code_product', $code_product);
-    $stmt->bindParam(':Location', $panel['name_panel']);
     $stmt->bindParam(':agent', $user['Processing_value_tow']);
     $stmt->execute();
-    $stmt = $pdo->prepare("SELECT * FROM product WHERE code_product = :code_product  AND agent = :agent AND (Location = :Location OR Location = '/all') LIMIT 1");
+    $stmt = $pdo->prepare("SELECT * FROM product WHERE code_product = :code_product  AND agent = :agent AND $loc_cond LIMIT 1");
     $stmt->bindParam(':code_product', $code_product);
-    $stmt->bindParam(':Location', $panel['name_panel']);
     $stmt->bindParam(':agent', $user['Processing_value_tow']);
     $stmt->execute();
     $product = $stmt->fetch(PDO::FETCH_ASSOC);
