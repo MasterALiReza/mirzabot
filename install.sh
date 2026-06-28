@@ -863,7 +863,7 @@ EOF
             echo -e "\e[91mError: Failed to set webhook for bot.\033[0m"
             exit 1
         }
-        MESSAGE="✅ The Mirza Pro bot is installed! for start the bot send /start command."
+        MESSAGE="✅ The OxBot is installed! for start the bot send /start command."
         curl -s -X POST "https://api.telegram.org/bot${YOUR_BOT_TOKEN}/sendMessage" -d chat_id="${YOUR_CHAT_ID}" -d text="$MESSAGE" || {
             echo -e "\e[91mError: Failed to send message to Telegram.\033[0m"
             exit 1
@@ -886,7 +886,7 @@ EOF
         echo -e "\e[33mDatabase username: \e[36m${dbuser}\033[0m"
         echo -e "\e[33mDatabase password: \e[36m${dbpass}\033[0m"
         echo " "
-        echo -e "Mirza Pro Bot"
+        echo -e "OxBot"
 
     elif [ "$ROOT_PASSWORD" = "" ] || [ "$ROOT_USER" = "" ]; then
         echo -e "\n\e[36mThe password is empty.\033[0m\n"
@@ -901,8 +901,8 @@ EOF
 }
 function install_bot_with_marzban() {
     # Display warning and confirmation
-    echo -e "\033[41m[IMPORTANT WARNING]\033[0m \033[1;33mMarzban panel is detected on your server. Please make sure to backup the Marzban database before installing Mirza Bot.\033[0m"
-    read -p "Are you sure you want to install Mirza Bot alongside Marzban? (y/n): " confirm
+    echo -e "\033[41m[IMPORTANT WARNING]\033[0m \033[1;33mMarzban panel is detected on your server. Please make sure to backup the Marzban database before installing OxBot.\033[0m"
+    read -p "Are you sure you want to install OxBot alongside Marzban? (y/n): " confirm
     if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
         echo -e "\e[91mInstallation aborted by user.\033[0m"
         exit 0
@@ -911,7 +911,7 @@ function install_bot_with_marzban() {
     echo -e "\e[32mChecking Marzban database type...\033[0m"
     DB_TYPE=$(detect_database_type)
     if [ "$DB_TYPE" != "mysql" ]; then
-        echo -e "\e[91mError: Your database is $DB_TYPE. To install Mirza Bot, you must use MySQL.\033[0m"
+        echo -e "\e[91mError: Your database is $DB_TYPE. To install OxBot, you must use MySQL.\033[0m"
         echo -e "\e[93mPlease configure Marzban to use MySQL and try again.\033[0m"
         exit 1
     fi
@@ -1093,7 +1093,7 @@ function install_bot_with_marzban() {
     fi
     # Ask for database username and password like Marzban
     clear
-    echo -e "\e[33mConfiguring Mirza Bot database credentials...\033[0m"
+    echo -e "\e[33mConfiguring OxBot database credentials...\033[0m"
     default_dbuser=$(openssl rand -base64 12 | tr -dc 'a-zA-Z' | head -c8)
     printf "\e[33m[+] \e[36mDatabase username (default: $default_dbuser): \033[0m"
     read dbuser
@@ -1382,7 +1382,7 @@ EOF
 }
 Update Function for Mirza Pro
 function update_bot() {
-    echo "Updating Mirza Pro Bot..."
+    echo "Updating OxBot..."
     # Update server packages
     if ! sudo apt update && sudo apt upgrade -y; then
         echo -e "\e[91mError updating the server. Exiting...\033[0m"
@@ -1392,7 +1392,7 @@ function update_bot() {
     # Check if bot is already installed (Pro Directory)
     BOT_DIR="/var/www/html/mirzaprobotconfig"
     if [ ! -d "$BOT_DIR" ]; then
-        echo -e "\e[91mError: Mirza Pro Bot is not installed. Please install it first.\033[0m"
+        echo -e "\e[91mError: OxBot is not installed. Please install it first.\033[0m"
         exit 1
     fi
     # Fetch latest version from GitHub (Always Main Branch for Pro)
@@ -1549,7 +1549,7 @@ EOF
     fi
     # Cleanup
     rm -rf "$TEMP_DIR"
-    echo -e "\n\e[92mMirza Bot updated to latest version successfully!\033[0m"
+    echo -e "\n\e[92mOxBot updated to latest version successfully!\033[0m"
     # Ensure /root/install.sh is executable and linked to mirza
     if [ -f "/root/install.sh" ]; then
         sudo chmod +x /root/install.sh
@@ -1561,19 +1561,19 @@ EOF
 }
 Delete Function for Mirza Pro
 function remove_bot() {
-    echo -e "\e[33mStarting Mirza Pro Bot removal process...\033[0m"
+    echo -e "\e[33mStarting OxBot removal process...\033[0m"
     LOG_FILE="/var/log/remove_bot.log"
     echo "Log file: $LOG_FILE" > "$LOG_FILE"
     # Check if Mirza Pro Bot is installed
     BOT_DIR="/var/www/html/mirzaprobotconfig"
     if [ ! -d "$BOT_DIR" ]; then
-        echo -e "\e[31m[ERROR]\033[0m Mirza Pro Bot is not installed (/var/www/html/mirzaprobotconfig not found)." | tee -a "$LOG_FILE"
+        echo -e "\e[31m[ERROR]\033[0m OxBot is not installed (/var/www/html/mirzaprobotconfig not found)." | tee -a "$LOG_FILE"
         echo -e "\e[33mNothing to remove. Exiting...\033[0m" | tee -a "$LOG_FILE"
         sleep 2
         exit 1
     fi
     # User Confirmation
-    read -p "Are you sure you want to remove Mirza Pro Bot and its dependencies? (y/n): " choice
+    read -p "Are you sure you want to remove OxBot and its dependencies? (y/n): " choice
     if [[ "$choice" != "y" ]]; then
         echo "Aborting..." | tee -a "$LOG_FILE"
         exit 0
@@ -1585,7 +1585,7 @@ function remove_bot() {
         return 0
     fi
     # Proceed with normal removal if Marzban is not installed
-    echo "Removing Mirza Pro Bot..." | tee -a "$LOG_FILE"
+    echo "Removing OxBot..." | tee -a "$LOG_FILE"
     # Delete Configuration File securely before removing directory
     CONFIG_PATH="/var/www/html/mirzaprobotconfig/config.php"
     if [ -f "$CONFIG_PATH" ]; then
@@ -1655,10 +1655,10 @@ function remove_bot() {
     echo -e "\e[33mResetting firewall rules (except SSL)...\033[0m" | tee -a "$LOG_FILE"
     sudo ufw delete allow 'Apache'
     sudo ufw reload
-    echo -e "\e[92mMirza Pro Bot, MySQL, and their dependencies have been completely removed.\033[0m" | tee -a "$LOG_FILE"
+    echo -e "\e[92mOxBot, MySQL, and their dependencies have been completely removed.\033[0m" | tee -a "$LOG_FILE"
 }
 function remove_bot_with_marzban() {
-    echo -e "\e[33mRemoving Mirza Bot alongside Marzban...\033[0m" | tee -a "$LOG_FILE"
+    echo -e "\e[33mRemoving OxBot alongside Marzban...\033[0m" | tee -a "$LOG_FILE"
     # Define Bot Directory
     BOT_DIR="/var/www/html/mirzaprobotconfig"
     # Check if Bot Directory exists before proceeding
@@ -1759,7 +1759,7 @@ function remove_bot_with_marzban() {
         echo -e "\e[91mFailed to remove Apache rule from UFW.\033[0m" | tee -a "$LOG_FILE"
     }
     sudo ufw reload
-    echo -e "\e[92mMirza Bot has been removed alongside Marzban. SSL certificates remain intact.\033[0m" | tee -a "$LOG_FILE"
+    echo -e "\e[92mOxBot has been removed alongside Marzban. SSL certificates remain intact.\033[0m" | tee -a "$LOG_FILE"
 }
 #Extract database credentials from config.php
 function extract_db_credentials() {
@@ -1855,7 +1855,7 @@ function auto_backup() {
     # Check if Mirza Bot is installed
     BOT_DIR="/var/www/html/mirzaprobotconfig"
     if [ ! -d "$BOT_DIR" ]; then
-        echo -e "\033[31m[ERROR]\033[0m Mirza Bot is not installed ($BOT_DIR not found)."
+        echo -e "\033[31m[ERROR]\033[0m OxBot is not installed ($BOT_DIR not found)."
         echo -e "\033[33mExiting...\033[0m"
         sleep 2
         return 1
@@ -2613,7 +2613,7 @@ process_arguments() {
             # If arguments are passed but not recognized (like -v), ignore versioning for Pro
             # since we only use the main branch.
             if [ -n "$1" ]; then
-                echo -e "\e[33mNote: Mirza Pro only uses the latest version from GitHub Main branch.\033[0m"
+                echo -e "\e[33mNote: OxBot only uses the latest version from GitHub Main branch.\033[0m"
             fi
             show_menu
             ;;
