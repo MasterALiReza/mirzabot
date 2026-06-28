@@ -107,9 +107,9 @@ function show_logo() {
     echo -e "\033[1;36m+-------------------+---------------------------------------------------+\033[0m"
     echo -e "\033[1;36m| Version           |\033[0m \033[33m0.4 (Pro)\033[0m"
     echo -e "\033[1;36m+-------------------+---------------------------------------------------+\033[0m"
-    echo -e "\033[1;36m| Telegram Channel  |\033[0m \033[34mhttps://t.me/mirzapanel\033[0m"
+    echo -e "\033[1;36m| Telegram Channel  |\033[0m \033[34mhttps://t.me/OxVpN_Net\033[0m"
     echo -e "\033[1;36m+-------------------+---------------------------------------------------+\033[0m"
-    echo -e "\033[1;36m| Telegram Group    |\033[0m \033[34mhttps://t.me/mirzapanelgroup\033[0m"
+    echo -e "\033[1;36m| Telegram Group    |\033[0m \033[34mhttps://t.me/WexortChat\033[0m"
     echo -e "\033[1;36m+-------------------+---------------------------------------------------+\033[0m"
     echo ""
     echo -e "\033[1;36mInstallation Status:\033[0m"
@@ -120,18 +120,18 @@ function show_logo() {
 function show_menu() {
     show_logo
     if [ -f "/var/www/html/mirzaprobotconfig/config.php" ]; then
-        echo -e "\033[1;36m1)\033[0m Reinstall/Fix Mirza Bot"
-        echo -e "\033[1;36m2)\033[0m Update Mirza Bot"
-        echo -e "\033[1;36m3)\033[0m Remove Mirza Bot"
+        echo -e "\033[1;36m1)\033[0m Reinstall/Fix OxBot"
+        echo -e "\033[1;36m2)\033[0m Update OxBot"
+        echo -e "\033[1;36m3)\033[0m Remove OxBot"
         echo -e "\033[1;36m4)\033[0m Export Database"
         echo -e "\033[1;36m5)\033[0m Import Database"
         echo -e "\033[1;36m6)\033[0m Configure Automated Backup"
         echo -e "\033[1;36m7)\033[0m Renew SSL Certificates"
         echo -e "\033[1;36m8)\033[0m Change Domain"
     else
-        echo -e "\033[1;36m1)\033[0m Install Mirza Bot"
-        echo -e "\e[90m2) Update Mirza Bot (Not Installed)\033[0m"
-        echo -e "\e[90m3) Remove Mirza Bot (Not Installed)\033[0m"
+        echo -e "\033[1;36m1)\033[0m Install OxBot"
+        echo -e "\e[90m2) Update OxBot (Not Installed)\033[0m"
+        echo -e "\e[90m3) Remove OxBot (Not Installed)\033[0m"
         echo -e "\e[90m4) Export Database (Not Installed)\033[0m"
         echo -e "\e[90m5) Import Database (Not Installed)\033[0m"
         echo -e "\e[90m6) Configure Automated Backup (Not Installed)\033[0m"
@@ -319,7 +319,7 @@ function install_bot() {
         sleep 2
     fi
 
-    echo -e "\e[32mInstalling Mirza Pro script ... \033[0m\n"
+    echo -e "\e[32mInstalling OxBot script ... \033[0m\n"
     # Check if Marzban is installed and redirect to appropriate function
     if check_marzban_installed; then
         echo -e "\033[41m[IMPORTANT WARNING]\033[0m \033[1;33mMarzban detected. Proceeding with Marzban-compatible installation.\033[0m"
@@ -521,7 +521,7 @@ function install_bot() {
     fi
     # CHANGED: Always download from main branch (No releases for Pro)
     ZIP_URL="https://github.com/MasterALiReza/mirzabot/archive/refs/heads/main.zip"
-    echo -e "\033[33mDownloading Mirza Pro from Main Branch...\033[0m"
+    echo -e "\033[33mDownloading OxBot from Main Branch...\033[0m"
     # Download and extract the repository
     TEMP_DIR="/tmp/mirzaprobot"
     rm -rf "$TEMP_DIR"
@@ -548,7 +548,7 @@ function install_bot() {
     rm -rf "$TEMP_DIR"
     sudo chown -R www-data:www-data "$BOT_DIR"
     sudo chmod -R 755 "$BOT_DIR"
-    echo -e "\n\033[33mMirza Pro config and script have been installed successfully.\033[0m"
+    echo -e "\n\033[33mOxBot config and script have been installed successfully.\033[0m"
     wait
     if [ ! -d "/root/confmirza" ]; then
         sudo mkdir /root/confmirza || {

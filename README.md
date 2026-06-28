@@ -1,11 +1,11 @@
-# 🤖 Bot Mirza Panel
+# 🤖 Bot Ox Panel
 
 
 A Powerful Bot for Selling VPN Services with Auto Configuration Build.
 
 <p align="center">
-    <a href="https://t.me/mirzapanel" target="_blank">
-        <img src="https://img.shields.io/badge/Telegram-Group-blue?style=flat-square&logo=telegram" alt="Telegram Group"/>
+    <a href="https://t.me/OxVpN_Net" target="_blank">
+        <img src="https://img.shields.io/badge/Telegram-Group-blue?style=flat-square&logo=telegram" alt="Telegram Channel"/>
     </a>
     <a href="https://github.com/MasterALiReza/mirzabot" target="_blank">
         <img src="https://img.shields.io/github/stars/MasterALiReza/mirzabot?style=social" alt="GitHub Stars"/>
@@ -35,9 +35,9 @@ A Powerful Bot for Selling VPN Services with Auto Configuration Build.
 
 ## ✨ Overview
 
-**Mirza Bot** is a feature-rich Telegram bot designed for selling VPN services for platforms like **Marzban**, **3x-ui panels**, **alireza panels**, **pasarguard**, **ibsng**, etc. This bot simplifies the process of VPN subscription sales, enabling seamless automation, configuration building, and user management.
+**OxBot** is a feature-rich Telegram bot designed for selling VPN services for platforms like **Marzban**, **3x-ui panels**, **alireza panels**, **pasarguard**, **ibsng**, etc. This bot simplifies the process of VPN subscription sales, enabling seamless automation, configuration building, and user management.
 
-Mirza Panel comes in two versions:  
+Ox Panel comes in two versions:  
 1. **Free Version** 🆓: Offers basic functionalities to get started with VPN sales.  
 2. **Subscription Version** 💎: Provides advanced features for businesses looking for more customization, detailed analytics, and enhanced management options.  
 
@@ -84,7 +84,7 @@ Whether you’re offering trial accounts or managing large-scale VPN services, t
 In addition to the features of the Free Version.
 To read the details, please refer to the link below.
 
-📌 **Subscription Purchase Guide**: [View Guide](https://t.me/mirzaperimium/4)
+📌 **Subscription Purchase Guide**: [View Guide](https://t.me/OxVpN_Net/4)
 
 ---
 
@@ -135,7 +135,7 @@ When prompted, **select option 3** to remove the bot.
 
 ## 💵 Financial Support
 
-If you find **Mirza Panel** helpful and would like to support its development, you can make a financial contribution via cryptocurrency.
+If you find **Ox Panel** helpful and would like to support its development, you can make a financial contribution via cryptocurrency.
 
 <a href = "https://nowpayments.io/donation/permiumbotmirza">👉 Support the Project on NowPayments</a>
 

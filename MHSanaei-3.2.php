@@ -9,7 +9,7 @@ function mhsanaei_cookie_file($code_panel)
     if (!is_dir($dir) || !is_writable($dir)) {
         $dir = __DIR__;
     }
-    return rtrim($dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'mirzabot_mhsanaei_' . md5(__DIR__) . '_' . $safe_code . '.txt';
+    return rtrim($dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'oxbot_mhsanaei_' . md5(__DIR__) . '_' . $safe_code . '.txt';
 }
 
 function mhsanaei_prepare_cookie_file($cookie_file, $reset = false)
