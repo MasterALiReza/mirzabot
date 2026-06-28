@@ -177,16 +177,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $w_req = db_fetch($pdo, "SELECT * FROM withdrawal_requests WHERE id = ?", [$w_id]);
         if ($w_req && $w_req['status'] === 'pending') {
             if ($action === 'approve_withdrawal') {
-                db_query($pdo, "UPDATE withdrawal_requests SET status = 'approved' WHERE id = ?", [$w_id]);
-                $msg = "✅ درخواست تسویه حساب شما به مبلغ <b>" . number_format($w_req['amount']) . "</b> تومان تایید و پرداخت شد.";
-                telegram('sendMessage', ['chat_id' => $w_req['user_id'], 'text' => $msg, 'parse_mode' => 'HTML']);
-                flash('success', 'درخواست تسویه تایید و پرداخت شد.');
+                $stmt = db_query($pdo, "UPDATE withdrawal_requests SET status = 'approved' WHERE id = ? AND status = 'pending'", [$w_id]);
+                if ($stmt->rowCount() > 0) {
+                    $msg = "✅ درخواست تسویه حساب شما به مبلغ <b>" . number_format($w_req['amount']) . "</b> تومان تایید و پرداخت شد.";
+                    telegram('sendMessage', ['chat_id' => $w_req['user_id'], 'text' => $msg, 'parse_mode' => 'HTML']);
+                    flash('success', 'درخواست تسویه تایید و پرداخت شد.');
+                } else {
+                    flash('error', 'درخواست یافت نشد یا توسط ادمین دیگری تغییر کرده است.');
+                }
             } else {
-                db_query($pdo, "UPDATE user SET affiliate_balance = COALESCE(affiliate_balance, 0) + ? WHERE id = ?", [$w_req['amount'], $w_req['user_id']]);
-                db_query($pdo, "UPDATE withdrawal_requests SET status = 'rejected' WHERE id = ?", [$w_id]);
-                $msg = "❌ درخواست تسویه حساب شما به مبلغ <b>" . number_format($w_req['amount']) . "</b> تومان رد شد و مبلغ به کیف پول بازاریابی شما بازگشت داده شد.";
-                telegram('sendMessage', ['chat_id' => $w_req['user_id'], 'text' => $msg, 'parse_mode' => 'HTML']);
-                flash('success', 'درخواست تسویه رد شد و وجه بازگشت داده شد.');
+                $stmt = db_query($pdo, "UPDATE withdrawal_requests SET status = 'rejected' WHERE id = ? AND status = 'pending'", [$w_id]);
+                if ($stmt->rowCount() > 0) {
+                    db_query($pdo, "UPDATE user SET affiliate_balance = COALESCE(affiliate_balance, 0) + ? WHERE id = ?", [$w_req['amount'], $w_req['user_id']]);
+                    $msg = "❌ درخواست تسویه حساب شما به مبلغ <b>" . number_format($w_req['amount']) . "</b> تومان رد شد و مبلغ به کیف پول بازاریابی شما بازگشت داده شد.";
+                    telegram('sendMessage', ['chat_id' => $w_req['user_id'], 'text' => $msg, 'parse_mode' => 'HTML']);
+                    flash('success', 'درخواست تسویه رد شد و وجه بازگشت داده شد.');
+                } else {
+                    flash('error', 'درخواست یافت نشد یا توسط ادمین دیگری تغییر کرده است.');
+                }
             }
         } else {
             flash('error', 'درخواست یافت نشد یا دیگر در انتظار بررسی نیست.');

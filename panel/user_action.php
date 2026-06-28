@@ -121,17 +121,21 @@ switch ($action) {
     case 'zero_affiliate_balance':
         $current_bal = db_fetch($pdo, "SELECT affiliate_balance FROM user WHERE id = ?", [$id])['affiliate_balance'] ?? 0;
         if ($current_bal > 0) {
-            db_query($pdo, "UPDATE user SET affiliate_balance = 0 WHERE id = ?", [$id]);
-            db_query($pdo, "INSERT INTO affiliate_log (user_id, action_type, amount, description) VALUES (?, 'zero', ?, 'صفر کردن موجودی توسط مدیریت')", [$id, $current_bal]);
-            
-            if (function_exists('telegram')) {
-                telegram('sendMessage', [
-                    'chat_id' => $id,
-                    'text' => "❌ <b>کسر موجودی بازاریابی</b>\n\nموجودی کیف پول بازاریابی (همکاری در فروش) شما توسط مدیریت صفر شد.",
-                    'parse_mode' => 'HTML'
-                ]);
+            $stmt = db_query($pdo, "UPDATE user SET affiliate_balance = 0 WHERE id = ? AND affiliate_balance > 0", [$id]);
+            if ($stmt->rowCount() > 0) {
+                db_query($pdo, "INSERT INTO affiliate_log (user_id, action_type, amount, description) VALUES (?, 'zero', ?, 'صفر کردن موجودی توسط مدیریت')", [$id, $current_bal]);
+                
+                if (function_exists('telegram')) {
+                    telegram('sendMessage', [
+                        'chat_id' => $id,
+                        'text' => "❌ <b>کسر موجودی بازاریابی</b>\n\nموجودی کیف پول بازاریابی (همکاری در فروش) شما توسط مدیریت صفر شد.",
+                        'parse_mode' => 'HTML'
+                    ]);
+                }
+                flash('success', 'موجودی همکاری در فروش کاربر صفر شد.');
+            } else {
+                flash('warning', 'موجودی قبلاً صفر شده است یا تغییر کرده است.');
             }
-            flash('success', 'موجودی همکاری در فروش کاربر صفر شد.');
         } else {
             flash('warning', 'موجودی همکاری در فروش کاربر در حال حاضر صفر است.');
         }
