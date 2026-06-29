@@ -58,14 +58,6 @@ try {
     }
 } catch (Exception $e) {}
 
-$affiliate_settings = [];
-try {
-    $stmt = $pdo->query("SELECT * FROM affiliates LIMIT 1");
-    if($r = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        $affiliate_settings = $r;
-    }
-} catch (Exception $e) {}
-
 $cron_status = json_decode($row['cron_status'] ?? '{}', true);
 $limitnumber = json_decode($row['limitnumber'] ?? '{}', true);
 $lottery_prize = json_decode($row['Lottery_prize'] ?? '{}', true);
@@ -106,9 +98,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $dec = json_decode($r['value'], true);
         if(is_array($dec)) $new_chashbackextend_agent = $dec;
     }
-    
-    $updates_affiliates = [];
-    $params_affiliates = [];
     
     foreach($_POST as $key => $val) {
         if(strpos($key, 'set_cron_') === 0) {
@@ -161,10 +150,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif(strpos($key, 'shop_') === 0) {
             $field = substr($key, 5);
             db_query($pdo, "UPDATE shopSetting SET value = ? WHERE Namevalue = ?", [$val, $field]);
-        } elseif(strpos($key, 'aff_') === 0) {
-            $field = substr($key, 4);
-            $updates_affiliates[] = "$field = ?";
-            $params_affiliates[] = $val;
         }
     }
     
@@ -178,10 +163,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $params_setting[] = json_encode($new_lottery_prize);
     
     db_query($pdo, "UPDATE shopSetting SET value = ? WHERE Namevalue = ?", [json_encode($new_chashbackextend_agent), 'chashbackextend_agent']);
-    
-    if(!empty($updates_affiliates)) {
-        db_query($pdo, "UPDATE affiliates SET " . implode(', ', $updates_affiliates), $params_affiliates);
-    }
     
     if ($new_cardnumber !== null && $new_namecard !== null) {
         $old = db_fetch($pdo, "SELECT cardnumber, namecard FROM card_number LIMIT 1");

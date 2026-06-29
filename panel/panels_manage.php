@@ -22,6 +22,15 @@ try {
     } catch (Exception $ex) {}
 }
 
+// Ensure custom_sub_domain column exists safely
+try {
+    $pdo->query("SELECT custom_sub_domain FROM marzban_panel LIMIT 1");
+} catch (Exception $e) {
+    try {
+        $pdo->exec("ALTER TABLE marzban_panel ADD COLUMN custom_sub_domain VARCHAR(255) DEFAULT ''");
+    } catch (Exception $ex) {}
+}
+
 // Fetch Panel Categories
 try {
     $panel_categories = db_fetchAll($pdo, "SELECT * FROM panel_category WHERE status = 'active' ORDER BY name ASC");
@@ -75,6 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $type = trim($_POST['type'] ?? 'marzban');
     $status = trim($_POST['status'] ?? 'active');
     $agent = trim($_POST['agent'] ?? 'all');
+    $custom_sub_domain = trim($_POST['custom_sub_domain'] ?? '');
     
     $inboundid = trim($_POST['inboundid'] ?? '');
     if (empty($inboundid) || $inboundid === '1') {
@@ -136,14 +146,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $code_panel = '7e' . ($max_num + 1);
 
             db_query($pdo, "INSERT INTO marzban_panel 
-                (name_panel, url_panel, username_panel, password_panel, type, status, code_panel, MethodUsername, inboundstatus, inbound_deactive, agent, inboundid, conecton, Methodextend, namecustom, limit_panel, TestAccount, sublink, config, qr_wgd, version_panel, on_hold_test, subvip, changeloc, status_extend, priceChangeloc, sanaei_group, mainvolume, maxvolume, maintime, maxtime, customvolume, priceextravolume, pricecustomvolume, pricecustomtime, priceextratime, val_usertest, time_usertest, panel_category_id) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '0', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+                (name_panel, url_panel, username_panel, password_panel, type, status, code_panel, MethodUsername, inboundstatus, inbound_deactive, agent, inboundid, conecton, Methodextend, namecustom, limit_panel, TestAccount, sublink, config, qr_wgd, version_panel, on_hold_test, subvip, changeloc, status_extend, priceChangeloc, sanaei_group, mainvolume, maxvolume, maintime, maxtime, customvolume, priceextravolume, pricecustomvolume, pricecustomtime, priceextratime, val_usertest, time_usertest, panel_category_id, custom_sub_domain) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '0', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
                 [
                     $name_panel, $url_panel, $username_panel, $password_panel, $type, $status, $code_panel,
                     $MethodUsername, $inboundstatus, $inbound_deactive, $agent, $inboundid, $conecton, $Methodextend,
                     $namecustom, $limit_panel, $TestAccount, $sublink, $config, $qr_wgd, $on_hold_test, $subvip, $changeloc,
                     $status_extend, $priceChangeloc, $sanaei_group, $mainvolume, $maxvolume, $maintime, $maxtime,
-                    $customvolume, $priceextravolume, $pricecustomvolume, $pricecustomtime, $priceextratime, $val_usertest, $time_usertest, $panel_category_id
+                    $customvolume, $priceextravolume, $pricecustomvolume, $pricecustomtime, $priceextratime, $val_usertest, $time_usertest, $panel_category_id, $custom_sub_domain
                 ]
             );
             flash('success', 'پنل جدید با موفقیت اضافه شد.');
@@ -175,7 +185,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 namecustom = ?, limit_panel = ?, TestAccount = ?, sublink = ?, config = ?, qr_wgd = ?, on_hold_test = ?, subvip = ?,
                 changeloc = ?, status_extend = ?, priceChangeloc = ?, sanaei_group = ?, mainvolume = ?, maxvolume = ?,
                 maintime = ?, maxtime = ?, customvolume = ?, priceextravolume = ?, pricecustomvolume = ?, pricecustomtime = ?,
-                priceextratime = ?, val_usertest = ?, time_usertest = ?, panel_category_id = ?
+                priceextratime = ?, val_usertest = ?, time_usertest = ?, panel_category_id = ?, custom_sub_domain = ?
                 WHERE id = ?",
                 [
                     $name_panel, $url_panel, $username_panel, $password_panel, $type, $status, $agent,
@@ -183,7 +193,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $namecustom, $limit_panel, $TestAccount, $sublink, $config, $qr_wgd, $on_hold_test, $subvip,
                     $changeloc, $status_extend, $priceChangeloc, $sanaei_group, $mainvolume, $maxvolume,
                     $maintime, $maxtime, $customvolume, $priceextravolume, $pricecustomvolume, $pricecustomtime,
-                    $priceextratime, $val_usertest, $time_usertest, $panel_category_id, $id
+                    $priceextratime, $val_usertest, $time_usertest, $panel_category_id, $custom_sub_domain, $id
                 ]
             );
             
@@ -493,6 +503,11 @@ include __DIR__ . '/inc/layout_head.php';
                     <div class="field-group" style="margin-top:15px">
                         <label>آدرس پنل (URL)</label>
                         <input type="url" name="url_panel" id="panelUrl" class="input" required placeholder="https://panel.example.com:2053" style="direction:ltr;text-align:left;">
+                    </div>
+                    <div class="field-group" style="margin-top:15px">
+                        <label>دامنه/پیشوند سفارشی سابسکریپشن (اختیاری)</label>
+                        <input type="url" name="custom_sub_domain" id="panelCustomSubDomain" class="input" placeholder="https://sub.wxnet.pro:2096/sub/" style="direction:ltr;text-align:left;">
+                        <small style="color:var(--ts);font-size:11px;display:block;margin-top:4px;">در صورت مقداردهی، در لینک‌های ساب این آدرس به جای آدرس اصلی پنل جایگزین می‌شود.</small>
                     </div>
                     <div class="field-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:15px">
                         <div class="field-group">
@@ -935,6 +950,7 @@ function openPanelModal(action, btn = null) {
         document.getElementById('panelStatus').value = 'active';
         document.getElementById('panelAgent').value = 'all';
         document.getElementById('panelCategoryId').value = '';
+        document.getElementById('panelCustomSubDomain').value = '';
         
         document.getElementById('panelInboundStatus').value = 'offinbounddisable';
         document.getElementById('panelInboundDeactive').value = '0';
@@ -983,6 +999,7 @@ function openPanelModal(action, btn = null) {
         document.getElementById('panelStatus').value = data.status || 'active';
         document.getElementById('panelAgent').value = data.agent || 'all';
         document.getElementById('panelCategoryId').value = data.panel_category_id || '';
+        document.getElementById('panelCustomSubDomain').value = data.custom_sub_domain || '';
         
         document.getElementById('panelInboundStatus').value = data.inboundstatus || 'offinbounddisable';
         document.getElementById('panelInboundDeactive').value = data.inbound_deactive || '0';

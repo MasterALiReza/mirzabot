@@ -396,7 +396,8 @@ try {
         version_panel varchar(60) NOT NULL,
         customvolume TEXT NULL,
         hide_user TEXT NULL,
-        panel_category_id varchar(50) NULL)
+        panel_category_id varchar(50) NULL,
+        custom_sub_domain varchar(255) NULL)
         ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_unicode_ci");
         if (!$result) {
             echo "table marzban_panel" . mysqli_error($connect);
@@ -468,6 +469,7 @@ try {
         addFieldToTable("marzban_panel", "qr_wgd", "offqrwgd", "VARCHAR(50)");
         addFieldToTable("marzban_panel", "version_panel", "0", "VARCHAR(60)");
         addFieldToTable("marzban_panel", "panel_category_id", null, "VARCHAR(50)");
+        addFieldToTable("marzban_panel", "custom_sub_domain", "", "VARCHAR(255)");
         $max_stmt = $connect->query("SELECT MAX(CAST(SUBSTRING(code_panel, 3) AS UNSIGNED)) as max_num FROM marzban_panel WHERE code_panel LIKE '7e%'");
         $max_row = $max_stmt->fetch_assoc();
         $next_num = $max_row['max_num'] ? (int) $max_row['max_num'] + 1 : 15;

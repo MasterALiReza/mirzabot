@@ -31,6 +31,9 @@ class ManagePanel
         // input from_id use $Data_Config
         // input type config use $Data_Config
         $Get_Data_Panel = select("marzban_panel", "*", "name_panel", $name_panel, "select");
+        if ($Get_Data_Panel && !empty($Get_Data_Panel['custom_sub_domain'])) {
+            $Get_Data_Panel['linksubx'] = rtrim($Get_Data_Panel['custom_sub_domain'], "/");
+        }
         if ($Get_Data_Panel == false) {
             $Output['status'] = 'Unsuccessful';
             $Output['msg'] = 'Panel Not Found';
@@ -82,8 +85,12 @@ class ManagePanel
                     $Output['msg'] = '';
                 }
             } else {
-                if (!preg_match('/^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:\d+)?((\/[^\s\/]+)+)?$/', $data_Output['subscription_url'])) {
-                    $data_Output['subscription_url'] = $Get_Data_Panel['url_panel'] . "/" . ltrim($data_Output['subscription_url'], "/");
+                if (!empty($Get_Data_Panel['custom_sub_domain'])) {
+                    $parsed = parse_url($data_Output['subscription_url']);
+                    $path = isset($parsed['path']) ? ltrim($parsed['path'], "/") : ltrim($data_Output['subscription_url'], "/");
+                    $data_Output['subscription_url'] = rtrim($Get_Data_Panel['custom_sub_domain'], "/") . "/" . $path;
+                } elseif (!preg_match('/^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:\d+)?((\/[^\s\/]+)+)?$/', $data_Output['subscription_url'])) {
+                    $data_Output['subscription_url'] = rtrim($Get_Data_Panel['url_panel'], "/") . "/" . ltrim($data_Output['subscription_url'], "/");
                 }
                 if ($Get_Data_Panel['version_panel'] == "1") {
                     $out_put_link = outputlink($data_Output['subscription_url']);
@@ -124,8 +131,12 @@ class ManagePanel
                     $Output['msg'] = '';
                 }
             } else {
-                if (!preg_match('/^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:\d+)?((\/[^\s\/]+)+)?$/', $data_Output['subscription_url'])) {
-                    $data_Output['subscription_url'] = $Get_Data_Panel['url_panel'] . "/" . ltrim($data_Output['subscription_url'], "/");
+                if (!empty($Get_Data_Panel['custom_sub_domain'])) {
+                    $parsed = parse_url($data_Output['subscription_url']);
+                    $path = isset($parsed['path']) ? ltrim($parsed['path'], "/") : ltrim($data_Output['subscription_url'], "/");
+                    $data_Output['subscription_url'] = rtrim($Get_Data_Panel['custom_sub_domain'], "/") . "/" . $path;
+                } elseif (!preg_match('/^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:\d+)?((\/[^\s\/]+)+)?$/', $data_Output['subscription_url'])) {
+                    $data_Output['subscription_url'] = rtrim($Get_Data_Panel['url_panel'], "/") . "/" . ltrim($data_Output['subscription_url'], "/");
                 }
                 $data_Output['links'] = outputlink($data_Output['subscription_url']);
                 if (isBase64($data_Output['links'])) {
@@ -355,8 +366,12 @@ class ManagePanel
                 $Output['msg'] = $data_Output['msg'];
             } else {
                 $setting_app = get_settig($Get_Data_Panel['name_panel']);
-                $url = explode(":", $Get_Data_Panel['url_panel']);
-                $url_sub = $url[0] . ":" . $url[1] . ":" . $setting_app['subPort'] . $setting_app['subPath'] . $usernameC;
+                if (!empty($Get_Data_Panel['custom_sub_domain'])) {
+                    $url_sub = rtrim($Get_Data_Panel['custom_sub_domain'], "/") . $setting_app['subPath'] . $usernameC;
+                } else {
+                    $url = explode(":", $Get_Data_Panel['url_panel']);
+                    $url_sub = $url[0] . ":" . $url[1] . ":" . $setting_app['subPort'] . $setting_app['subPath'] . $usernameC;
+                }
                 $Output['status'] = 'successful';
                 $Output['username'] = $usernameC;
                 $Output['subscription_url'] = $url_sub;
@@ -409,6 +424,9 @@ class ManagePanel
         $Output = array();
         global $pdo, $domainhosts;
         $Get_Data_Panel = select("marzban_panel", "*", "name_panel", $name_panel, "select");
+        if ($Get_Data_Panel && !empty($Get_Data_Panel['custom_sub_domain'])) {
+            $Get_Data_Panel['linksubx'] = rtrim($Get_Data_Panel['custom_sub_domain'], "/");
+        }
         if (!$Get_Data_Panel || !is_array($Get_Data_Panel)) {
             return array(
                 'status' => 'Unsuccessful',
@@ -444,8 +462,12 @@ class ManagePanel
                         'msg' => $msg
                     );
                 }
-                if (!preg_match('/^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:\d+)?((\/[^\s\/]+)+)?$/', $UsernameData['subscription_url'])) {
-                    $UsernameData['subscription_url'] = $Get_Data_Panel['url_panel'] . "/" . ltrim($UsernameData['subscription_url'], "/");
+                if (!empty($Get_Data_Panel['custom_sub_domain'])) {
+                    $parsed = parse_url($UsernameData['subscription_url']);
+                    $path = isset($parsed['path']) ? ltrim($parsed['path'], "/") : ltrim($UsernameData['subscription_url'], "/");
+                    $UsernameData['subscription_url'] = rtrim($Get_Data_Panel['custom_sub_domain'], "/") . "/" . $path;
+                } elseif (!preg_match('/^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:\d+)?((\/[^\s\/]+)+)?$/', $UsernameData['subscription_url'])) {
+                    $UsernameData['subscription_url'] = rtrim($Get_Data_Panel['url_panel'], "/") . "/" . ltrim($UsernameData['subscription_url'], "/");
                 }
                 if ($Get_Data_Panel['version_panel'] == "1") {
                     $UsernameData['expire'] = strtotime($UsernameData['expire']);
@@ -521,8 +543,12 @@ class ManagePanel
                         'msg' => 'User not found'
                     );
                 } else {
-                    if (!preg_match('/^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:\d+)?((\/[^\s\/]+)+)?$/', $UsernameData['subscription_url'])) {
-                        $UsernameData['subscription_url'] = $Get_Data_Panel['url_panel'] . "/" . ltrim($UsernameData['subscription_url'], "/");
+                    if (!empty($Get_Data_Panel['custom_sub_domain'])) {
+                        $parsed = parse_url($UsernameData['subscription_url']);
+                        $path = isset($parsed['path']) ? ltrim($parsed['path'], "/") : ltrim($UsernameData['subscription_url'], "/");
+                        $UsernameData['subscription_url'] = rtrim($Get_Data_Panel['custom_sub_domain'], "/") . "/" . $path;
+                    } elseif (!preg_match('/^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:\d+)?((\/[^\s\/]+)+)?$/', $UsernameData['subscription_url'])) {
+                        $UsernameData['subscription_url'] = rtrim($Get_Data_Panel['url_panel'], "/") . "/" . ltrim($UsernameData['subscription_url'], "/");
                     }
                     $UsernameData['status'] = "active";
                     if (!$UsernameData['enabled']) {
@@ -901,8 +927,12 @@ class ManagePanel
                     $UsernameData['enable'] = "disabled";
                 }
                 $setting_app = get_settig($Get_Data_Panel['name_panel']);
-                $url = explode(":", $Get_Data_Panel['url_panel']);
-                $url_sub = $url[0] . ":" . $url[1] . ":" . $setting_app['subPort'] . $setting_app['subPath'] . $username;
+                if (!empty($Get_Data_Panel['custom_sub_domain'])) {
+                    $url_sub = rtrim($Get_Data_Panel['custom_sub_domain'], "/") . $setting_app['subPath'] . $username;
+                } else {
+                    $url = explode(":", $Get_Data_Panel['url_panel']);
+                    $url_sub = $url[0] . ":" . $url[1] . ":" . $setting_app['subPort'] . $setting_app['subPath'] . $username;
+                }
                 $Output = array(
                     'status' => $UsernameData['enable'],
                     'username' => $UsernameData['name'],
@@ -991,6 +1021,9 @@ class ManagePanel
         $Output = array();
         $ManagePanel = new ManagePanel();
         $Get_Data_Panel = select("marzban_panel", "*", "name_panel", $name_panel, "select");
+        if ($Get_Data_Panel && !empty($Get_Data_Panel['custom_sub_domain'])) {
+            $Get_Data_Panel['linksubx'] = rtrim($Get_Data_Panel['custom_sub_domain'], "/");
+        }
         if ($Get_Data_Panel['type'] == "marzban") {
             $revoke_sub = revoke_sub($username, $name_panel);
             if (isset($revoke_sub['detail']) && $revoke_sub['detail']) {
@@ -1001,8 +1034,12 @@ class ManagePanel
             } else {
                 $config = new ManagePanel();
                 $Data_User = $config->DataUser($name_panel, $username);
-                if (!preg_match('/^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:\d+)?((\/[^\s\/]+)+)?$/', $Data_User['subscription_url'])) {
-                    $Data_User['subscription_url'] = $Get_Data_Panel['url_panel'] . "/" . ltrim($Data_User['subscription_url'], "/");
+                if (!empty($Get_Data_Panel['custom_sub_domain'])) {
+                    $parsed = parse_url($Data_User['subscription_url']);
+                    $path = isset($parsed['path']) ? ltrim($parsed['path'], "/") : ltrim($Data_User['subscription_url'], "/");
+                    $Data_User['subscription_url'] = rtrim($Get_Data_Panel['custom_sub_domain'], "/") . "/" . $path;
+                } elseif (!preg_match('/^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:\d+)?((\/[^\s\/]+)+)?$/', $Data_User['subscription_url'])) {
+                    $Data_User['subscription_url'] = rtrim($Get_Data_Panel['url_panel'], "/") . "/" . ltrim($Data_User['subscription_url'], "/");
                 }
                 $Output = array(
                     'status' => 'successful',
@@ -1173,8 +1210,12 @@ class ManagePanel
                 );
             } else {
                 $setting_app = get_settig($Get_Data_Panel['name_panel']);
-                $url = explode(":", $Get_Data_Panel['url_panel']);
-                $url_sub = $url[0] . ":" . $url[1] . ":" . $setting_app['subPort'] . $setting_app['subPath'] . $username;
+                if (!empty($Get_Data_Panel['custom_sub_domain'])) {
+                    $url_sub = rtrim($Get_Data_Panel['custom_sub_domain'], "/") . $setting_app['subPath'] . $username;
+                } else {
+                    $url = explode(":", $Get_Data_Panel['url_panel']);
+                    $url_sub = $url[0] . ":" . $url[1] . ":" . $setting_app['subPort'] . $setting_app['subPath'] . $username;
+                }
                 $Output = array(
                     'status' => 'successful',
                     'configs' => [outputlink($url_sub)],
@@ -1193,6 +1234,9 @@ class ManagePanel
     {
         $Output = array();
         $Get_Data_Panel = select("marzban_panel", "*", "name_panel", $name_panel, "select");
+        if ($Get_Data_Panel && !empty($Get_Data_Panel['custom_sub_domain'])) {
+            $Get_Data_Panel['linksubx'] = rtrim($Get_Data_Panel['custom_sub_domain'], "/");
+        }
         if ($Get_Data_Panel['type'] == "marzban") {
             $UsernameData = removeuser($Get_Data_Panel['name_panel'], $username);
             if (!empty($UsernameData['status']) && $UsernameData['status'] != 200) {
@@ -1354,6 +1398,9 @@ class ManagePanel
     {
         $Output = array();
         $Get_Data_Panel = select("marzban_panel", "*", "name_panel", $name_panel, "select");
+        if ($Get_Data_Panel && !empty($Get_Data_Panel['custom_sub_domain'])) {
+            $Get_Data_Panel['linksubx'] = rtrim($Get_Data_Panel['custom_sub_domain'], "/");
+        }
         if ($Get_Data_Panel['type'] == "marzban") {
             if ($Get_Data_Panel['version_panel'] == "1") {
                 $result = getuser($username, $name_panel);
@@ -1611,6 +1658,9 @@ class ManagePanel
         $ManagePanel = new ManagePanel();
         $DataUserOut = $ManagePanel->DataUser($name_panel, $username);
         $Get_Data_Panel = select("marzban_panel", "*", "name_panel", $name_panel, "select");
+        if ($Get_Data_Panel && !empty($Get_Data_Panel['custom_sub_domain'])) {
+            $Get_Data_Panel['linksubx'] = rtrim($Get_Data_Panel['custom_sub_domain'], "/");
+        }
         if ($DataUserOut['status'] == "Unsuccessful") {
             $Output = array(
                 'status' => 'Unsuccessful',

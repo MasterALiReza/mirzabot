@@ -566,7 +566,11 @@ function get_subLinks_MHSanaei($namepanel, $subid) {
 }
 
 function mhsanaei_subscription_url($panel, $subid) {
-    $raw_base = (!empty($panel['linksubx']) && $panel['linksubx'] != "none") ? $panel['linksubx'] : ($panel['url_panel'] ?? '');
+    if (!empty($panel['custom_sub_domain'])) {
+        $raw_base = $panel['custom_sub_domain'];
+    } else {
+        $raw_base = (!empty($panel['linksubx']) && $panel['linksubx'] != "none") ? $panel['linksubx'] : ($panel['url_panel'] ?? '');
+    }
     $base = rtrim(trim((string)$raw_base), "/ \t\n\r\0\x0B");
     if ($base === '') {
         return '/sub/' . rawurlencode($subid);

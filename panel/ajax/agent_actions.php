@@ -17,7 +17,7 @@ $agent_id = $_SESSION['agent_id'];
 $action = $_POST['action'] ?? '';
 
 // Check agent access level
-$stmtAgent = $pdo->prepare("SELECT wallet, agent FROM user WHERE id = :id");
+$stmtAgent = $pdo->prepare("SELECT Balance, agent FROM user WHERE id = :id");
 $stmtAgent->execute([':id' => $agent_id]);
 $agentUser = $stmtAgent->fetch(PDO::FETCH_ASSOC);
 
@@ -27,7 +27,7 @@ if (!$agentUser || !in_array($agentUser['agent'], ['n', 'n2', 'all'])) {
 }
 
 $agentType = $agentUser['agent'];
-$wallet = (float)($agentUser['wallet'] ?? 0);
+$wallet = (float)($agentUser['Balance'] ?? 0);
 
 if ($action === 'create_user') {
     $location = $_POST['location'] ?? '';
@@ -71,7 +71,7 @@ if ($action === 'create_user') {
 
     // --- ATOMIC WALLET DEDUCTION FIRST (PREVENT RACE CONDITIONS) ---
     if ($price > 0) {
-        $stmtW = $pdo->prepare("UPDATE user SET wallet = wallet - :p WHERE id = :id AND wallet >= :p");
+        $stmtW = $pdo->prepare("UPDATE user SET Balance = Balance - :p WHERE id = :id AND Balance >= :p");
         $stmtW->execute([':p' => $price, ':id' => $agent_id]);
         if ($stmtW->rowCount() === 0) {
             echo json_encode(['status' => 'error', 'message' => 'موجودی کیف پول شما کافی نیست یا تراکنش همزمان رخ داده است.']);
@@ -124,7 +124,7 @@ if ($action === 'create_user') {
     } else {
         // --- REFUND WALLET IF API FAILED ---
         if ($price > 0) {
-            $stmtR = $pdo->prepare("UPDATE user SET wallet = wallet + :p WHERE id = :id");
+            $stmtR = $pdo->prepare("UPDATE user SET Balance = Balance + :p WHERE id = :id");
             $stmtR->execute([':p' => $price, ':id' => $agent_id]);
         }
         echo json_encode(['status' => 'error', 'message' => 'خطا در ارتباط با پنل: ' . ($response['msg'] ?? 'ناشناخته')]);
@@ -169,7 +169,7 @@ if ($action === 'renew_user') {
 
     // --- ATOMIC WALLET DEDUCTION FIRST ---
     if ($price > 0) {
-        $stmtW = $pdo->prepare("UPDATE user SET wallet = wallet - :p WHERE id = :id AND wallet >= :p");
+        $stmtW = $pdo->prepare("UPDATE user SET Balance = Balance - :p WHERE id = :id AND Balance >= :p");
         $stmtW->execute([':p' => $price, ':id' => $agent_id]);
         if ($stmtW->rowCount() === 0) {
             echo json_encode(['status' => 'error', 'message' => 'موجودی کیف پول شما کافی نیست یا تراکنش همزمان رخ داده است.']);
@@ -206,7 +206,7 @@ if ($action === 'renew_user') {
     } else {
         // --- REFUND WALLET IF API FAILED ---
         if ($price > 0) {
-            $stmtR = $pdo->prepare("UPDATE user SET wallet = wallet + :p WHERE id = :id");
+            $stmtR = $pdo->prepare("UPDATE user SET Balance = Balance + :p WHERE id = :id");
             $stmtR->execute([':p' => $price, ':id' => $agent_id]);
         }
         echo json_encode(['status' => 'error', 'message' => 'خطا در ارتباط با پنل: ' . ($response['msg'] ?? 'ناشناخته')]);
