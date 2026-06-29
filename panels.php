@@ -87,7 +87,12 @@ class ManagePanel
             } else {
                 if (!empty($Get_Data_Panel['custom_sub_domain'])) {
                     $parsed = parse_url($data_Output['subscription_url']);
-                    $path = isset($parsed['path']) ? ltrim($parsed['path'], "/") : ltrim($data_Output['subscription_url'], "/");
+                    $path = isset($parsed['path']) ? $parsed['path'] : $data_Output['subscription_url'];
+                    $sub_pos = strpos($path, '/sub/');
+                    if ($sub_pos !== false) {
+                        $path = substr($path, $sub_pos);
+                    }
+                    $path = ltrim($path, "/");
                     $data_Output['subscription_url'] = rtrim($Get_Data_Panel['custom_sub_domain'], "/") . "/" . $path;
                 } elseif (!preg_match('/^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:\d+)?((\/[^\s\/]+)+)?$/', $data_Output['subscription_url'])) {
                     $data_Output['subscription_url'] = rtrim($Get_Data_Panel['url_panel'], "/") . "/" . ltrim($data_Output['subscription_url'], "/");
@@ -133,7 +138,12 @@ class ManagePanel
             } else {
                 if (!empty($Get_Data_Panel['custom_sub_domain'])) {
                     $parsed = parse_url($data_Output['subscription_url']);
-                    $path = isset($parsed['path']) ? ltrim($parsed['path'], "/") : ltrim($data_Output['subscription_url'], "/");
+                    $path = isset($parsed['path']) ? $parsed['path'] : $data_Output['subscription_url'];
+                    $sub_pos = strpos($path, '/sub/');
+                    if ($sub_pos !== false) {
+                        $path = substr($path, $sub_pos);
+                    }
+                    $path = ltrim($path, "/");
                     $data_Output['subscription_url'] = rtrim($Get_Data_Panel['custom_sub_domain'], "/") . "/" . $path;
                 } elseif (!preg_match('/^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:\d+)?((\/[^\s\/]+)+)?$/', $data_Output['subscription_url'])) {
                     $data_Output['subscription_url'] = rtrim($Get_Data_Panel['url_panel'], "/") . "/" . ltrim($data_Output['subscription_url'], "/");
@@ -464,7 +474,12 @@ class ManagePanel
                 }
                 if (!empty($Get_Data_Panel['custom_sub_domain'])) {
                     $parsed = parse_url($UsernameData['subscription_url']);
-                    $path = isset($parsed['path']) ? ltrim($parsed['path'], "/") : ltrim($UsernameData['subscription_url'], "/");
+                    $path = isset($parsed['path']) ? $parsed['path'] : $UsernameData['subscription_url'];
+                    $sub_pos = strpos($path, '/sub/');
+                    if ($sub_pos !== false) {
+                        $path = substr($path, $sub_pos);
+                    }
+                    $path = ltrim($path, "/");
                     $UsernameData['subscription_url'] = rtrim($Get_Data_Panel['custom_sub_domain'], "/") . "/" . $path;
                 } elseif (!preg_match('/^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:\d+)?((\/[^\s\/]+)+)?$/', $UsernameData['subscription_url'])) {
                     $UsernameData['subscription_url'] = rtrim($Get_Data_Panel['url_panel'], "/") . "/" . ltrim($UsernameData['subscription_url'], "/");
@@ -545,7 +560,12 @@ class ManagePanel
                 } else {
                     if (!empty($Get_Data_Panel['custom_sub_domain'])) {
                         $parsed = parse_url($UsernameData['subscription_url']);
-                        $path = isset($parsed['path']) ? ltrim($parsed['path'], "/") : ltrim($UsernameData['subscription_url'], "/");
+                        $path = isset($parsed['path']) ? $parsed['path'] : $UsernameData['subscription_url'];
+                        $sub_pos = strpos($path, '/sub/');
+                        if ($sub_pos !== false) {
+                            $path = substr($path, $sub_pos);
+                        }
+                        $path = ltrim($path, "/");
                         $UsernameData['subscription_url'] = rtrim($Get_Data_Panel['custom_sub_domain'], "/") . "/" . $path;
                     } elseif (!preg_match('/^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:\d+)?((\/[^\s\/]+)+)?$/', $UsernameData['subscription_url'])) {
                         $UsernameData['subscription_url'] = rtrim($Get_Data_Panel['url_panel'], "/") . "/" . ltrim($UsernameData['subscription_url'], "/");
@@ -1036,7 +1056,12 @@ class ManagePanel
                 $Data_User = $config->DataUser($name_panel, $username);
                 if (!empty($Get_Data_Panel['custom_sub_domain'])) {
                     $parsed = parse_url($Data_User['subscription_url']);
-                    $path = isset($parsed['path']) ? ltrim($parsed['path'], "/") : ltrim($Data_User['subscription_url'], "/");
+                    $path = isset($parsed['path']) ? $parsed['path'] : $Data_User['subscription_url'];
+                    $sub_pos = strpos($path, '/sub/');
+                    if ($sub_pos !== false) {
+                        $path = substr($path, $sub_pos);
+                    }
+                    $path = ltrim($path, "/");
                     $Data_User['subscription_url'] = rtrim($Get_Data_Panel['custom_sub_domain'], "/") . "/" . $path;
                 } elseif (!preg_match('/^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:\d+)?((\/[^\s\/]+)+)?$/', $Data_User['subscription_url'])) {
                     $Data_User['subscription_url'] = rtrim($Get_Data_Panel['url_panel'], "/") . "/" . ltrim($Data_User['subscription_url'], "/");
