@@ -134,20 +134,40 @@ function addpear($namepanel, $usernameac)
     
     // Find the first available IP from the available subnets safely
     $ipToAssign = null;
+    $subnet_found = null;
     foreach ($ipconfig_body['data'] as $subnet => $ips) {
-        if (is_array($ips) && !empty($ips)) {
-            $ipToAssign = $ips[0];
-            break;
+        $subnet_found = $subnet;
+        if (is_array($ips)) {
+            foreach ($ips as $ip) {
+                $clean_ip = explode('/', $ip)[0];
+                if (filter_var($clean_ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+                    $ipToAssign = $clean_ip;
+                    break 2;
+                }
+            }
         } elseif (is_string($ips) && !empty($ips)) {
-            $ipToAssign = $ips;
-            break;
+            $clean_ip = explode('/', $ips)[0];
+            if (filter_var($clean_ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+                $ipToAssign = $clean_ip;
+                break;
+            }
         }
     }
     
-    if (empty($ipToAssign)) {
+    // Fallback: if WGDashboard returns empty/null available IPs, calculate the next IP
+    if (empty($ipToAssign) && !empty($subnet_found)) {
+        $used_ips = array_merge(
+            getUsedIPs($namepanel),
+            getUsedIPsFromDb($namepanel)
+        );
+        $ipToAssign = getNextAvailableIP($subnet_found, $used_ips);
+    }
+    
+    // STRICT DEFENSIVE SHIELD: Validate IP address before sending request to WGDashboard panel API
+    if (empty($ipToAssign) || !filter_var($ipToAssign, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
         return array(
             'status' => false,
-            'msg' => 'No available IPs left in the assigned subnets on WGDashboard.'
+            'msg' => 'Aborted: Invalid or empty IP address detected (' . var_export($ipToAssign, true) . ') to prevent WGDashboard infinite loop.'
         );
     }
     
@@ -203,6 +223,18 @@ function setjob($namepanel, $type, $value, $publickey)
 }
 function updatepear($namepanel, array $config)
 {
+    // STRICT DEFENSIVE SHIELD: Validate IP address before sending request to WGDashboard panel API
+    if (isset($config['allowed_ips']) && is_array($config['allowed_ips'])) {
+        foreach ($config['allowed_ips'] as $ip) {
+            $clean_ip = explode('/', $ip)[0];
+            if (!filter_var($clean_ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+                return array(
+                    'status' => false,
+                    'msg' => 'Aborted: Invalid IP address in update config (' . var_export($ip, true) . ') to prevent WGDashboard infinite loop.'
+                );
+            }
+        }
+    }
 
     $marzban_list_get = select("marzban_panel", "*", "name_panel", $namepanel, "select");
     $configpanel = json_encode($config);
@@ -336,4 +368,124 @@ function restrictPeers($location, $username)
     ));
     $response = json_decode(curl_exec($curl), true);
     return $response;
+}
+
+function getUsedIPs($namepanel)
+{
+    $marzban_list_get = select("marzban_panel", "*", "name_panel", $namepanel, "select");
+    if (!$marzban_list_get) {
+        return [];
+    }
+    $url = $marzban_list_get['url_panel'] . '/api/getWireguardConfigurationInfo?configurationName=' . $marzban_list_get['inboundid'];
+    $headers = array(
+        'Accept: application/json',
+        'wg-dashboard-apikey: ' . $marzban_list_get['password_panel']
+    );
+    
+    $req = new CurlRequest($url);
+    $req->setHeaders($headers);
+    $api_res = $req->get();
+    
+    if (empty($api_res['status']) || $api_res['status'] != 200 || empty($api_res['body'])) {
+        return [];
+    }
+    
+    $response = json_decode($api_res['body'], true);
+    if (!is_array($response) || empty($response['status'])) {
+        return [];
+    }
+    
+    $peers = array_merge(
+        $response['data']['configurationPeers'] ?? [],
+        $response['data']['configurationRestrictedPeers'] ?? []
+    );
+    
+    $used_ips = [];
+    foreach ($peers as $peer) {
+        if (isset($peer['allowed_ips']) && is_array($peer['allowed_ips'])) {
+            foreach ($peer['allowed_ips'] as $ip) {
+                $used_ips[] = $ip;
+            }
+        }
+    }
+    return $used_ips;
+}
+
+function getUsedIPsFromDb($namepanel)
+{
+    global $pdo;
+    $used_ips = [];
+    if (!$pdo) {
+        return [];
+    }
+    try {
+        $stmt = $pdo->prepare("SELECT user_info FROM invoice WHERE Service_location = :location");
+        $stmt->execute([':location' => $namepanel]);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($rows as $row) {
+            if (!empty($row['user_info'])) {
+                $info = json_decode($row['user_info'], true);
+                if (is_array($info)) {
+                    if (isset($info['allowed_ips']) && is_array($info['allowed_ips'])) {
+                        foreach ($info['allowed_ips'] as $ip) {
+                            $used_ips[] = $ip;
+                        }
+                    }
+                }
+            }
+        }
+    } catch (\Exception $e) {
+        error_log("Failed to get used IPs from DB: " . $e->getMessage());
+    }
+    return $used_ips;
+}
+
+function getNextAvailableIP($subnet_cidr, $used_ips)
+{
+    if (strpos($subnet_cidr, '/') === false) {
+        $subnet_cidr .= '/24';
+    }
+    list($subnet_ip, $cidr) = explode('/', $subnet_cidr);
+    $cidr = intval($cidr);
+    if ($cidr < 0 || $cidr > 32) {
+        $cidr = 24;
+    }
+    
+    $subnet_long = ip2long($subnet_ip);
+    if ($subnet_long === false) {
+        return null;
+    }
+    
+    $num_ips = 1 << (32 - $cidr);
+    $mask = ~($num_ips - 1);
+    $network_long = $subnet_long & $mask;
+    
+    $used_longs = [];
+    foreach ($used_ips as $ip) {
+        $clean_ip = explode('/', $ip)[0];
+        $long_ip = ip2long($clean_ip);
+        if ($long_ip !== false) {
+            $used_longs[$long_ip] = true;
+        }
+    }
+    
+    // Check hosts from .2 to the end of subnet
+    for ($i = 2; $i < $num_ips - 1; $i++) {
+        $candidate_long = $network_long + $i;
+        
+        // Skip .0 and .255 addresses to prevent OS networking quirks across all subnet sizes
+        $last_octet = $candidate_long & 0xFF;
+        if ($last_octet === 0 || $last_octet === 255) {
+            continue;
+        }
+        
+        if (!isset($used_longs[$candidate_long])) {
+            $candidate_ip = long2ip($candidate_long);
+            if ($candidate_ip !== false && filter_var($candidate_ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+                return $candidate_ip;
+            }
+        }
+    }
+    
+    return null;
 }
