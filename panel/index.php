@@ -139,7 +139,7 @@ include __DIR__ . '/inc/layout_head.php';
                 <?php endif; ?>
             </div>
             <div class="dash-card-value-flex">
-                <span class="dash-card-value cn" style="font-family: var(--mono);"><?= number_format($totalUsers) ?></span>
+                <span class="dash-card-value cn"><?= number_format($totalUsers) ?></span>
             </div>
         </div>
     </div>
@@ -170,7 +170,7 @@ include __DIR__ . '/inc/layout_head.php';
                 <?php endif; ?>
             </div>
             <div class="dash-card-value-flex">
-                <span class="dash-card-value cn" style="font-family: var(--mono);">
+                <span class="dash-card-value cn">
                     <?= $totalRevenue >= 1_000_000 ? number_format($totalRevenue / 1_000_000, 1) : number_format($totalRevenue) ?>
                 </span>
                 <span class="dash-card-unit">
@@ -201,7 +201,7 @@ include __DIR__ . '/inc/layout_head.php';
                 </span>
             </div>
             <div class="dash-card-value-flex">
-                <span class="dash-card-value cn" style="font-family: var(--mono);"><?= number_format($activeNow) ?></span>
+                <span class="dash-card-value cn"><?= number_format($activeNow) ?></span>
             </div>
         </div>
     </div>
@@ -234,7 +234,7 @@ include __DIR__ . '/inc/layout_head.php';
                 <?php endif; ?>
             </div>
             <div class="dash-card-value-flex">
-                <span class="dash-card-value cn" style="font-family: var(--mono);"><?= number_format($txToday) ?></span>
+                <span class="dash-card-value cn"><?= number_format($txToday) ?></span>
             </div>
         </div>
     </div>
@@ -286,9 +286,9 @@ include __DIR__ . '/inc/layout_head.php';
                             <div class="progress-item-header">
                                 <span class="progress-item-title"><?= htmlspecialchars(trunc($prod['name_product'], 20)) ?></span>
                                 <span class="progress-item-meta">
-                                    <span class="cn" style="font-family: var(--mono); color: var(--ac); font-weight: 700;"><?= number_format($prod['sales_count']) ?></span> فروش
+                                    <span class="cn" style="color: var(--ac); font-weight: 700;"><?= number_format($prod['sales_count']) ?></span> فروش
                                     <span style="color: var(--bd); margin: 0 4px;">|</span>
-                                    <span class="cn" style="font-family: var(--mono); font-weight: 700;"><?= number_format($prod['total_earned']) ?></span> <small style="font-size:0.7rem; color:var(--mute);">ت</small>
+                                    <span class="cn" style="font-weight: 700;"><?= number_format($prod['total_earned']) ?></span> <small style="font-size:0.7rem; color:var(--mute);">ت</small>
                                 </span>
                             </div>
                             <div class="progress-bar-container">
