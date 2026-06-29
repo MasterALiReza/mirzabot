@@ -12,7 +12,7 @@ if (isset($_SESSION['agent_id'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ورود نماینده - OxBot</title>
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link href="fonts/vazirmatn/Vazirmatn-font-face.css" rel="stylesheet">
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Bootstrap -->

@@ -861,6 +861,12 @@ if (in_array($text, $textadmin, true) || $datain == "admin") {
         if ($cat) $cat_id = $cat['id'];
     }
     savedata("save", "category_id", $cat_id);
+    $skip_kb = json_encode(['keyboard' => [[['text' => 'بدون ساب‌دامنه اختصاصی']]], 'resize_keyboard' => true]);
+    sendmessage($from_id, "لطفاً ساب‌دامنه اختصاصی (بدون https) را وارد کنید و یا روی دکمه بدون ساب‌دامنه کلیک کنید:", $skip_kb, 'HTML');
+    step('get_custom_sub_domain', $from_id);
+} elseif ($user['step'] == "get_custom_sub_domain") {
+    $sub_domain = ($text == 'بدون ساب‌دامنه اختصاصی') ? null : $text;
+    savedata("save", "custom_sub_domain", $sub_domain);
     sendmessage($from_id, $textbotlang['Admin']['managepanel']['getLimitedPanel'], $backadmin, 'HTML');
     step('getlimitedpanel', $from_id);
 } elseif ($user['step'] == "getlimitedpanel") {
@@ -926,7 +932,7 @@ if (in_array($text, $textadmin, true) || $datain == "admin") {
     $statusextend = "on_extend";
     $subvip = "offsubvip";
     $stauts_on_holed = "1";
-    $stmt = $pdo->prepare("INSERT INTO marzban_panel (code_panel,name_panel,sublink,config,qr_wgd,MethodUsername,TestAccount,status,limit_panel,namecustom,Methodextend,type,conecton,inboundid,agent,inbound_deactive,inboundstatus,url_panel,username_panel,password_panel,time_usertest,val_usertest,linksubx,priceextravolume,priceextratime,pricecustomvolume,pricecustomtime,mainvolume,maxvolume,maintime,maxtime,status_extend,subvip,changeloc,customvolume,on_hold_test,version_panel) VALUES (:code_panel,:name_panel,:sublink,:config,:qr_wgd,:MethodUsername,:TestAccount,:status,:limit_panel,:namecustom,:Methodextend,:type,:conecton,:inboundid,:agent,:inbound_deactive,:inboundstatus,:url_panel,:username_panel,:password_panel,:val_usertest,:time_usertest,:linksubx,:priceextravolume,:priceextratime,:pricecustomvolume,:pricecustomtime,:mainvolume,:maxvolume,:maintime,:maxtime,:status_extend,:subvip,:changeloc,:customvolume,:on_hold_test,'0')");
+    $stmt = $pdo->prepare("INSERT INTO marzban_panel (code_panel,name_panel,sublink,config,qr_wgd,MethodUsername,TestAccount,status,limit_panel,namecustom,Methodextend,type,conecton,inboundid,agent,inbound_deactive,inboundstatus,url_panel,username_panel,password_panel,time_usertest,val_usertest,linksubx,priceextravolume,priceextratime,pricecustomvolume,pricecustomtime,mainvolume,maxvolume,maintime,maxtime,status_extend,subvip,changeloc,customvolume,on_hold_test,version_panel,custom_sub_domain) VALUES (:code_panel,:name_panel,:sublink,:config,:qr_wgd,:MethodUsername,:TestAccount,:status,:limit_panel,:namecustom,:Methodextend,:type,:conecton,:inboundid,:agent,:inbound_deactive,:inboundstatus,:url_panel,:username_panel,:password_panel,:val_usertest,:time_usertest,:linksubx,:priceextravolume,:priceextratime,:pricecustomvolume,:pricecustomtime,:mainvolume,:maxvolume,:maintime,:maxtime,:status_extend,:subvip,:changeloc,:customvolume,:on_hold_test,'0',:custom_sub_domain)");
     $stmt->bindParam(':code_panel', $randomString);
     $stmt->bindParam(':name_panel', $userdata['namepanel'], PDO::PARAM_STR);
     $stmt->bindParam(':sublink', $sublink);
@@ -963,6 +969,8 @@ if (in_array($text, $textadmin, true) || $datain == "admin") {
     $stmt->bindParam(':changeloc', $changeloc);
     $stmt->bindParam(':customvolume', $VALUE);
     $stmt->bindParam(':on_hold_test', $stauts_on_holed);
+    $custom_sub_domain_val = isset($userdata['custom_sub_domain']) ? $userdata['custom_sub_domain'] : null;
+    $stmt->bindParam(':custom_sub_domain', $custom_sub_domain_val);
     $stmt->execute();
     if (isset($userdata['category_id']) && $userdata['category_id'] > 0) {
         try {
@@ -4176,6 +4184,15 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
     }
     outtypepanel($typepanel['type'], $textbotlang['Admin']['managepanel']['changedUrlPanel']);
     update("marzban_panel", "linksubx", $text, "name_panel", $user['Processing_value']);
+    step('home', $from_id);
+} elseif ($text == $textbotlang['Admin']['adminphp']['btn_custom_sub_domain'] && $adminrulecheck['rule'] == "administrator") {
+    sendmessage($from_id, $textbotlang['Admin']['adminphp']['ask_custom_sub_domain'], $backadmin, 'HTML');
+    step('GetCustomSubDomainNew', $from_id);
+} elseif ($user['step'] == "GetCustomSubDomainNew") {
+    $sub_domain = (strtolower($text) == 'null' || strtolower($text) == 'none') ? null : $text;
+    $typepanel = select("marzban_panel", "*", "name_panel", $user['Processing_value'], "select");
+    outtypepanel($typepanel['type'], $textbotlang['Admin']['adminphp']['msg_custom_sub_domain_success']);
+    update("marzban_panel", "custom_sub_domain", $sub_domain, "name_panel", $user['Processing_value']);
     step('home', $from_id);
 } elseif ($text == "🔗 uuid admin" && $adminrulecheck['rule'] == "administrator") {
     sendmessage($from_id, $textbotlang['Admin']['adminphp']['ask_send_admin'], $backadmin, 'HTML');

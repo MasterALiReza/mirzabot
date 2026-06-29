@@ -1,5 +1,5 @@
 /* Premium Dark Mode Styling for Representative Panel */
-@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap');
+@import url('../fonts/vazirmatn/Vazirmatn-font-face.css');
 
 :root {
     --au-bg: #0b1120;
