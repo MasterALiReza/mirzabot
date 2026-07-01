@@ -2563,6 +2563,20 @@
         content: "مسدود کردن" !important;
     }
 
+    /* Constrain the grid items to prevent horizontal overflow */
+    .u-sidebar, .u-main-col {
+        min-width: 0 !important;
+        width: 100% !important;
+    }
+
+    /* Constrain tables and enable horizontal scroll inside cards */
+    .tbl-wrap {
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
     /* Centered profile header on mobile */
     .u-sidebar .card {
         border-radius: 16px !important;
@@ -2651,23 +2665,25 @@
     
     .user-actions-grid .btn {
         width: 100% !important;
-        justify-content: center !important;
-        align-items: center !important;
+        display: inline-block !important;
+        text-align: center !important;
         white-space: normal !important; /* Wrap long labels */
         word-break: break-word !important;
-        line-height: 1.25 !important;
+        line-height: 1.3 !important;
         height: auto !important;
         min-height: 44px !important; /* Touch target height */
-        padding: 8px 10px !important;
-        font-size: 0.78rem !important;
+        padding: 10px 8px !important;
+        font-size: 0.76rem !important;
         font-weight: 700 !important;
         border-radius: 10px !important;
     }
-    
     .user-actions-grid .btn svg {
         width: 14px !important;
         height: 14px !important;
-        margin-left: 4px !important; /* Persian spacing */
+        vertical-align: middle !important;
+        margin-inline-end: 4px !important;
+        display: inline-block !important;
+        margin-top: -2px !important;
         flex-shrink: 0 !important;
     }
     
