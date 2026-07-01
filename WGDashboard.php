@@ -154,13 +154,23 @@ function addpear($namepanel, $usernameac)
         }
     }
     
+    // --- SMART CAPACITY LIMIT LAYER ---
+    $all_used_ips = array_merge(
+        getUsedIPs($namepanel),
+        getUsedIPsFromDb($namepanel)
+    );
+    
+    if (!empty($subnet_found) && isSubnetFull($subnet_found, $all_used_ips)) {
+        return array(
+            'status' => false,
+            'msg' => 'Server capacity is full'
+        );
+    }
+    // -----------------------------------
+
     // Fallback: if WGDashboard returns empty/null available IPs, calculate the next IP
     if (empty($ipToAssign) && !empty($subnet_found)) {
-        $used_ips = array_merge(
-            getUsedIPs($namepanel),
-            getUsedIPsFromDb($namepanel)
-        );
-        $ipToAssign = getNextAvailableIP($subnet_found, $used_ips);
+        $ipToAssign = getNextAvailableIP($subnet_found, $all_used_ips);
     }
     
     // STRICT DEFENSIVE SHIELD: Validate IP address before sending request to WGDashboard panel API
@@ -488,4 +498,34 @@ function getNextAvailableIP($subnet_cidr, $used_ips)
     }
     
     return null;
+}
+
+function isSubnetFull($subnet_cidr, $used_ips_array)
+{
+    if (empty($subnet_cidr) || strpos($subnet_cidr, '/') === false) {
+        $cidr = 24;
+    } else {
+        $cidr = intval(explode('/', $subnet_cidr)[1]);
+    }
+
+    if ($cidr < 0 || $cidr > 32) {
+        $cidr = 24;
+    }
+
+    // Mathematically account for skipped .0 and .255 IPs in subnets <= /24
+    if ($cidr <= 24) {
+        $capacity = pow(2, 32 - $cidr) - pow(2, 25 - $cidr) - 1;
+    } else {
+        $capacity = pow(2, 32 - $cidr) - 3;
+    }
+
+    $unique_ips = [];
+    foreach ($used_ips_array as $ip) {
+        $clean_ip = explode('/', $ip)[0];
+        $unique_ips[$clean_ip] = true;
+    }
+    
+    $used_count = count($unique_ips);
+
+    return $used_count >= $capacity;
 }
