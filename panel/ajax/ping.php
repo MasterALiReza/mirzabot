@@ -1,5 +1,5 @@
 <?php
-session_start();
+require '../inc/config.php';
 if (!empty($_SESSION['admin_user'])) {
     echo "pong";
 } else {

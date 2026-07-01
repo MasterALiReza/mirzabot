@@ -1,6 +1,33 @@
 <?php
 // Note: Content-Type header is set by each page individually
 
+// Central session lifetime: 14 days
+$session_lifetime = 1209600;
+
+// Set cookie parameters and options before starting the session
+ini_set('session.gc_maxlifetime', $session_lifetime);
+ini_set('session.cookie_lifetime', $session_lifetime);
+
+// Use a secure custom session directory inside the project to prevent shared hosting GC from deleting files
+$session_save_path = __DIR__ . '/../sessions';
+if (!is_dir($session_save_path)) {
+    @mkdir($session_save_path, 0755, true);
+}
+if (is_writable($session_save_path)) {
+    ini_set('session.save_path', $session_save_path);
+}
+
+// Start session with secure options
+if (session_status() === PHP_SESSION_NONE) {
+    session_start([
+        'cookie_lifetime' => $session_lifetime,
+        'gc_maxlifetime' => $session_lifetime,
+        'cookie_secure' => isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] === 'on' || $_SERVER['SERVER_PORT'] == 443),
+        'cookie_httponly' => true,
+        'cookie_samesite' => 'Lax'
+    ]);
+}
+
 require __DIR__ . '/../../config.php';
 require __DIR__ . '/../../function.php';
 

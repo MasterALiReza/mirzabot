@@ -207,7 +207,7 @@ include __DIR__ . '/inc/layout_head.php';
 </div>
 
 <!-- Modal Edit -->
-<div class="modal-veil" id="editChannelModal" onclick="if(event.target===this) closeEditModal()">
+<div class="modal-veil" id="editChannelModal">
     <div class="modal" style="max-width: 500px;">
         <div class="modal-head">
             <h3><?= icon('edit', 16) ?> ویرایش کانال</h3>

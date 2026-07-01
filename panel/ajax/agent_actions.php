@@ -1,6 +1,5 @@
 <?php
 ob_start();
-session_start();
 require '../inc/config.php';
 require_once __DIR__ . '/../../botapi.php';
 require_once __DIR__ . '/../../MHSanaei-3.2.php';

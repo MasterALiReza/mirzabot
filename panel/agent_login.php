@@ -1,5 +1,5 @@
 <?php
-session_start();
+require_once __DIR__ . '/inc/config.php';
 if (isset($_SESSION['agent_id'])) {
     header("Location: agent_users.php");
     exit;

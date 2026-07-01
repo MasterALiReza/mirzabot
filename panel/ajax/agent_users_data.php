@@ -6,7 +6,6 @@
 
 // Buffer all output (including any warnings from includes)
 ob_start();
-session_start();
 require '../inc/config.php';
 // Discard any HTML/text output from config (including its header())
 ob_end_clean();

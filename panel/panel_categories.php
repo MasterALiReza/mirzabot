@@ -164,7 +164,7 @@ include __DIR__ . '/inc/layout_head.php';
 </div>
 
 <!-- Modal Add/Edit -->
-<div class="modal-veil" id="categoryModal" onclick="if(event.target===this) closeCategoryModal()">
+<div class="modal-veil" id="categoryModal">
   <div class="modal" style="max-width: 500px;">
     <div class="modal-head">
       <h3 id="catModalTitle"><?= icon('folder', 16) ?> افزودن دسته‌بندی</h3>

@@ -1125,51 +1125,55 @@ function closePanelModal() {
 }
 
 // Test Connection Logic
-const testBtns = document.querySelectorAll('.test-conn-btn');
-const testModalVeil = document.getElementById('testConnModalVeil');
-const loader = document.getElementById('testConnLoader');
-const resultView = document.getElementById('testConnResult');
+(function() {
+    const testBtns = document.querySelectorAll('.test-conn-btn');
+    const testModalVeil = document.getElementById('testConnModalVeil');
+    const loader = document.getElementById('testConnLoader');
+    const resultView = document.getElementById('testConnResult');
 
-testBtns.forEach(btn => {
-    btn.addEventListener('click', async () => {
-        const id = btn.getAttribute('data-id');
-        loader.style.display = 'block';
-        resultView.style.display = 'none';
-        testModalVeil.classList.add('open');
-        try {
-            const res = await fetch(`panels_manage.php?action=test_connection&id=${id}`);
-            const data = await res.json();
-            loader.style.display = 'none';
-            resultView.style.display = 'block';
-            
-            const icon = document.getElementById('testConnIcon');
-            const title = document.getElementById('testConnTitle');
-            const msg = document.getElementById('testConnMessage');
-            
-            if (data.success) {
-                icon.innerHTML = '✅';
-                title.innerText = 'اتصال موفق!';
-                title.style.color = '#10b981';
-            } else {
-                icon.innerHTML = '❌';
-                title.innerText = 'خطا در اتصال';
-                title.style.color = '#ef4444';
+    testBtns.forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const id = btn.getAttribute('data-id');
+            loader.style.display = 'block';
+            resultView.style.display = 'none';
+            testModalVeil.classList.add('open');
+            try {
+                const res = await fetch(`panels_manage.php?action=test_connection&id=${id}`);
+                const data = await res.json();
+                loader.style.display = 'none';
+                resultView.style.display = 'block';
+                
+                const icon = document.getElementById('testConnIcon');
+                const title = document.getElementById('testConnTitle');
+                const msg = document.getElementById('testConnMessage');
+                
+                if (data.success) {
+                    icon.innerHTML = '✅';
+                    title.innerText = 'اتصال موفق!';
+                    title.style.color = '#10b981';
+                } else {
+                    icon.innerHTML = '❌';
+                    title.innerText = 'خطا در اتصال';
+                    title.style.color = '#ef4444';
+                }
+                msg.innerText = data.message;
+            } catch (err) {
+                loader.style.display = 'none';
+                resultView.style.display = 'block';
+                document.getElementById('testConnIcon').innerHTML = '⚠️';
+                document.getElementById('testConnTitle').innerText = 'خطای شبکه';
+                document.getElementById('testConnTitle').style.color = '#f59e0b';
+                document.getElementById('testConnMessage').innerText = 'ارتباط با سرور برقرار نشد.';
             }
-            msg.innerText = data.message;
-        } catch (err) {
-            loader.style.display = 'none';
-            resultView.style.display = 'block';
-            document.getElementById('testConnIcon').innerHTML = '⚠️';
-            document.getElementById('testConnTitle').innerText = 'خطای شبکه';
-            document.getElementById('testConnTitle').style.color = '#f59e0b';
-            document.getElementById('testConnMessage').innerText = 'ارتباط با سرور برقرار نشد.';
-        }
+        });
     });
-});
 
-function closeTestConnModal() {
-    testModalVeil.classList.remove('open');
-}
+    window.closeTestConnModal = function() {
+        if (testModalVeil) {
+            testModalVeil.classList.remove('open');
+        }
+    };
+})();
 </script>
 <script>
     function updateInboundCheckboxes() {

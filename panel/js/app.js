@@ -652,7 +652,20 @@ document.addEventListener('htmx:confirm', function(e) {
 });
 
 document.querySelectorAll('.modal-veil').forEach(function (v) {
-    v.addEventListener('click', function (e) { if (e.target === v) v.classList.remove('open'); });
+    var startedOnVeil = false;
+    v.addEventListener('mousedown', function (e) {
+        startedOnVeil = (e.target === v);
+    });
+    v.addEventListener('click', function (e) {
+        if (startedOnVeil && e.target === v) {
+            v.classList.remove('open');
+            if (v.id === 'categoryModal' && typeof window.closeCategoryModal === 'function') {
+                window.closeCategoryModal();
+            } else if (v.id === 'editChannelModal' && typeof window.closeEditModal === 'function') {
+                window.closeEditModal();
+            }
+        }
+    });
 });
 
 document.addEventListener('keydown', function (e) {

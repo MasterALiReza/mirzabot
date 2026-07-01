@@ -1,7 +1,6 @@
 <?php
 // Buffer all output
 ob_start();
-session_start();
 require '../inc/config.php';
 require_once '../inc/icons.php';
 ob_end_clean();
