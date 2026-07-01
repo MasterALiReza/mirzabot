@@ -1690,6 +1690,7 @@
         padding-bottom: 12px !important;
         border-bottom: 1px solid var(--bd) !important;
         margin-bottom: 8px !important;
+        padding-left: 75px !important;
     }
     .tbl-wrap.dash-services td[data-label="کاربر"]::before {
         display: none !important;
@@ -2028,6 +2029,7 @@
         margin-bottom: 12px !important;
         padding-bottom: 12px !important;
         border-bottom: 1px dashed rgba(128,128,128,0.2) !important;
+        padding-left: 75px !important;
     }
 
     /* Service Type & Details */
@@ -2292,6 +2294,7 @@
         order: 1 !important;
         flex: 1 1 100% !important;
         width: 100% !important;
+        padding-left: 75px !important;
     }
     /* Product Name (Full Width) */
     .tbl-wrap.dash-orders td:nth-child(2) {
