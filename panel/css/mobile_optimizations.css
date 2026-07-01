@@ -2871,5 +2871,83 @@
     }
 }
 
+/* Mandatory channels table card optimization for mobile */
+@media (max-width: 768px) {
+    .dash-channels table {
+        min-width: 100% !important;
+        display: block !important;
+    }
+    .dash-channels thead {
+        display: none !important;
+    }
+    .dash-channels tbody {
+        display: block !important;
+        width: 100% !important;
+    }
+    .dash-channels tr {
+        display: flex !important;
+        flex-direction: column !important;
+        background: var(--sf) !important;
+        border: 1px solid var(--bd) !important;
+        border-radius: 14px !important;
+        padding: 14px !important;
+        margin-bottom: 12px !important;
+        gap: 10px !important;
+        position: relative !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.03) !important;
+        width: 100% !important;
+    }
+    .dash-channels td {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        border-bottom: 1px dashed var(--bd) !important;
+        padding: 8px 0 !important;
+        background: transparent !important;
+        font-size: 0.85rem !important;
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        text-align: left !important;
+    }
+    .dash-channels td:last-child {
+        border-bottom: none !important;
+        padding-bottom: 0 !important;
+    }
+    /* Set specific order for channels card cells */
+    .dash-channels td[data-label="#"] {
+        display: none !important; /* Hide row index to keep it clean */
+    }
+    .dash-channels td[data-label="نام کانال"] {
+        order: 1 !important;
+        justify-content: flex-start !important;
+        font-size: 1rem !important;
+        font-weight: 700 !important;
+        color: var(--text) !important;
+        border-bottom: 1px solid var(--bd) !important;
+        padding-bottom: 10px !important;
+        margin-bottom: 4px !important;
+    }
+    .dash-channels td[data-label="نام کانال"]::before {
+        display: none !important; /* Hide label since the text name is self-explanatory */
+    }
+    .dash-channels td[data-label="آیدی کانال"] {
+        order: 2 !important;
+    }
+    .dash-channels td[data-label="لینک جوین"] {
+        order: 3 !important;
+    }
+    .dash-channels td[data-label="عملیات"] {
+        order: 4 !important;
+        justify-content: flex-start !important;
+        background: rgba(128,128,128,0.02) !important;
+        padding: 8px 12px !important;
+        border-radius: 8px !important;
+        margin-top: 4px !important;
+    }
+    .dash-channels td[data-label="عملیات"]::before {
+        display: none !important;
+    }
+}
+
 
 

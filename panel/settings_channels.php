@@ -149,7 +149,7 @@ include __DIR__ . '/inc/layout_head.php';
                 <div class="tag tag-info"><?= count($channels) ?> کانال فعال</div>
             </div>
             
-            <div class="tbl-wrap">
+            <div class="tbl-wrap dash-channels">
                 <table class="table">
                     <thead>
                         <tr>
@@ -173,17 +173,17 @@ include __DIR__ . '/inc/layout_head.php';
                         <?php else: ?>
                             <?php foreach ($channels as $index => $ch): ?>
                                 <tr>
-                                    <td><?= $index + 1 ?></td>
-                                    <td style="font-weight: 600; color: var(--text);"><?= htmlspecialchars($ch['remark']) ?></td>
-                                    <td>
+                                    <td data-label="#" class="no-label"><?= $index + 1 ?></td>
+                                    <td data-label="نام کانال" style="font-weight: 600; color: var(--text);"><?= htmlspecialchars($ch['remark']) ?></td>
+                                    <td data-label="آیدی کانال">
                                         <span class="tag tag-plain" style="font-family: monospace; font-size: 0.85rem;" dir="ltr"><?= htmlspecialchars($ch['link']) ?></span>
                                     </td>
-                                    <td>
+                                    <td data-label="لینک جوین">
                                         <a href="<?= htmlspecialchars($ch['linkjoin']) ?>" target="_blank" class="btn-link" style="display: inline-flex; align-items: center; gap: 4px;" dir="ltr">
                                             <?= icon('link', 14) ?> <?= htmlspecialchars(strlen($ch['linkjoin']) > 30 ? substr($ch['linkjoin'], 0, 30) . '...' : $ch['linkjoin']) ?>
                                         </a>
                                     </td>
-                                    <td style="text-align: left;">
+                                    <td data-label="عملیات" style="text-align: left;">
                                         <div style="display: inline-flex; gap: 8px;">
                                             <button type="button" class="btn btn-sm btn-ghost btn-icon" title="ویرایش" 
                                                     onclick='openEditModal(<?= json_encode($ch, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) ?>)'>
