@@ -464,11 +464,12 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
     $stmt->execute([':id' => $from_id, ':bal' => $affiliate_balance]);
     
     if ($stmt->rowCount() > 0) {
-        $stmt = $pdo->prepare("INSERT INTO withdrawal_requests (user_id, amount, card_number, status, created_at) VALUES (:u, :a, :c, 'pending', :t)");
+        $stmt = $pdo->prepare("INSERT INTO withdrawal_requests (user_id, amount, card_number, card_name, status, time) VALUES (:u, :a, :c, :n, 'pending', :t)");
         $stmt->execute([
             ':u' => $from_id,
             ':a' => $affiliate_balance,
             ':c' => $card_number,
+            ':n' => 'وارد نشده',
             ':t' => date('Y-m-d H:i:s')
         ]);
 

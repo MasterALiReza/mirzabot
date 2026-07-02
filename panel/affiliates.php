@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && isset($_
 // Fetch pending withdrawals
 $pending_withdrawals = [];
 try {
-    $pending_withdrawals = db_fetchAll($pdo, "SELECT * FROM withdrawal_requests WHERE status = 'pending' ORDER BY created_at ASC");
+    $pending_withdrawals = db_fetchAll($pdo, "SELECT * FROM withdrawal_requests WHERE status = 'pending' ORDER BY time ASC");
 } catch (Exception $e) {}
 
 // Search and pagination logic

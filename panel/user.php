@@ -227,7 +227,7 @@ try {
 $withdrawals = [];
 $aff_logs = [];
 try {
-    $withdrawals = db_fetchAll($pdo, "SELECT * FROM withdrawal_requests WHERE user_id = ? ORDER BY created_at DESC", [$id]);
+    $withdrawals = db_fetchAll($pdo, "SELECT * FROM withdrawal_requests WHERE user_id = ? ORDER BY time DESC", [$id]);
     $aff_logs = db_fetchAll($pdo, "SELECT * FROM affiliate_log WHERE user_id = ? ORDER BY created_at DESC", [$id]);
 } catch (Exception $e) {
 }
