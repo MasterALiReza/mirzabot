@@ -484,6 +484,13 @@ if ($text == "/start" || $datain == "start" || $text == "start") {
     $amount = intval($user['Processing_value']);
     $card_number = $user['Processing_value_one'];
 
+    if ($amount < 50000 || !$card_number || strlen($card_number) != 16) {
+        sendmessage($from_id, "❌ خطا در پردازش درخواست. اطلاعات نامعتبر است. مجددا تلاش کنید.", $keyboard, 'HTML');
+        step('none', $from_id);
+        return;
+    }
+
+
     $aff_settings = select("affiliates", "*", null, null, "select");
     if (isset($aff_settings['withdrawal_status']) && $aff_settings['withdrawal_status'] === 'offwithdraw') {
         sendmessage($from_id, "❌ امکان ثبت درخواست تسویه در حال حاضر غیرفعال است.", $keyboard, 'HTML');

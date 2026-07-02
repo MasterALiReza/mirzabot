@@ -3332,18 +3332,22 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
             $photo_id = end($update['message']['photo'])['file_id'];
             
             // Mark as approved
-            $stmt = $pdo->prepare("UPDATE withdrawal_requests SET status = 'approved' WHERE id = ?");
+            $stmt = $pdo->prepare("UPDATE withdrawal_requests SET status = 'approved' WHERE id = ? AND status = 'pending'");
             $stmt->execute([$w_id]);
             
-            // Send to user
-            $caption = "✅ درخواست تسویه حساب شما به مبلغ " . number_format($w_req['amount']) . " تومان تایید و پرداخت شد.\nرسید پرداخت شما ضمیمه شده است.";
-            telegram('sendPhoto', [
-                'chat_id' => $w_req['user_id'],
-                'photo' => $photo_id,
-                'caption' => $caption
-            ]);
-            
-            sendmessage($from_id, "رسید با موفقیت برای کاربر ارسال شد و وضعیت به پرداخت شده تغییر یافت.", $keyboardadmin, 'HTML');
+            if ($stmt->rowCount() > 0) {
+                // Send to user
+                $caption = "✅ درخواست تسویه حساب شما به مبلغ " . number_format($w_req['amount']) . " تومان تایید و پرداخت شد.\nرسید پرداخت شما ضمیمه شده است.";
+                telegram('sendPhoto', [
+                    'chat_id' => $w_req['user_id'],
+                    'photo' => $photo_id,
+                    'caption' => $caption
+                ]);
+                
+                sendmessage($from_id, "رسید با موفقیت برای کاربر ارسال شد و وضعیت به پرداخت شده تغییر یافت.", $keyboardadmin, 'HTML');
+            } else {
+                sendmessage($from_id, "خطا: این درخواست قبلا توسط شخص دیگری بررسی شده است.", $keyboardadmin, 'HTML');
+            }
             step('none', $from_id);
         } else {
             sendmessage($from_id, "این درخواست قبلا بررسی شده است.", $keyboardadmin, 'HTML');
@@ -3365,20 +3369,24 @@ elseif (preg_match('/sendmessageuser_(\w+)/', $datain, $dataget)) {
         $w_req = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if ($w_req && $w_req['status'] === 'pending') {
-            // Refund user
-            $stmt = $pdo->prepare("UPDATE user SET affiliate_balance = affiliate_balance + ? WHERE id = ?");
-            $stmt->execute([$w_req['amount'], $w_req['user_id']]);
-            
             // Mark as rejected
-            $stmt = $pdo->prepare("UPDATE withdrawal_requests SET status = 'rejected' WHERE id = ?");
+            $stmt = $pdo->prepare("UPDATE withdrawal_requests SET status = 'rejected' WHERE id = ? AND status = 'pending'");
             $stmt->execute([$w_id]);
             
-            // Send to user
-            $reason = htmlspecialchars($text);
-            $msg = "❌ درخواست تسویه حساب شما به مبلغ " . number_format($w_req['amount']) . " تومان رد شد و مبلغ به کیف پول پورسانت شما بازگشت داده شد.\n\nدلیل: $reason";
-            sendmessage($w_req['user_id'], $msg, null, 'HTML');
-            
-            sendmessage($from_id, "دلیل رد برای کاربر ارسال شد و مبلغ به کیف پول او بازگشت.", $keyboardadmin, 'HTML');
+            if ($stmt->rowCount() > 0) {
+                // Refund user
+                $stmt = $pdo->prepare("UPDATE user SET affiliate_balance = affiliate_balance + ? WHERE id = ?");
+                $stmt->execute([$w_req['amount'], $w_req['user_id']]);
+                
+                // Send to user
+                $reason = htmlspecialchars($text);
+                $msg = "❌ درخواست تسویه حساب شما به مبلغ " . number_format($w_req['amount']) . " تومان رد شد و مبلغ به کیف پول پورسانت شما بازگشت داده شد.\n\nدلیل: $reason";
+                sendmessage($w_req['user_id'], $msg, null, 'HTML');
+                
+                sendmessage($from_id, "دلیل رد برای کاربر ارسال شد و مبلغ به کیف پول او بازگشت.", $keyboardadmin, 'HTML');
+            } else {
+                sendmessage($from_id, "خطا: این درخواست قبلاً توسط شخص دیگری بررسی شده است.", $keyboardadmin, 'HTML');
+            }
             step('none', $from_id);
         } else {
             sendmessage($from_id, "این درخواست قبلا بررسی شده است.", $keyboardadmin, 'HTML');

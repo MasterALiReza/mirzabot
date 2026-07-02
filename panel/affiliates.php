@@ -33,18 +33,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && isset($_
         $w_req = db_fetch($pdo, "SELECT * FROM withdrawal_requests WHERE id = ?", [$w_id]);
         if ($w_req && $w_req['status'] === 'pending') {
             if ($action === 'approve') {
-                db_query($pdo, "UPDATE withdrawal_requests SET status = 'approved' WHERE id = ?", [$w_id]);
-                // Send telegram message to user
-                $msg = "✅ درخواست تسویه حساب شما به مبلغ " . number_format($w_req['amount']) . " تومان تایید و پرداخت شد.";
-                file_get_contents("https://api.telegram.org/bot{$APIKEY}/sendMessage?chat_id={$w_req['user_id']}&text=" . urlencode($msg));
-                $_SESSION['msg'] = 'درخواست تایید شد.';
+                $stmt = db_query($pdo, "UPDATE withdrawal_requests SET status = 'approved' WHERE id = ? AND status = 'pending'", [$w_id]);
+                if ($stmt->rowCount() > 0) {
+                    // Send telegram message to user
+                    $msg = "✅ درخواست تسویه حساب شما به مبلغ " . number_format($w_req['amount']) . " تومان تایید و پرداخت شد.";
+                    file_get_contents("https://api.telegram.org/bot{$APIKEY}/sendMessage?chat_id={$w_req['user_id']}&text=" . urlencode($msg));
+                    $_SESSION['msg'] = 'درخواست تایید شد.';
+                } else {
+                    $_SESSION['err'] = 'خطا: درخواست قبلا توسط شخص دیگری بررسی شده است.';
+                }
             } elseif ($action === 'reject') {
-                // Refund to affiliate balance
-                db_query($pdo, "UPDATE user SET affiliate_balance = affiliate_balance + ? WHERE id = ?", [$w_req['amount'], $w_req['user_id']]);
-                db_query($pdo, "UPDATE withdrawal_requests SET status = 'rejected' WHERE id = ?", [$w_id]);
-                $msg = "❌ درخواست تسویه حساب شما به مبلغ " . number_format($w_req['amount']) . " تومان رد شد و مبلغ به کیف پول پورسانت شما بازگشت داده شد.";
-                file_get_contents("https://api.telegram.org/bot{$APIKEY}/sendMessage?chat_id={$w_req['user_id']}&text=" . urlencode($msg));
-                $_SESSION['err'] = 'درخواست رد شد.';
+                $stmt = db_query($pdo, "UPDATE withdrawal_requests SET status = 'rejected' WHERE id = ? AND status = 'pending'", [$w_id]);
+                if ($stmt->rowCount() > 0) {
+                    // Refund to affiliate balance
+                    db_query($pdo, "UPDATE user SET affiliate_balance = affiliate_balance + ? WHERE id = ?", [$w_req['amount'], $w_req['user_id']]);
+                    $msg = "❌ درخواست تسویه حساب شما به مبلغ " . number_format($w_req['amount']) . " تومان رد شد و مبلغ به کیف پول پورسانت شما بازگشت داده شد.";
+                    file_get_contents("https://api.telegram.org/bot{$APIKEY}/sendMessage?chat_id={$w_req['user_id']}&text=" . urlencode($msg));
+                    $_SESSION['err'] = 'درخواست رد شد.';
+                } else {
+                    $_SESSION['err'] = 'خطا: درخواست قبلا توسط شخص دیگری بررسی شده است.';
+                }
             }
         }
     } catch (Exception $e) {}
